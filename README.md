@@ -5,9 +5,6 @@ maintains, organizes, and keeps track of chores to help me manage my chore workl
 board with quests posted on it that each help do a chore
 quest = paper with required actions listed, upon completion of set action promises a reward typically virtual currency
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
 ## quest based system
 
 user generated quest
@@ -22,12 +19,11 @@ user generated quest
 - subquests
 - chore turns into new quest added to quest board
 
-## Expanding the ESLint configuration
+## components
 
 - board: freely rearrange quests, visible information (name, difficulty, time left), select quest to expand details (instructions/description, subquest, etc)
 - quest page: expand information, edit information, accept/delete quest
 - accept quest: adds quest to dashboard as active quest
-
 - system generated quests: notification about quest issue pops up, accept (quest added to dashboard), defer (quest added to quest board) or reject
   - reoccurring quests (e.g. weekly dishes)
   - seasonal quests (e.g. spring cleaning, set clocks for daylight savings)
