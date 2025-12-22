@@ -1,73 +1,36 @@
-# React + TypeScript + Vite
+# questboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+maintains, organizes, and keeps track of chores to help me manage my chore workload
 
-Currently, two official plugins are available:
+board with quests posted on it that each help do a chore
+quest = paper with required actions listed, upon completion of set action promises a reward typically virtual currency
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## React Compiler
+## quest based system
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+user generated quest
+
+- input chore
+- category: cooking, cleaning, etc (user created tags)
+- difficulty: easy, medium, hard
+- priority: high/urgent, low/flexible
+- frequency: one time, daily, weekly, monthly, custom
+- time duration
+- deadline
+- subquests
+- chore turns into new quest added to quest board
 
 ## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- board: freely rearrange quests, visible information (name, difficulty, time left), select quest to expand details (instructions/description, subquest, etc)
+- quest page: expand information, edit information, accept/delete quest
+- accept quest: adds quest to dashboard as active quest
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- system generated quests: notification about quest issue pops up, accept (quest added to dashboard), defer (quest added to quest board) or reject
+  - reoccurring quests (e.g. weekly dishes)
+  - seasonal quests (e.g. spring cleaning, set clocks for daylight savings)
+  - customized/personalized quests (e.g. bake dessert with chocolate if skill proficiency in baking is about to increase, introduce new branch like create own jam/syrup and after leveling baking skill, canning/preservation skill branches)
+- quest templates: use pre-set templates for common chores, reissue past chore
+- quest completion: completion marked, reward (currency/item) on quest awarded, exp for skill awarded
