@@ -1,16 +1,13 @@
-import './App.css'
+import { Scene } from './components/Scene'
+import { OverlayManager } from './components/OverlayManager'
 
 function App() {
 
   return (
-    <>
-      <div>
-      </div>
-      <h1>questboard</h1>
-      <p>
-        in progress
-      </p>
-    </>
+    <div style={{ width:"100vw", height:"100vh" }}>
+      <Scene />
+      <OverlayManager />
+    </div>
   )
 }
 
