@@ -5,13 +5,21 @@ type NameProps = {
 }
 
 export default function Name({
-  position,
+  position = [0, 1.5, 0],
 } : NameProps){
 
   return(
-    <Html className="name" position={position}>
-      <div>donna</div>
-      <div>amateur stewer</div>
+    <Html 
+    position={position}
+    transform
+    className="name" 
+    wrapperClass="name-wrapper"
+    center
+    >
+      <div className="name-container">
+        <div className="name-text">donna</div>
+        <div className="name-title">amateur stewer</div>
+      </div>
     </Html>
   )
 }

@@ -1,12 +1,12 @@
-import { useOverlay } from "../types/overlay";
+import { useOverlay } from "../../types/overlay";
 
-export function Settings(){
+export function SkillTree(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);
 
   return(
     <div className="overlay">
       <button onClick={closeOverlay}>close</button>
-      <h2>settings</h2>
+      <h2>skill tree</h2>
     </div>
   )
 }

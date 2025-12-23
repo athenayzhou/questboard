@@ -4,8 +4,9 @@ import { OverlayManager } from './components/OverlayManager'
 function App() {
 
   return (
-    <div style={{ width:"100vw", height:"100vh" }}>
+    <div id="root">
       <Scene />
+      <div id="html-layer" />
       <OverlayManager />
     </div>
   )

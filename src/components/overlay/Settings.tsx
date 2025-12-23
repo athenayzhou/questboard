@@ -1,12 +1,12 @@
-import { useOverlay } from "../types/overlay";
+import { useOverlay } from "../../types/overlay";
 
-export function Profile(){
+export function Settings(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);
 
   return(
     <div className="overlay">
       <button onClick={closeOverlay}>close</button>
-      <h2>profile</h2>
+      <h2>settings</h2>
     </div>
   )
 }

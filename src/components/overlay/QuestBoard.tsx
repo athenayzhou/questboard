@@ -1,4 +1,4 @@
-import { useOverlay } from "../types/overlay";
+import { useOverlay } from "../../types/overlay";
 
 export function QuestBoard() {
   const closeOverlay = useOverlay((s) => s.closeOverlay);

@@ -1,9 +1,9 @@
 import { useOverlay } from "../types/overlay";
-import { Profile } from "./Profile";
-import { QuestBoard } from "./QuestBoard";
-import { FriendsList } from "./FriendsList";
-import { SkillTree } from "./SkillTree";
-import { Settings } from "./Settings";
+import { Profile } from "./overlay/Profile";
+import { QuestBoard } from "./overlay/QuestBoard";
+import { FriendsList } from "./overlay/FriendsList";
+import { SkillTree } from "./overlay/SkillTree";
+import { Settings } from "./overlay/Settings";
 
 export function OverlayManager(){
   const activeOverlay = useOverlay((s)=>s.activeOverlay);
