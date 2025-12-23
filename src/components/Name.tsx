@@ -8,12 +8,16 @@ export default function Name({
   position = [0, 1.5, 0],
 } : NameProps){
 
+  const htmlPortal = document.getElementById("html-layer");
+  if(!htmlPortal) return null;
+
   return(
     <Html 
     position={position}
     transform
     className="name" 
     wrapperClass="name-wrapper"
+    portal={{ current: htmlPortal }}
     center
     >
       <div className="name-container">

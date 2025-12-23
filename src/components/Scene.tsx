@@ -1,5 +1,5 @@
 import { Canvas } from "@react-three/fiber"
-import { OrthographicCamera, OrbitControls } from "@react-three/drei"
+import { OrthographicCamera, OrbitControls, Environment } from "@react-three/drei"
 import { Model } from "./Model";
 
 import Name from "./Name"
@@ -21,21 +21,35 @@ export function Scene() {
           enablePan
           panSpeed={0.5}
         />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[5, 10, 5]} intensity={1}/>
+        <Environment preset="apartment" />
+        <ambientLight intensity={1} />
+        {/* <directionalLight position={[5, 10, 5]} intensity={1}/> */}
+        {/* <directionalLight color="white" position={[-10, 0, 20]} intensity={1} /> */}
+        <directionalLight color="#ffffff" position={[55, 0, 5]} intensity={1} />
 
-        <Name position={[-15,0,1]} />
+
+        <Name position={[-10,5,10]} />
         
         {/* ground */}
-        <mesh position={[0, 0, -1]} rotation={[-Math.PI/2, 0, 0]} >
-          <planeGeometry args={[20, 20]} />
+        <mesh position={[0, 0.1, 0]} rotation={[-Math.PI/2, 0, 0]} >
+          <planeGeometry args={[200, 200]} />
           <meshStandardMaterial color="lightgrey" />
         </mesh>
+
+        {/* kitchen */}
+        <Model 
+          src="./kitchen.glb"
+          position={[0, 0, 0]}
+          scale={1}
+          // overlay="settings"
+          // label="Settings"
+        />
 
         {/* profile */}
         <Model 
           src="./mirror.glb"
-          position={[-2, 0, 0]}
+          position={[-3, 2, 3]}
+          rotation={[0, Math.PI/2, 0]}
           scale={5}
           overlay="profile"
           label="Profile"
@@ -44,7 +58,7 @@ export function Scene() {
         {/* quest board */}
         <Model 
           src="./bulletin.glb"
-          position={[-8, 0, 2]}
+          position={[-7, 0, 6]}
           rotation={[0, Math.PI/2, 0]}
           scale={1}
           overlay="quests"
@@ -54,7 +68,8 @@ export function Scene() {
         {/* friends list */}
         <Model 
           src="./phone.glb"
-          position={[1, 0, 0]}
+          position={[-2.9, 2.7, -2.9]}
+          rotation={[0,0.7,0]}
           scale={0.5}
           overlay="friends"
           label="Friends List"
@@ -63,7 +78,8 @@ export function Scene() {
         {/* skill tree */}
         <Model 
           src="./bonsai.glb"
-          position={[3, 0, 0]}
+          position={[1, 1.85, 2.3]}
+          rotation={[0,Math.PI/2,0]}
           scale={2}
           overlay="skills"
           label="Skill Tree"
@@ -72,7 +88,7 @@ export function Scene() {
         {/* settings */}
         <Model 
           src="./toolbox.glb"
-          position={[5, 0, 0]}
+          position={[2.6, 4.3, -3]}
           scale={0.75}
           overlay="settings"
           label="Settings"

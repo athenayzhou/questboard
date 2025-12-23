@@ -36,11 +36,11 @@ export function Model({
       <primitive scale={scale} object={scene} />
       {label && htmlPortal && (
         <Html 
-          position={[0, 2, 0]} 
+          position={[0, 1.5, 0]} 
           portal={{ current: htmlPortal }}
           transform
           center
-          distanceFactor={8}
+          distanceFactor={5}
           wrapperClass="label-wrapper"
           >
           <div className="label">
