@@ -1,28 +1,39 @@
 type QuestAction = {
-  id: string
-  text: string
-  completed: boolean
+  id: string;
+  title: string;
+  completed: boolean;
 }
 
 type QuestReward = {
-  coins?: number
-  exp?: number
-  items?: string[]
+  xp?: number;
+  currency?: number;
+  items?: string[];
 }
 
-type Quest = {
-  id: string
-  title: string
-  description?: string
-  category?: string[]
-  difficulty: "easy"|"medium"|"hard"
-  priority?: "high"|"low"
-  frequency?: "once"|"daily"|"weekly"|"monthly"|"custom"
-  duration?: number
-  deadline?: Date
+type QuestBase = {
+  id: string;
+  title: string;
+  description?: string;
+  category?: string[];
+  difficulty: "easy"|"medium"|"hard";
+  priority?: "high"|"low";
+  frequency?: "once"|"daily"|"weekly"|"monthly"|"custom";
+  duration?: number;
+  deadline?: string|null;
   subquests?: QuestAction[]
   reward?: QuestReward
-  status: "available"|"accepted"|"completed"
-  createdAt: number
-  updatedAt?: number
+  createdAt: number;
+  x?: number;
+  y?: number;
+  zIndex?: number;
 }
+
+export type Quest = 
+  | (QuestBase & {
+    status: "available" | "accepted";
+    completedAt: null;
+    })
+  | (QuestBase & {
+    status: "completed" | "failed";
+    completedAt: number;
+    })

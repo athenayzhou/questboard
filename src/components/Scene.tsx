@@ -1,34 +1,55 @@
-import { Canvas } from "@react-three/fiber"
+import { useThree } from "@react-three/fiber"
 import { OrthographicCamera, OrbitControls, Environment } from "@react-three/drei"
 import { Model } from "./Model";
+import { useRef, useEffect } from "react";
 
 import Name from "./Name"
 
-export function Scene() {
+export function Scene({ 
+  orbitEnabled,
+  resetCamera,
+ } : { 
+  orbitEnabled: boolean
+  resetCamera: boolean 
+}) {
+  const controlsRef = useRef<any>(null);
+  const { camera } = useThree();
+
+  useEffect(() => {
+    if(!controlsRef.current) return;
+    if(!resetCamera) return;
+
+    if(!orbitEnabled){
+      camera.position.set(6, 6, 6);
+      controlsRef.current.target.set(0,0,0);
+      controlsRef.current.update();
+      // controlsRef.current.saveState();
+    }
+  }, [resetCamera, camera]);
+
+  useEffect(() => {
+    if(!controlsRef.current) return;
+    controlsRef.current.enabled = orbitEnabled
+  }, [orbitEnabled]);
 
   return (
-    <div id="root">
-      <Canvas resize={{ scroll: false }} >
-        <OrthographicCamera makeDefault
+    <>
+        <OrthographicCamera 
+          makeDefault
           zoom={50}
           position={[10, 10, 10]}
           rotation={[-Math.atan(1/Math.sqrt(2)),Math.PI/4,0]}
           onUpdate={(cam)=>cam.updateProjectionMatrix()}
         />
         <OrbitControls 
-          // enableRotate={false}
-          // enableZoom={false} 
-          enablePan
           panSpeed={0.5}
+          ref={controlsRef}
         />
         <Environment preset="apartment" />
         <ambientLight intensity={1} />
-        {/* <directionalLight position={[5, 10, 5]} intensity={1}/> */}
-        {/* <directionalLight color="white" position={[-10, 0, 20]} intensity={1} /> */}
         <directionalLight color="#ffffff" position={[55, 0, 5]} intensity={1} />
 
-
-        <Name position={[-10,5,10]} />
+        <Name position={[-5,4,5]} />
         
         {/* ground */}
         <mesh position={[0, 0.1, 0]} rotation={[-Math.PI/2, 0, 0]} >
@@ -39,7 +60,7 @@ export function Scene() {
         {/* kitchen */}
         <Model 
           src="./kitchen.glb"
-          position={[0, 0, 0]}
+          position={[2.5, 0, 2.5]}
           scale={1}
           // overlay="settings"
           // label="Settings"
@@ -48,9 +69,9 @@ export function Scene() {
         {/* profile */}
         <Model 
           src="./mirror.glb"
-          position={[-3, 2, 3]}
+          position={[-1.25, 4, 5.5]}
           rotation={[0, Math.PI/2, 0]}
-          scale={5}
+          scale={[1,0.7,1]}
           overlay="profile"
           label="Profile"
         />
@@ -58,17 +79,27 @@ export function Scene() {
         {/* quest board */}
         <Model 
           src="./bulletin.glb"
-          position={[-7, 0, 6]}
+          position={[-4.5, 0, 8.5]}
           rotation={[0, Math.PI/2, 0]}
           scale={1}
           overlay="quests"
           label="Quest Board"
         />
 
+        {/* quest log */}
+        <Model 
+          src="./notebook.glb"
+          position={[3.5, 1.9, 3.5]}
+          rotation={[0,Math.PI/2,0]}
+          scale={[0.05, 0.05, 0.04]}
+          overlay="log"
+          label="Quest Log"
+        />
+
         {/* friends list */}
         <Model 
           src="./phone.glb"
-          position={[-2.9, 2.7, -2.9]}
+          position={[-0.4, 2.7, -0.4]}
           rotation={[0,0.7,0]}
           scale={0.5}
           overlay="friends"
@@ -78,7 +109,7 @@ export function Scene() {
         {/* skill tree */}
         <Model 
           src="./bonsai.glb"
-          position={[1, 1.85, 2.3]}
+          position={[3.5, 1.85, 5.8]}
           rotation={[0,Math.PI/2,0]}
           scale={2}
           overlay="skills"
@@ -88,13 +119,11 @@ export function Scene() {
         {/* settings */}
         <Model 
           src="./toolbox.glb"
-          position={[2.6, 4.3, -3]}
+          position={[5.1, 4.3, -0.5]}
           scale={0.75}
           overlay="settings"
           label="Settings"
         />
-
-      </Canvas>
-    </div>
+    </>
   )
 }

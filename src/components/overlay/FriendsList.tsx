@@ -6,7 +6,7 @@ export function FriendsList(){
 
   return(
     <div className="overlay friends-overlay">
-      <div className="friends-header">
+      <div className="header friends-header">
         <h1>friends list</h1>
         <div className="header-actions">
           <button className="add-friend-btn">+ friend</button>
