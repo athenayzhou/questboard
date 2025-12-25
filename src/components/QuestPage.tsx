@@ -1,22 +1,68 @@
 import type { Quest } from "../types/quest";
+// import type { CSSProperties } from "react";
+import { useRef } from "react";
+import { createPortal } from "react-dom";
 
 type QuestPageProps = {
   quest: Quest;
+  x: number;
+  y: number;
+  z: number;
   onAccept?: () => void;
   onClose: () => void;
+  onFocus: () => void;
+  onMove: (x: number, y: number) => void
+  // style?: CSSProperties;
 };
 
 export function QuestPage({ 
   quest,
+  x,
+  y,
+  z,
   onAccept,
   onClose, 
+  onFocus,
+  onMove,
 } : QuestPageProps) {
+  const dragOffset = useRef<{ x: number; y: number } | null>(null);
 
-  return (
-    <div className="overlay quest-page-overlay">
-      <header className="quest-page-header">
-        <button onClick={onClose}>back</button>
+  function onMouseDown(e: React.MouseEvent) {
+    onFocus();
+    dragOffset.current = {
+      x: e.clientX - x,
+      y: e.clientY - y,
+    };
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  }
+  function onMouseMove(e: MouseEvent) {
+    if(!dragOffset.current) return;
+    onMove(
+      e.clientX - dragOffset.current.x,
+      e.clientY - dragOffset.current.y,
+    );
+  }
+  function onMouseUp(){
+    dragOffset.current = null;
+    window.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener("mouseup", onMouseUp);
+  }
+
+  return createPortal (
+    <div 
+      className="quest-page"
+      style={{
+        position: "absolute",
+        left: x,
+        top: y,
+        zIndex: z,
+      }}
+      onMouseDown={onFocus}
+    >
+      <header className="quest-page-header" onMouseDown={onMouseDown}>
         <h2>{quest.title}</h2>
+        <button onClick={onClose}>x</button>
       </header>
 
       {quest.category && (
@@ -74,7 +120,8 @@ export function QuestPage({
         )}
       </footer>
 
-    </div>
+    </div>,
+    document.getElementById("windows")!
   )
 }
 

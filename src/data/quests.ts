@@ -118,4 +118,20 @@ export const quests: Quest[] = [
     createdAt: Date.now(),
     completedAt: Date.now(),
   },
+  {
+    id: "quest-cook-dinner-1",
+    title: "cook dinner",
+    category: ["cooking", "kitchen"],
+    difficulty: "medium",
+    priority: "low",
+    frequency: "daily",
+    duration: 45,
+    reward: {
+      xp: 10,
+      currency: 5,
+    },
+    status: "completed",
+    createdAt: Date.now(),
+    completedAt: Date.now(),
+  },
 ]

@@ -156,27 +156,45 @@ canvas {
 .quests-overlay {
   margin: 0 auto;
 }
-.quest-page-overlay{
+
+#windows {
   position: fixed;
-  top: 50px;
-  right: -500px;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+.quest-page {
   width: 30%;
   height: 60%;
   margin: auto;
   border-left: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 30px;
-  /* background-image: url('./page.png'); */
+
+  /* background-image: url('./page.png');
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
-  /* background-color: rgba(0,0,0,0.5); */
+  background-repeat: no-repeat; */
+
+  background-color: rgba(0,0,0,0.5);
   background-blend-mode: overlay;
   padding: 16px;
-  /* color: rgba(34,17,34); */
   color: white;
+
+  background: var(--panel);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+  user-select: none;
+  position: absolute;
+  pointer-events: auto;
 }
-/* .quest-header{
-} */
+.quest-header{
+  cursor: grab;
+  padding: 12px;
+  background: var(--panel-header);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.quest-header:active {
+  cursor: grabbing;
+}
 .quest-card {
   background: #111;
   border-radius: 12px;
@@ -237,6 +255,7 @@ button.accept {
 .difficulty.hard {
   color: #fca5a5
 }
+
 
 
 
