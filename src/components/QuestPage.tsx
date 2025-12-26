@@ -1,7 +1,7 @@
 import type { Quest } from "../types/quest";
-// import type { CSSProperties } from "react";
 import { useRef } from "react";
 import { createPortal } from "react-dom";
+import { Detail } from "./ui/Detail";
 
 type QuestPageProps = {
   quest: Quest;
@@ -11,8 +11,7 @@ type QuestPageProps = {
   onAccept?: () => void;
   onClose: () => void;
   onFocus: () => void;
-  onMove: (x: number, y: number) => void
-  // style?: CSSProperties;
+  onMove: (x: number, y: number) => void;
 };
 
 export function QuestPage({ 
@@ -73,12 +72,12 @@ export function QuestPage({
         </div>
       )}
 
-      <section className="quest-meta">
-        <Meta label="difficulty" value={quest.difficulty} />
-        {quest.priority && <Meta label="priority" value={quest.priority} />}
-        {quest.frequency && <Meta label="frequency" value={quest.frequency} />}
-        {quest.duration && <Meta label="duration" value={`${quest.duration} min`} />}
-        {quest.deadline && <Meta label="deadline" value={new Date(quest.deadline).toLocaleDateString()} />}
+      <section className="quest-details">
+        <Detail label="difficulty" value={quest.difficulty} />
+        {quest.priority && <Detail label="priority" value={quest.priority} />}
+        {quest.frequency && <Detail label="frequency" value={quest.frequency} />}
+        {quest.duration && <Detail label="duration" value={`${quest.duration} min`} />}
+        {quest.deadline && <Detail label="deadline" value={new Date(quest.deadline).toLocaleDateString()} />}
       </section>
 
       {quest.subquests && quest.subquests.length > 0 && (
@@ -122,20 +121,5 @@ export function QuestPage({
 
     </div>,
     document.getElementById("windows")!
-  )
-}
-
-function Meta({ 
-  label, 
-  value 
-}: {
-  label: string;
-  value: string;
-}) {
-  return(
-    <div className="meta-row">
-      <span className="meta-label">{label}</span>
-      <span className="meta-value">{value}</span>
-    </div>
   )
 }

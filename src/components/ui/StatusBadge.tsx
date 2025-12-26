@@ -8,16 +8,8 @@ export function StatusBadge({
 StatusProps
 ) {
   return(
-    <span className={`status ${status}`}>
+    <span className={`quest-status ${status}`}>
       {status === "completed" ? "✓ completed" : "✕ failed"}
     </span>
   )
 }
-
-// function StatusBadge({
-//   status,
-// } : { status: "available" | "accepted" | "completed" | "failed" }){
-//   return(
-
-//   )
-// }

@@ -1,0 +1,41 @@
+.overlay {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width: 80%;
+  height: 80%;
+  /* background: rgba(0,0,0,0.5); */
+  /* color: white; */
+  padding: 20px;
+  /* border-radius: 10px; */
+  overflow-y: auto;
+  z-index: 100;
+  pointer-events: auto;
+  
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(6px);
+  color: white;
+  white-space: nowrap;
+  box-shadow:
+    0 2px 8px rgba(0,0,0, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+.header-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.tag {
+  background: #222;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}

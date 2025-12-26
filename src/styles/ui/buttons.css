@@ -1,0 +1,39 @@
+button.close {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  white-space: nowrap;
+}
+/* .quest-btn{} */
+/* .log-btn {} */
+/* .friend-btn {} */
+button.accept {
+  width: 100%;
+}
+
+
+/* ACTIVE QUESTS */
+/* .pin-btn{} */
+/* .collapse-btn{} */
+
+
+/*  QUEST BOARD  */
+/* .add-quest-btn{} */
+
+
+/*  FRIEND LIST  */
+ .add-friend-btn {
+  width: auto;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  white-space: nowrap;
+}

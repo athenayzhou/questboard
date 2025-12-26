@@ -1,0 +1,40 @@
+/* STATUS BADGE */
+
+.quest-status.completed {
+  color: green;
+}
+.quest-status.failed {
+  color: red;
+}
+
+
+/* DIFFICULTY BADGE */
+
+.difficulty.easy {
+  color: #6ee7b7
+}
+.difficulty.medium {
+  color: #fde68a
+}
+.difficulty.hard {
+  color: #fca5a5
+}
+
+
+/* FRIEND STATUS */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 0.5px black solid;
+}
+.status-dot.online {
+  background: #4ade80;
+}
+.status-dot.offline {
+  background: #6b7280;
+}
+.status-dot.idle {
+  background: #facc15;
+}
+/* .status-text {} */

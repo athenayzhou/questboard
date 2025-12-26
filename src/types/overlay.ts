@@ -13,21 +13,22 @@ type OverlayState = {
   activeOverlay: OverlayType;
   openOverlay: (type: OverlayType) => void;
   closeOverlay: () => void;
-  // selectedQuestId: string | null;
-  // selectQuest: (id:string | null) => void;
+
   openQuestPages: QuestPage[];
   openQuest: (id: string) => void;
   closeQuest: (id: string) => void;
   bringToFront: (id: string) => void;
   moveQuest: (id: string, x: number, y: number) => void;
+
+  pinnedQuestIds: string[];
+  togglePin: (id: string) => void;
 }
 
 export const useOverlay = create<OverlayState>((set, get) => ({
   activeOverlay: null,
   openOverlay: (type) => set({ activeOverlay: type }),
   closeOverlay: () => set({ activeOverlay: null }),
-  // selectedQuestId: null,
-  // selectQuest: (id) => set({ selectedQuestId: id }),
+  
   openQuestPages: [],
   openQuest: (id) => 
     set((s) => {
@@ -63,5 +64,15 @@ export const useOverlay = create<OverlayState>((set, get) => ({
       openQuestPages: s.openQuestPages.map((q) =>
         q.id === id ? { ...q, x, y } : q
       )
-    }))
-}))
+    })),
+
+  pinnedQuestIds: [],
+  togglePin: (id) => 
+    set((s) => ({
+      pinnedQuestIds: s.pinnedQuestIds.includes(id)
+      ? s.pinnedQuestIds.filter(q => q !== id)
+      : [...s.pinnedQuestIds,id],
+    })),
+
+
+}));

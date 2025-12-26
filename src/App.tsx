@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { OrbitToggle } from './components/OrbitToggle';
 import { useOverlay } from './types/overlay';
 import { Canvas } from '@react-three/fiber';
+import { ActiveQuest } from './components/ActiveQuests';
 
 function App() {
   const [orbitUser, setOrbitUser] = useState(true);
@@ -19,6 +20,7 @@ function App() {
       </Canvas>
       <OrbitToggle enabled={orbitUser} toggle={()=> setOrbitUser(v=> !v)} />
       <div id="html-layer" />
+      <ActiveQuest />
       <OverlayManager />
       <div id="windows" />
     </div>

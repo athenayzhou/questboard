@@ -1,0 +1,70 @@
+/*  FRIENDS LIST  */
+
+.friends-overlay {
+  padding: 12px;
+}
+/* .friends-header {} */
+.friends-list {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 15px;
+}
+.friend-card{
+  flex: 0 0 275px;
+  height: 400px;
+  padding: 10px 25px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: right;
+  background: rgba(255, 255, 255, 0.3);
+  scroll-snap-align: start;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.friend-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.4);
+}
+.friend-info {
+  text-align: center;
+}
+.friend-name {
+  font-size: 30px;
+  font-weight: 400;
+}
+.friend-title {
+  font-size: 18px;
+  opacity: 0.7;
+  margin-top: 1px;
+  margin-bottom: 5px;
+}
+.friend-avatar {
+  width: 100%;
+  height: 120px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: rgba(0, 0, 0, 0,2);
+}
+.friend-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.04)
+    );
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+.friend-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  margin-bottom: 35px;
+  margin-left: 15px;
+}

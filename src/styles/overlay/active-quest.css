@@ -1,0 +1,70 @@
+/*  ACTIVE QUEST  */
+
+.active-quest-panel {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 260px;
+  height: auto;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px 0 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  display: flex;
+  z-index: 200;
+  transition: transform 0.3s ease;
+}
+.active-quest-panel.collapsed {
+  transform: translate(calc(100% - 32px), -50%);
+}
+.active-quest-handle {
+  width: 32px;
+  min-width: 32px;
+  background: rgba(0,0,0,0.4);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px 0 0 10px;
+}
+.active-quest {
+  flex: 1;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.active-quest-title{
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+.active-quest-list{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.active-quest-item {
+  background: #222;
+  border-radius: 6px;
+  padding: 6px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.active-quest-item:hover{
+  background: rgba(255,255,255,0.12);
+}
+.active-quest-item .title{
+  font-size: 13px;
+}
+.active-quest-item .difficulty{
+  font-size: 10px;
+  opacity: 0.7;
+}

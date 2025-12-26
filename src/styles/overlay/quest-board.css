@@ -1,0 +1,104 @@
+/*  QUEST BOARD  */
+
+.quests-overlay {
+  margin: 0 auto;
+}
+/* .quest-header{} */
+/* .quest-board{} */
+/* .quest-page-card{} */
+#windows {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+
+/*  BOARD CARD  */
+
+.quest-card {
+  background: #111;
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.quest-card:hover {
+  background: #1a1a1a;
+  transform: translateY(-2px);
+}
+.quest-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+/* .quest-card-title{} */
+.quest-card-meta {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+/* .quest-duration{} */
+.quest-deadline {
+  color: #f87171;
+}
+.quest-tags {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.subtle {
+  opacity: 0.6;
+  font-size: 11px;
+}
+
+
+
+
+
+/*  QUEST PAGE  */
+
+.quest-page {
+  width: 30%;
+  height: 60%;
+  margin: auto;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 30px;
+
+  /* background-image: url('./page.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat; */
+
+  background-color: rgba(0,0,0,0.5);
+  background-blend-mode: overlay;
+  padding: 16px;
+  color: white;
+
+  background: var(--panel);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+  user-select: none;
+  position: absolute;
+  pointer-events: auto;
+}
+.quest-page-header{
+  cursor: grab;
+  padding: 12px;
+  background: var(--panel-header);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.quest-header:active {
+  cursor: grabbing;
+}
+.quest-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.quest-subquests ul {
+  list-style: none;
+  padding: 0;
+}
+/* .quest-rewards{} */
+/* .quest-actions{} */
