@@ -62,8 +62,6 @@ export function Scene({
           src="./kitchen.glb"
           position={[2.5, 0, 2.5]}
           scale={1}
-          // overlay="settings"
-          // label="Settings"
         />
 
         {/* profile */}
@@ -92,7 +90,7 @@ export function Scene({
           position={[3.5, 1.9, 3.5]}
           rotation={[0,Math.PI/2,0]}
           scale={[0.05, 0.05, 0.04]}
-          overlay="log"
+          overlay="logs"
           label="Quest Log"
         />
 

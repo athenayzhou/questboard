@@ -1,13 +1,13 @@
 import { useGLTF, Html } from "@react-three/drei"
-import { useOverlay } from "../types/overlay"
+import { useOverlay } from "../utils/overlay"
 import { useMemo } from "react";
 
 type ModelProps = {
   src: string
   position?: [number, number, number]
-  scale?: number
+  scale?: number | [number, number, number]
   rotation?: [number, number, number]
-  overlay?: "profile"| "quests" | "friends" | "skills" | "settings" | null
+  overlay?: "profile"| "quests" | "logs" | "friends" | "skills" | "settings" | null
   label?: string
 }
 

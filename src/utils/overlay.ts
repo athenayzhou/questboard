@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type OverlayType = "profile"|"quests"|"log"|"friends"|"skills"|"settings"|null
+type OverlayType = "profile"|"quests"|"logs"|"friends"|"skills"|"settings"|null
 
 type QuestPage = {
   id: string;
@@ -24,7 +24,7 @@ type OverlayState = {
   togglePin: (id: string) => void;
 }
 
-export const useOverlay = create<OverlayState>((set, get) => ({
+export const useOverlay = create<OverlayState>((set) => ({
   activeOverlay: null,
   openOverlay: (type) => set({ activeOverlay: type }),
   closeOverlay: () => set({ activeOverlay: null }),

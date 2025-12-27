@@ -1,4 +1,4 @@
-import { useOverlay } from "../types/overlay";
+import { useOverlay } from "../utils/overlay";
 import { Profile } from "./overlay/Profile";
 import { QuestBoard } from "./overlay/QuestBoard";
 import { QuestLog } from "./overlay/QuestLog";
@@ -12,12 +12,6 @@ import type { Quest } from "../types/quest";
 
 export function OverlayManager(){
   const activeOverlay = useOverlay((s)=>s.activeOverlay);
-
-  // single active quest
-  // const selectedQuestId = useOverlay((s) => s.selectedQuestId);
-  // const selectQuest = useOverlay((s) => s.selectQuest);
-  // const selectedQuest = quests.find((q) => q.id === selectedQuestId) ?? null;
-
   const openQuestPages = useOverlay((s) => s.openQuestPages);
   const openQuest = useOverlay((s) => s.openQuest)
   const bringToFront = useOverlay((s) => s.bringToFront);
@@ -35,16 +29,9 @@ export function OverlayManager(){
   switch (activeOverlay) {
     case "profile":
       return <Profile />
-    case "log":
-      return <QuestLog />
     case "quests":
       return (
         <>
-          {/* <QuestBoard quests={quests} onSelect={selectQuest} />
-          {selectedQuest && (
-            <QuestPage quest={selectedQuest} onClose={()=> selectQuest(null)} />
-          )} */}
-
           <QuestBoard quests={quests} onSelect={openQuest} />
           {openQuests.map(({page, quest}) => (
             <QuestPage 
@@ -60,6 +47,8 @@ export function OverlayManager(){
           ))}
         </>
       )
+    case "logs":
+      return <QuestLog />
     case "friends":
       return <FriendsList />
     case "skills":

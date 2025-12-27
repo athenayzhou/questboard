@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useOverlay } from "../../types/overlay";
+import { useOverlay } from "../../utils/overlay";
 import type { Quest } from "../../types/quest";
 import { BoardCard } from "../BoardCard";
 

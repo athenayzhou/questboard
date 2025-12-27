@@ -1,5 +1,5 @@
 import { quests } from "../data/quests";
-import { useOverlay } from "../types/overlay";
+import { useOverlay } from "../utils/overlay";
 import { questProgress } from "../utils/progress";
 import { useState } from "react";
 
@@ -10,7 +10,7 @@ export function ActiveQuest() {
 
   const [collapsed, setCollapsed] = useState(false);
 
-  const pinned = quests.filter(q=> pinnedQuestIds.includes(q.id));
+  // const pinned = quests.filter(q=> pinnedQuestIds.includes(q.id));
   const active = quests.filter(q=> q.status === "accepted");
   if(active.length === 0) return null;
 

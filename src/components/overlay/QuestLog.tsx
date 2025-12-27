@@ -1,4 +1,4 @@
-import { useOverlay } from "../../types/overlay";
+import { useOverlay } from "../../utils/overlay";
 import { quests } from "../../data/quests";
 import { LogCard } from "../LogCard";
 import type { Quest } from "../../types/quest";

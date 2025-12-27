@@ -1,4 +1,4 @@
-import { useOverlay } from "../../types/overlay";
+import { useOverlay } from "../../utils/overlay";
 import { friends } from "../../data/friends";
 
 export function FriendsList(){
