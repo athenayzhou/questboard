@@ -1,9 +1,9 @@
 import { useState } from "react";
-import type { Quest } from "../types/quest";
-import type { QuestGroup } from "../utils/grouping";
-import { formatDate } from "../utils/date";
-import { getGroupSummary, getLatest } from "../utils/grouping";
-import { StatusBadge } from "./ui/StatusBadge";
+import type { Quest } from "../../types/quest";
+import type { QuestGroup } from "../../utils/grouping";
+import { formatDate } from "../../utils/date";
+import { getGroupSummary, getLatest } from "../../utils/grouping";
+import { StatusBadge } from "../ui/StatusBadge";
 
 type LogCardProps = {
   group: QuestGroup

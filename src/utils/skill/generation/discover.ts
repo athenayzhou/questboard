@@ -8,7 +8,7 @@ import { hashCluster } from "../analysis/clustering";
 import { evaluateReadiness } from "../analysis/confidence";
 import { suggestNames } from "./name";
 
-const now = Date.now();
+import { DISCOVERY } from "../../constants";
 
 function logCandidates(candidates: Candidate[]) {
   for (const candidate of candidates) {
@@ -24,11 +24,7 @@ function logCandidates(candidates: Candidate[]) {
   }
 }
 
-export function discover(evidenceStore: EvidenceStore, candidateStore: CandidateStore) {
-  for (let i = 0; i < 8; i++){
-    evidenceStore.updateEvidence("edit", "ui", 4020);
-  }
-
+export function discover(evidenceStore: EvidenceStore, candidateStore: CandidateStore, now: number) {
   const evidence = evidenceStore.getAll();
   const clusterEC: EvidenceCluster[] = clusterEvidence(evidence);
 
@@ -46,10 +42,8 @@ export function discover(evidenceStore: EvidenceStore, candidateStore: Candidate
 
     if (candidate.state === "ready" && (!candidate.dismissedUntil || candidate.dismissedUntil < now)){
       candidate.suggestedNames = suggestNames(candidate);
-      candidate.dismissedUntil = now + 7 * 24 * 60 * 60 * 1000;
+      candidate.dismissedUntil = now + DISCOVERY.DISMISS_COOLDOWN;
     }
     candidateStore.saveCandidate(candidate);
   });
-
-  // logCandidates(candidateStore.getAll())
 }

@@ -1,40 +1,26 @@
 import { Scene } from './components/Scene'
 import { OverlayManager } from './components/OverlayManager'
 import { useState } from 'react';
-import { OrbitToggle } from './components/OrbitToggle';
+import { OrbitToggle } from './components/ui/OrbitToggle';
 import { useOverlay } from './utils/overlay';
 import { Canvas } from '@react-three/fiber';
-import { ActiveQuest } from './components/ActiveQuests';
+import { ActiveQuest } from './components/quest/ActiveQuests';
 
-import { discover } from './utils/skill/generation/discover';
-import { CandidateStore } from './utils/skill/store/candidate';
-import { SkillStore } from './utils/skill/store/skill';
-import { promote } from './utils/skill/generation/promotion';
-import { EvidenceStore } from './utils/skill/store/evidence';
+import { TEST_COMPLETE } from './utils/TEST_COMPLETE';
+import { evidenceStore, candidateStore, skillStore } from './utils/skill/store/stores';
 
 function App() {
   const [orbitUser, setOrbitUser] = useState(true);
   const activeOverlay = useOverlay(s=> s.activeOverlay)
 
   const overlayOpen = activeOverlay !== null;
-  const orbitEnabled = orbitUser && !overlayOpen
+  const orbitEnabled = orbitUser && !overlayOpen;
 
-  const evidenceStore = new EvidenceStore();
-  const candidateStore = new CandidateStore();
-  const skillStore = new SkillStore();
-    discover(evidenceStore, candidateStore);
-    const candidates = candidateStore.getAll().filter(c => c.state === "ready" )
-    
-    console.log("all evidence", evidenceStore.getAll())
-    console.log("all candidates", candidateStore.getAll())
+  TEST_COMPLETE();
+  console.log("evidence:", evidenceStore)
+  console.log("candidate:", candidateStore)
+  console.log("skill:", skillStore)
 
-    candidates.forEach(c => {
-      const name = c.suggestedNames?.[0] ?? "unnamed skill";
-      const skill = promote(c, name, skillStore)
-      console.log("promoted:", skill)
-    })
-    console.log("all named skills", skillStore.getAll())
-    // },[])
 
   return (
     <div id="root">

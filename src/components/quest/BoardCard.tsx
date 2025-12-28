@@ -1,5 +1,5 @@
-import type { Quest } from "../types/quest"
-import { DifficultyBadge } from "./ui/DifficultyBadge"
+import type { Quest } from "../../types/quest"
+import { DifficultyBadge } from "../ui/DifficultyBadge"
 
 type BoardCardProps = {
   quest: Quest,

@@ -1,13 +1,14 @@
 import type { Evidence, EvidenceCluster } from "../../../types/skills";
 import { getCoEdges } from "./cooccurence";
 import { getTransitions } from "./transitions";
+import { CLUSTERING } from "../../constants";
 
 export function getClusters() {
   const coEdges = getCoEdges();
   const transitions = getTransitions(2);
   const clusters: Map<string, Set<string>> = new Map()
   coEdges.forEach(edge => {
-    if(edge.weight < 3) return
+    if(edge.weight < CLUSTERING.MIN_SIZE) return
     if(!clusters.has(edge.a)){
       clusters.set(edge.a, new Set([edge.a]));
     }
@@ -23,7 +24,7 @@ export function getClusters() {
       clusters.get(keyA)!.add(keyB);
     }
   });
-  return [...clusters.values()].filter(c => c.size >= 3);
+  return [...clusters.values()].filter(c => c.size >= CLUSTERING.THRESHOLD);
 }
 
 export function clusterEvidence(

@@ -1,5 +1,6 @@
 import type { Candidate, Skill } from "../../../types/skills";
 import { SkillStore } from "../store/skill";
+import { PROFICIENCY } from "../../constants";
 
 export function promote(candidate: Candidate, name: string, skillStore: SkillStore): Skill {
   const skill: Skill = {
@@ -8,7 +9,7 @@ export function promote(candidate: Candidate, name: string, skillStore: SkillSto
     verbs: candidate.verbs,
     objects: candidate.objects,
     contexts: candidate.contexts,
-    proficiency: 0.15,
+    proficiency: PROFICIENCY.BASELINE,
     xp: 0,
     createdAt: Date.now(),
   };

@@ -1,7 +1,7 @@
-import type { Quest } from "../types/quest";
+import type { Quest } from "../../types/quest";
 import { useRef } from "react";
 import { createPortal } from "react-dom";
-import { Detail } from "./ui/Detail";
+import { Detail } from "../ui/Detail";
 
 type QuestPageProps = {
   quest: Quest;

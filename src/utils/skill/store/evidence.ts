@@ -1,5 +1,6 @@
 import type { Evidence } from "../../../types/skills";
 import { clamp } from "three/src/math/MathUtils.js";
+import { DEFAULT } from "../../constants";
 
 export class EvidenceStore {
   private map = new Map<string, Evidence>()
@@ -15,20 +16,21 @@ export class EvidenceStore {
     return clamp(weight, 0.01, 0.15);
   }
 
-  updateEvidence(verb: string, object: string, timespent: number) {
+  updateEvidence(verb: string, object: string, timespent?: number) {
     const key = `${verb}:${object}`;
     const existing = this.map.get(key);
+    const inferredTime = timespent ?? DEFAULT.EFFORT;
 
     if (existing) {
       existing.count += 1;
-      existing.totalTime += timespent;
+      existing.totalTime += inferredTime;
     } else {
       this.map.set(key, {
         id: key,
         verb,
         object,
         count: 1,
-        totalTime: timespent,
+        totalTime: inferredTime,
         timestamp: Date.now(),
       });
     }

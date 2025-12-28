@@ -1,0 +1,50 @@
+
+
+export const DAY = 1000 * 60 * 60 * 24;
+
+export const MS = {
+  SECOND: 1000,
+  MINUTE: 60_00,
+  HOUR: 3_600_000,
+  DAY: 86_400_000,
+  WEEK: 604_800_000,
+}
+
+export const DEFAULT = {
+  SKILL_NAME: "emerging skill",
+  OBJECT_NAME: "practice",
+  EFFORT: 10 * MS.MINUTE, //inferred time if timespent is null
+}
+
+export const CLUSTERING = {
+  MIN_SIZE: 3,
+  THRESHOLD: 3,
+}
+
+export const EVIDENCE = {
+  MAX_WEIGHT: 0.15,
+  MIN_WEIGHT: 0.01,
+}
+
+export const CONFIDENCE = {
+  READY_THRESHOLD: 0.65,
+  GROWING_THRESHOLD: 0.75,
+  STRONG_THRESHOLD: 0.85,
+  CURVE_RATE: 0.12,
+}
+
+export const PROFICIENCY = {
+  BASELINE: 0.15,
+  MAX: 1,
+  EFFORT_DIVISOR: 20,
+}
+
+export const DECAY = {
+  RATE: 0.001,
+  THRESHOLD: 0.15,
+  PER_DAY: 0.01,
+}
+
+export const DISCOVERY = {
+  DISMISS_COOLDOWN: 7 * MS.DAY,
+}

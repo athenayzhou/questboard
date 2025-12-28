@@ -1,6 +1,6 @@
-import { quests } from "../data/quests";
-import { useOverlay } from "../utils/overlay";
-import { questProgress } from "../utils/progress";
+import { quests } from "../../data/quests";
+import { useOverlay } from "../../utils/overlay";
+import { questProgress } from "../../utils/progress";
 import { useState } from "react";
 
 export function ActiveQuest() {

@@ -1,94 +1,61 @@
 import { useState, useEffect } from "react";
 import { useOverlay } from "../../utils/overlay";
 
-// import { detectSkills } from "../../utils/skill/generation/detection";
-import { buildSkillTree } from "../../utils/skill/tree/buildTree";
+import { buildTree } from "../../utils/skill/tree/buildTree";
+import { loadTree } from "../../utils/skill/tree/persistence";
 
-import { EvidenceStore } from "../../utils/skill/store/evidence";
-import { analyze } from "../../utils/skill/analysis/analyze";
-import { getClusters } from "../../utils/skill/analysis/clustering";
-// import { buildSkillEdges } from "../../utils/skillTree/buildEdges";
-import { decaySkills } from "../../utils/skill/analysis/decay";
-import { loadTree, saveTree } from "../../utils/skill/tree/persistence";
-
-import type { Tree, SkillNode } from "../../types/skills";
-// import { SkillEdge } from "../../types/skills";
-import { tokenize } from "../../utils/text";
-import { extractObjects, extractVerbs } from "../../utils/verb";
+import type { Skill, Candidate, SkillNode, Tree } from "../../types/skills";
 
 import { skillNodes, skillEdges } from "../../data/skills";
 
-type Quest = { title: string; duration: number }
+import { skillStore, candidateStore } from "../../utils/skill/store/stores";
+import { DEFAULT } from "../../utils/constants";
 
 export function SkillTree(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);
-
-  const [evidenceStore] = useState(() => new EvidenceStore());
   const [tree, setTree] = useState<Tree>(loadTree() || { nodes: [], edges: [] });
-  const [candidates, setCandidates] = useState<SkillNode[]>([]);
-
-  // useEffect(() => {
-  //   const persisted = loadTree();
-  //   const initialNodes = persisted ? [...persisted.nodes, ...skillNodes] : [...skillNodes];
-  //   const initialEdges = persisted ? [...persisted.edges, ...skillEdges] : [...skillEdges];
-  //   const initialTree: Tree = {
-  //     nodes: initialNodes,
-  //     edges: initialEdges,
-  //   };
-  //   setTree(initialTree);
-  //   console.log(tree)
-  // }, []);
 
   useEffect(() => {
-    const initialTree: Tree = {
-      nodes: skillNodes,
-      edges: skillEdges,
-    };
-    setTree(initialTree);
-    console.log(initialTree);
+    const skills = skillStore.getAll();
+    const candidates = candidateStore.getAll();
+
+    const nodes: SkillNode[] = [
+      ...skills.map(skillToNode),
+      ...candidates.map(candidateToNode),
+    ];
+
+    const updatedTree = buildTree(nodes);
+    setTree(updatedTree);
   }, []);
 
-  function processQuest(quest: Quest){
-    const tokens = tokenize(quest.title);
-    const verbs = extractVerbs(tokens);
-    const objects = extractObjects(tokens, verbs);
-    verbs.forEach(v =>
-      objects.forEach(o =>
-        evidenceStore.updateEvidence(v, o, quest.duration)
-      )
-    );
-    analyze(quest.title, quest.title, Date.now());
-
-    const evidence = evidenceStore.getAll();
-    // const { candidate: detectCandidates } = detectSkills(evidence, tree.nodes);
-    const clusters = getClusters();
-    const clusterCandidates = clusters.flatMap((c, i) => 
-      [...c].map((key, j) => ({
-        id: `cluster-${i}-${j}`,
-        name: key,
-        verb: key,
-        object: "",
-        proficiency: 0,
-        confidence: 0.5,
-        discoveredAt: Date.now(),
-      }))
-    );
-    const allCandidates = [ ...clusterCandidates];
-    setCandidates(allCandidates);
-
-    const allNodes = [...tree.nodes, ...allCandidates]
-    const decayedNodes = decaySkills(allNodes, Date.now());
-    const updatedTree = buildSkillTree(decayedNodes);
-    setTree(updatedTree);
-    saveTree(updatedTree);
+  function skillToNode(skill: Skill): SkillNode {
+    return {
+      id: skill.id,
+      name: skill.name,
+      verb: skill.verbs[0],
+      object: skill.objects[0],
+      proficiency: skill.proficiency,
+      confidence: 1,
+      discoveredAt: skill.createdAt,
+    }
   }
-
+  function candidateToNode(candidate: Candidate): SkillNode {
+    return {
+      id: candidate.id,
+      name: candidate.suggestedNames?.[0] ?? DEFAULT.SKILL_NAME,
+      verb: candidate.verbs[0],
+      object: candidate.objects[0],
+      proficiency: candidate.confidence,
+      confidence: candidate.confidence,
+      discoveredAt: candidate.firstSeenAt,
+    }
+  }
 
   const center = { x: 500, y: 225};
   const radius = 200;
 
   type PositionedNode = SkillNode & { x: number; y:number };
-  const allNodes: PositionedNode[] = [...tree.nodes, ...candidates].map(n => ({
+  const allNodes: PositionedNode[] = tree.nodes.map(n => ({
     ...n, 
     x:0,
     y: 0,

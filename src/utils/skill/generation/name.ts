@@ -1,12 +1,13 @@
 import type { Candidate } from "../../../types/skills";
+import { DEFAULT } from "../../constants";
 
 const NAME_TEMPLATES = [
   "{verb} {object}",
   "{verb}ing {object}",
   "{object} {verb}",
   "{adjective} {object}",
-  "{verb} craft",
-  "{object} tuning",
+  "{verb} practice",
+  "{object} development",
   "{object} design",
 ]
 
@@ -23,7 +24,7 @@ function canonicalVerb(verbs: string[]) {
   return verbs[0];
 }
 function canonicalObject(objects: string[]){
-  return objects[0] ?? "Practice";
+  return objects[0] ?? DEFAULT.OBJECT_NAME;
 }
 
 export function suggestNames(candidate: Candidate): string[] {

@@ -3,7 +3,7 @@ export type Evidence = {
   verb: string;
   object?: string;
   context?: string;
-  timestamp: number;
+  timestamp?: number;
   count: number;
   totalTime: number;
 }
