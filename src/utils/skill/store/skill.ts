@@ -1,17 +1,21 @@
 import type { Skill } from "../../../types/skills";
 
 export class SkillStore {
-  private map = new Map<string, Skill>();
-
-  saveSkill(skill: Skill){
-    this.map.set(skill.id, skill);
-  }
-
-  materializeSkill(skill: Skill) {
-    this.map.set(skill.id, skill);
-  }
+  private skills = new Map<string, Skill>();
 
   getAll(): Skill[] {
-    return [...this.map.values()];
+    return [...this.skills.values()];
+  }
+  
+  get(id: string): Skill | undefined {
+    return this.skills.get(id);
+  }
+
+  add(skill: Skill) {
+    this.skills.set(skill.id, skill);
+  }
+
+  clear(){
+    this.skills.clear();
   }
 }

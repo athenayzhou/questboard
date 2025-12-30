@@ -6,8 +6,9 @@ import { useOverlay } from './utils/overlay';
 import { Canvas } from '@react-three/fiber';
 import { ActiveQuest } from './components/quest/ActiveQuests';
 
-import { TEST_COMPLETE } from './utils/TEST_COMPLETE';
-import { evidenceStore, candidateStore, skillStore } from './utils/skill/store/stores';
+import { evidenceStore, candidateStore, clusterStore, skillStore } from './utils/skill/store/stores';
+import { TEST_DATA } from './data/TEST_DATA';
+import { onQuestComplete } from './components/quest/onQuestComplete';
 
 function App() {
   const [orbitUser, setOrbitUser] = useState(true);
@@ -16,12 +17,26 @@ function App() {
   const overlayOpen = activeOverlay !== null;
   const orbitEnabled = orbitUser && !overlayOpen;
 
-  TEST_COMPLETE();
-  console.log("evidence:", evidenceStore)
-  console.log("candidate:", candidateStore)
-  console.log("skill:", skillStore)
+//
+  TEST_DATA.forEach((quest) => {
+    clusterStore.clear();
+    candidateStore.clear();
+    skillStore.clear();
 
+    onQuestComplete(quest, {
+    evidenceStore,
+    clusterStore,
+    candidateStore,
+    skillStore,
+    });
+  })
 
+  console.log("evidence:",evidenceStore)
+  console.log("cluster:",clusterStore)
+  console.log("candidate:",candidateStore)
+  console.log("skill:",skillStore)
+
+  
   return (
     <div id="root">
       <Canvas resize={{ scroll: false }} >

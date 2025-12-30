@@ -1,22 +1,21 @@
 import type { Candidate, Skill } from "../../../types/skills";
 import { SkillStore } from "../store/skill";
-import { PROFICIENCY } from "../../constants";
 
-export function promote(candidate: Candidate, name: string, skillStore: SkillStore): Skill {
+export function promote(candidate: Candidate, skillStore: SkillStore): Skill {
+  if(candidate.state !== "ready"){
+    throw new Error("candidate not ready to be promoted");
+  }
+
   const skill: Skill = {
-    id: `skill-${candidate.id}`,
-    name,
-    verbs: candidate.verbs,
-    objects: candidate.objects,
-    contexts: candidate.contexts,
-    proficiency: PROFICIENCY.BASELINE,
-    xp: 0,
+    id: crypto.randomUUID(),
+    name: candidate.suggestedNames ? candidate.suggestedNames[0] : "pending name",
+    verb: candidate.verb,
+    objects: [...candidate.objects],
+    confidence: candidate.confidence,
     createdAt: Date.now(),
-  };
+  }
 
-  skillStore.saveSkill(skill);
-
-  candidate.state = "named";
+  skillStore.add(skill);
 
   return skill;
 }

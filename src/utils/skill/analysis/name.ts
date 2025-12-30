@@ -20,15 +20,12 @@ const ADJECTIVES = [
   "systems",
 ]
 
-function canonicalVerb(verbs: string[]) {
-  return verbs[0];
-}
 function canonicalObject(objects: string[]){
   return objects[0] ?? DEFAULT.OBJECT_NAME;
 }
 
 export function suggestNames(candidate: Candidate): string[] {
-  const verb = canonicalVerb(candidate.verbs);
+  const verb = candidate.verb
   const object = canonicalObject(candidate.objects);
 
   const base = NAME_TEMPLATES.map(t => 

@@ -37,27 +37,13 @@ export function getVerbs(){
   )
 }
 
-export function extractVerbs(tokens: string[]): string[] {
-  // return tokens[0];
-  return tokens.filter(w => 
-  ["clean", "cook", "write", "organize", "wash", "plan", "build", "review"]
-    .some(v => w.startsWith(v))
-  )
-}
-
-export function extractObjects(tokens: string[], verbs: string[]): string[] {
-  return tokens.filter(t=> !verbs.includes(t));
-}
-
-
-
-
-let lastVerb: string | null = null
-
-export function getLastVerb() {
-  return lastVerb
-}
-
-export function setLastVerb(v: string){
-  lastVerb = v
-}
+// export function extractVerbs(tokens: string[]): string[] {
+//   // return tokens[0];
+//   return tokens.filter(w => 
+//   ["clean", "cook", "write", "organize", "wash", "plan", "build", "review"]
+//     .some(v => w.startsWith(v))
+//   )
+// }
+// export function extractObjects(tokens: string[], verbs: string[]): string[] {
+//   return tokens.filter(t=> !verbs.includes(t));
+// }

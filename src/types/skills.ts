@@ -1,46 +1,47 @@
 export type Evidence = {
   id: string;
   verb: string;
-  object?: string;
-  context?: string;
-  timestamp?: number;
+  object: string;
+  // context?: string;
+  origin: string;
+  timespent: number;
+  timestamp: number;
+}
+
+export type Cluster = {
+  key: string;
+  verb: string;
+  object: string;
+  // context?: string;
   count: number;
-  totalTime: number;
-}
-
-export type EvidenceCluster = {
-  verbs: string[];
-  objects: string[];
-  contexts: string[];
-  evidenceIds: string[];
-}
-
-export type Cluster = EvidenceCluster & {
-  hash: string;
+  origin: string[];
+  confidence: number;
 }
 
 export type Candidate = {
   id: string;
-  verbs: string[];
-  objects: string[];
-  contexts: string[];
-  evidenceCount: number;
+  key: string;
+  verb: string;
+  objects: string[]
+  clusters: Cluster[],
   confidence: number;
+  origin: string[];
   firstSeenAt: number;
   lastSeenAt: number;
-  state: "latent" | "ready" | "named" | "decayed";
-  dismissedUntil?: number;
-  suggestedNames?: string[];
+  state: "latent" | "emerging" | "ready" | "named" | "decayed";
+  // dismissedUntil?: number;
+  suggestedNames: string[];
 }
 
 export type Skill = {
   id: string;
   name: string;
-  verbs: string[];
+  verb: string;
   objects: string[];
-  contexts: string[];
-  proficiency: number;
-  xp: number;
+  // contexts: string[];
+  confidence: number,
+  // proficiency: number;
+  // xp: number;
   createdAt: number;
 }
 

@@ -1,35 +1,122 @@
-/*
-step 1: text processing
+import { VERB } from "./constants";
 
-clean up entries
-lowercase, remove punctuation, remove stop words, light stemming
-*/ 
-
-
+const TIMEWORDS = new Set([
+  "minute", "minutes", "min", "mins",
+  "hour", "hours", "hr", "hrs",
+  "day", "days",
+  "week", "week",
+  "month", "months"
+]);
+const MEASUREWORDS = new Set([
+  "times", "x", "once", "twice", "percent", "%", "kg", "lb",
+]);
 const STOPWORDS = new Set([
-  "do", "the", "a", "an", "and", "of", "for", "to", "with", "make", "take", "get", "set", "clean"
-])
+  "and", "the", "a", "an", "to", "of", "for", "with", "on", "in", "at",
+]);
+const IGNORE_LEMMATIZE = new Set(["morning", "afternoon", "evening"])
+export const KNOWN_VERBS: Set<string> = new Set([
+  "clean", "cook", "write", "organize", "wash", "plan", "build", "review",
+]);
 
-export function normalize(text: string) {
+export function normalize(text: string): string {
   return text
     .toLowerCase()
     .replace(/[^\w\s]/g, "")
     .replace(/\b(the|a|an|to|and|of)\b/g, "")
-    .trim()
+    .trim();
 }
-
+export function lemmatize(word: string): string {
+  if(IGNORE_LEMMATIZE.has(word)) return word;
+  return word.replace(/(ing|ed|ly|s)$/g, "");
+}
 export function tokenize(text: string): string[] {
   return normalize(text)
     .split(/\W+/)
-    .filter(word => word && !STOPWORDS.has(word));
+    .map(w=> lemmatize(w))
+    .filter(word => word && word.length >= 3 && !STOPWORDS.has(word));
+}
+export function filter(tokens:string[]) {
+  return tokens.filter(token => {
+    if ((/^\d+(\.\d+)?$/).test(token)) return false;
+    if (TIMEWORDS.has(token)) return false;
+    if (MEASUREWORDS.has(token)) return false;
+    return true;
+  })
 }
 
-export function stem(word: string): string {
-  return word.replace(/(ing|ed|ly|s)$/g, "")
+
+const verbFrequency: Map<string, number> = new Map();
+
+export function trackVerb(verb: string) {
+  if (!verb) return;
+  const count = (verbFrequency.get(verb) || 0) +1;
+  verbFrequency.set(verb, count)
+  if (!KNOWN_VERBS.has(verb) && count > VERB.THRESHOLD) {
+    KNOWN_VERBS.add(verb);
+    console.log(`new verb: ${verb}`);
+  }
 }
 
-export function processText(text: string) {
-  const tokens = tokenize(text);
-  const stems = tokens.map(stem)
-  return { tokens, stems }
+export function extractVerb(tokens: string[]): string {
+  for (const t of tokens){
+    if(tokenize.length >=3 && !TIMEWORDS.has(t) && !MEASUREWORDS.has(t)) continue;
+    trackVerb(t);
+    if(KNOWN_VERBS.has(t)) return t;
+  }
+  return "";
+}
+export function extractVerbs(
+  tokens: string[],
+  options: { allowMultiple?: boolean } = {}
+): string[] {
+  const primary = extractVerb(tokens);
+  if (!primary) return [];
+  if (!options.allowMultiple) return [primary];
+  const verbs = new Set<string>([primary]);
+  for (const t of tokens.slice(1)) {
+    const v = lemmatize(t);
+    trackVerb(v);
+    if (KNOWN_VERBS.has(v)) verbs.add(v);
+  }
+  return [...verbs];
+}
+
+export function extractObjects(
+  tokens: string[],
+): string[] {
+  const objects: string[] = [];
+  for (const token of tokens) {
+    if (STOPWORDS.has(token)) continue;
+    if (KNOWN_VERBS.has(token)) continue;
+    objects.push(token);
+  }
+  return objects;
+}
+
+export type VOPair = {
+  verb: string;
+  object: string;
+};
+export function extractPair(questTitle: string): VOPair[] {
+  const tokens = filter(tokenize(questTitle));
+  
+  const verbs = extractVerbs(tokens, { allowMultiple: true });
+  if (!verbs.length) return [];
+
+  const objects = extractObjects(tokens);
+  if (!objects.length) return [];
+
+  return verbs.flatMap(verb => 
+    objects.map(object => ({ verb, object }))
+  )
+}
+
+
+
+let lastVerb: string | null = null;
+export function getLastVerb(): string | null {
+  return lastVerb;
+}
+export function setLastVerb(v: string) {
+  lastVerb = v;
 }

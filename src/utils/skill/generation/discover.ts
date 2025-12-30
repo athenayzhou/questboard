@@ -1,49 +1,51 @@
-import type { Candidate, EvidenceCluster, Cluster } from "../../../types/skills";
-
-import { EvidenceStore } from "../store/evidence";
-import { CandidateStore } from "../store/candidate";
-
-import { clusterEvidence } from "../analysis/clustering";
-import { hashCluster } from "../analysis/clustering";
+import type { Cluster, Candidate } from "../../../types/skills";
+import type { CandidateStore } from "../store/candidate";
 import { evaluateReadiness } from "../analysis/confidence";
-import { suggestNames } from "./name";
+import { suggestNames } from "../analysis/name";
 
-import { DISCOVERY } from "../../constants";
+export function discover(
+  clusters: Cluster[], 
+  candidateStore: CandidateStore,
+  now = Date.now()
+) : Candidate[] {
 
-function logCandidates(candidates: Candidate[]) {
-  for (const candidate of candidates) {
-    console.log({
-      id: candidate.id,
-      verbs: candidate.verbs,
-      objects: candidate.objects,
-      confidence: candidate.confidence,
-      state: candidate.state,
-      evidenceCount: candidate.evidenceCount,
-      suggestedNames: candidate.suggestedNames,
-    })
-  }
-}
+  const discovered: Candidate[] = [];
+  
+  for(const cluster of clusters) {
 
-export function discover(evidenceStore: EvidenceStore, candidateStore: CandidateStore, now: number) {
-  const evidence = evidenceStore.getAll();
-  const clusterEC: EvidenceCluster[] = clusterEvidence(evidence);
+    const candidate = candidateStore.create(cluster, now);
 
-  clusterEC.forEach(ec => {
-    const cluster: Cluster = { ...ec, hash: hashCluster(ec) };
-    let candidate = candidateStore.getCandidate(cluster.hash);
-    if(!candidate) {
-      candidate = candidateStore.createCandidate(cluster, now);
-    }
-
-    candidate.evidenceCount += cluster.evidenceIds.length;
-    candidate.confidence = 1 - Math.exp(-0.12 * candidate.evidenceCount);
-    candidate.lastSeenAt = now;
     candidate.state = evaluateReadiness(candidate);
 
-    if (candidate.state === "ready" && (!candidate.dismissedUntil || candidate.dismissedUntil < now)){
-      candidate.suggestedNames = suggestNames(candidate);
-      candidate.dismissedUntil = now + DISCOVERY.DISMISS_COOLDOWN;
+    if(candidate.state !== "ready"){
+      candidateStore.save(candidate);
+      continue;
     }
-    candidateStore.saveCandidate(candidate);
-  });
+    
+    if(candidate.state === "ready" && candidate.suggestedNames.length === 0){
+      candidate.suggestedNames = suggestNames(candidate);
+    }
+    candidateStore.save(candidate);
+    discovered.push(candidate);
+  }
+  return discovered;
 }
+
+// function discoverSkill(candidate: Candidate[]): Candidate[]{
+//   const ready = candidate.filter(
+//     c => c.type === "specific" && c.state === "emerging"
+//   );
+
+//   const skillCandidate = new Map<string, Candidate[]>();
+//   for (const c of ready) {
+//     if(!skillCandidate.has(c.verb)){
+//       skillCandidate.set(c.verb, []);
+//     }
+//     skillCandidate.get(c.verb)!.push(c);
+//   }
+
+//   const masteryCandidate: Candidate[] = [];
+//   for (const [verb, clusters] of skillCandidate.entries()) {
+//     const confidence = 
+//   }
+// }

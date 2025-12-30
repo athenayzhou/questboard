@@ -1,5 +1,3 @@
-
-
 export const DAY = 1000 * 60 * 60 * 24;
 
 export const MS = {
@@ -13,12 +11,16 @@ export const MS = {
 export const DEFAULT = {
   SKILL_NAME: "emerging skill",
   OBJECT_NAME: "practice",
-  EFFORT: 10 * MS.MINUTE, //inferred time if timespent is null
+  EFFORT: 10 * MS.MINUTE,
+}
+
+export const VERB ={
+  THRESHOLD: 3,
 }
 
 export const CLUSTERING = {
   MIN_SIZE: 3,
-  THRESHOLD: 3,
+  THRESHOLD: 0.2,
 }
 
 export const EVIDENCE = {
@@ -27,9 +29,10 @@ export const EVIDENCE = {
 }
 
 export const CONFIDENCE = {
-  READY_THRESHOLD: 0.65,
+  READY_THRESHOLD: 0.3,
   GROWING_THRESHOLD: 0.75,
   STRONG_THRESHOLD: 0.85,
+  MASTERY_THRESHOLD: 1.2,
   CURVE_RATE: 0.12,
 }
 
