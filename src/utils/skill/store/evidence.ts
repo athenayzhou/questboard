@@ -9,24 +9,24 @@ export class EvidenceStore {
     return this.evidence;
   }
 
-  add(verb: string, object: string, timespent: number | undefined, origin: string) {
-    const inferredTime = timespent ?? DEFAULT.EFFORT;
+  add(props: {
+    verb: string,
+    object: string,
+    origin: string,
+    timespent?: number,
+  }) {
+    const inferredTime = 
+      props.timespent ?? 
+      DEFAULT.EFFORT;
+
     this.evidence.push({
       id: crypto.randomUUID(),
-      verb,
-      object,
-      origin,
+      verb: props.verb,
+      object: props.object,
+      origin: props.origin,
       timespent:inferredTime,
       timestamp: Date.now(),
     });
   }
-
-  // weigh(evidence: Evidence) {
-  //   let weight = 0.05;
-  //   if(evidence.count > 3) weight += 0.03;
-  //   if(evidence.totalTime > 300) weight += 0.04;
-  //   return clamp(weight, 0.01, 0.15);
-  // }
-
 
 }

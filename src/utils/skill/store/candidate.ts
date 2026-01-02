@@ -1,4 +1,5 @@
 import type { Cluster, Candidate } from "../../../types/skills";
+import { xpToLevel } from "../analysis/experience";
 
 export class CandidateStore {
   private candidates = new Map<string, Candidate>();
@@ -7,56 +8,51 @@ export class CandidateStore {
     return [...this.candidates.values()];
   }
 
-  get(key: string): Candidate | undefined {
-    return this.candidates.get(key);
+  add(cluster: Cluster): Candidate {
+    const key = `${cluster.verb}:${cluster.object}`;
+    const existing = this.candidates.get(key);
+    if(existing) {
+      return this.update(existing, cluster);
+    } else {
+      return this.create(cluster);
+    }
   }
 
-  create(
-    cluster: Cluster,
-    now: number,
-  ): Candidate {
-    const key = `${cluster.verb}:${cluster.object}`;
-    let candidate = this.candidates.get(key);
-
-    const clusterCopy = {
-      key: cluster.key,
+  private create(cluster: Cluster, now = Date.now()): Candidate {
+    const candidate: Candidate = {
+      id: crypto.randomUUID(),
+      key: `${cluster.verb}:${cluster.object}`,
       verb: cluster.verb,
-      object: cluster.object,
-      count: cluster.count,
-      confidence: cluster.confidence,
-      origin: cluster.origin ? [...cluster.origin] : [],
-    }
+      objects: [cluster.object],
+      clusters: [cluster],
+      xp: cluster.xp,
+      level: xpToLevel(cluster.xp),
+      confidence: 0,
+      origin: [...cluster.origin],
+      firstSeenAt: now,
+      lastSeenAt: now,
+      state: "latent",
+      suggestedNames:[],
+    };
+    this.candidates.set(candidate.key, candidate);
+    return candidate;
+  }
 
-    if(!candidate){
-      candidate = {
-        id: crypto.randomUUID(),
-        key,
-        verb: cluster.verb,
-        objects: [cluster.object],
-        clusters: [clusterCopy],
-        confidence: cluster.confidence,
-        origin: [...(cluster.origin ?? [])],
-        firstSeenAt: now,
-        lastSeenAt: now,
-        state: "latent",
-        suggestedNames:[],
-      }
-      this.candidates.set(key, candidate);
-    } else {
-      if(!candidate.objects.includes(cluster.object)){
-        candidate.objects.push(cluster.object);
-      }
-      if(!candidate.clusters.some(c => c.key === cluster.key)) {
-        candidate.clusters.push({...cluster});
-      }
-      candidate.confidence = Math.max(candidate.confidence, cluster.confidence);
-      for(const o of cluster.origin ?? []){
-        if(!candidate.origin.includes(o)){
-          candidate.origin.push(o);
-        }
-      }
-      candidate.lastSeenAt = now;
+  private update(candidate: Candidate, cluster: Cluster, now = Date.now()): Candidate {
+    if(!candidate.objects.includes(cluster.object)){
+      candidate.objects.push(cluster.object);
     }
+    if(!candidate.clusters.some(c => c.key === cluster.key)) {
+      candidate.clusters.push({...cluster});
+      candidate.xp += cluster.xp;
+      candidate.level = xpToLevel(candidate.xp);
+    }
+    for(const o of cluster.origin){
+      if(!candidate.origin.includes(o)){
+        candidate.origin.push(o);
+      }
+    }
+    candidate.lastSeenAt = now;
     return candidate;
   }
 

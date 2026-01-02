@@ -4,6 +4,7 @@ import { Model } from "./Model";
 import { useRef, useEffect } from "react";
 
 import Name from "./Name"
+import { SkillActivity } from "./SkillActivity";
 
 export function Scene({ 
   orbitEnabled,
@@ -50,6 +51,7 @@ export function Scene({
         <directionalLight color="#ffffff" position={[55, 0, 5]} intensity={1} />
 
         <Name position={[-5,4,5]} />
+        <SkillActivity position={[0,3,1]} />
         
         {/* ground */}
         <mesh position={[0, 0.1, 0]} rotation={[-Math.PI/2, 0, 0]} >

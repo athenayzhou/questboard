@@ -1,4 +1,4 @@
-import type { Friend } from "../types/friend";
+import type { Friend } from "../../types/friend";
 
 export const friends: Friend[] = [
   {

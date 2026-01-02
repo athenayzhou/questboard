@@ -1,4 +1,4 @@
-import type { Quest } from "../types/quest";
+import type { Quest } from "../../types/quest";
 
 export const quests: Quest[] = [
   {

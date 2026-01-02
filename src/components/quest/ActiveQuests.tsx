@@ -1,4 +1,4 @@
-import { quests } from "../../data/quests";
+import { quests } from "../../dev/data/TEST_BOARD";
 import { useOverlay } from "../../utils/overlay";
 import { questProgress } from "../../utils/progress";
 import { useState } from "react";

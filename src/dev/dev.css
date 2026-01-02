@@ -1,0 +1,54 @@
+.dev {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  width: 360px;
+  font-family: monospace;
+  z-index: 9999;
+}
+
+.dev-toggle {
+  width: 100%;
+  padding: 6px 8px;
+  background: #111;
+  color: #9ef;
+  border: 1px solid #333;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.dev-panel {
+  margin-top: 6px;
+  padding: 8px;
+  background: #0c0c0c;
+  border: 1px solid #333;
+  border-radius: 6px;
+}
+
+.section {
+  margin-bottom: 10px;
+}
+
+.section h4 {
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: #6cf;
+}
+
+.row {
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.row-main {
+  font-weight: bold;
+}
+
+.xp-gain {
+  color: #9f9;
+  font-size: 14px;
+}
+
+.muted {
+  color: #777;
+}

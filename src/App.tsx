@@ -7,8 +7,8 @@ import { Canvas } from '@react-three/fiber';
 import { ActiveQuest } from './components/quest/ActiveQuests';
 
 import { evidenceStore, candidateStore, clusterStore, skillStore } from './utils/skill/store/stores';
-import { TEST_DATA } from './data/TEST_DATA';
-import { onQuestComplete } from './components/quest/onQuestComplete';
+import { TEST_DATA } from './dev/data/TEST_SKILL';
+import { onQuestComplete } from './hooks/onQuestComplete';
 
 function App() {
   const [orbitUser, setOrbitUser] = useState(true);
@@ -17,7 +17,6 @@ function App() {
   const overlayOpen = activeOverlay !== null;
   const orbitEnabled = orbitUser && !overlayOpen;
 
-//
   TEST_DATA.forEach((quest) => {
     clusterStore.clear();
     candidateStore.clear();

@@ -1,5 +1,3 @@
-export const DAY = 1000 * 60 * 60 * 24;
-
 export const MS = {
   SECOND: 1000,
   MINUTE: 60_00,
@@ -12,20 +10,21 @@ export const DEFAULT = {
   SKILL_NAME: "emerging skill",
   OBJECT_NAME: "practice",
   EFFORT: 10 * MS.MINUTE,
+  DAY: 1000 * 60 * 60 * 24,
 }
 
 export const VERB ={
   THRESHOLD: 3,
 }
 
-export const CLUSTERING = {
-  MIN_SIZE: 3,
-  THRESHOLD: 0.2,
-}
-
 export const EVIDENCE = {
   MAX_WEIGHT: 0.15,
   MIN_WEIGHT: 0.01,
+}
+
+export const CLUSTERING = {
+  MIN_SIZE: 3,
+  THRESHOLD: 0.2,
 }
 
 export const CONFIDENCE = {
@@ -42,6 +41,14 @@ export const PROFICIENCY = {
   EFFORT_DIVISOR: 20,
 }
 
+export const LEVELS = [0, 10, 30, 70, 150];
+
+export const DIFFICULTY_EFFORT = {
+  easy: 5,
+  medium: 15,
+  hard: 30,
+}
+
 export const DECAY = {
   RATE: 0.001,
   THRESHOLD: 0.15,
@@ -51,3 +58,5 @@ export const DECAY = {
 export const DISCOVERY = {
   DISMISS_COOLDOWN: 7 * MS.DAY,
 }
+
+export const RECENT_SKILLS = 3; 

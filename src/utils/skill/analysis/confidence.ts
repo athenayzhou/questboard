@@ -1,27 +1,29 @@
-import type { Evidence, Candidate, Cluster } from "../../../types/skills";
+import type { Candidate, Cluster } from "../../../types/skills";
 import { clamp } from "three/src/math/MathUtils.js";
-import { CONFIDENCE } from "../../constants";
-import { PROFICIENCY } from "../../constants";
+import { DEFAULT, CONFIDENCE, PROFICIENCY } from "../../constants";
 
-// export function calculateConfidence(count: number) {
-//   return 1 - Math.exp(-CONFIDENCE.CURVE_RATE * count);
-// }
-
-export function calculateConfidence(cluster: Cluster): number {
-  let confidence = 0;
-  confidence += cluster.count * 0.1;
-  // confidence += Math.min(cluster.totalTime / 300, 0.3);
-  confidence += cluster.origin.length * 0.05;
-  return Math.min(confidence, 1);
+export function calculateConfidence(cluster: Cluster){
+  const recency = Date.now() - cluster.lastSeenAt;
+  const recencyFactor = Math.exp(-recency / DEFAULT.DAY);
+  const volumeFactor = Math.min(cluster.totalTime / PROFICIENCY.EFFORT_DIVISOR, PROFICIENCY.MAX);
+  return clamp(recencyFactor * volumeFactor, 0, 1)
 }
 
-// export function calculateProficiency(evidence: Evidence) {
-//   const effortScore = evidence.timespent / 60;
-//   const repetitionScore = evidence.count;
-//   return clamp((effortScore + repetitionScore) / PROFICIENCY.EFFORT_DIVISOR, 0, PROFICIENCY.MAX);
+// export function updateConfidence(
+//   prev: number,
+//   evidenceCount: number,
+//   lastSeenAt: number,
+// ) {
+//   const recencyBoost = Date.now() - lastSeenAt < DEFAULT.DAY ? 0.05 : 0;
+//   const consistencyBoost = Math.min(evidenceCount * 0.02, 0.15);
+//   return clamp(prev + recencyBoost + consistencyBoost, 0, 1);
 // }
 
+
 export function evaluateReadiness(candidate: Candidate) : Candidate["state"] {
+  const xpScore = candidate.xp / 10;
+  const objectScore = candidate.objects.length * 0.2;
+  candidate.confidence = clamp(xpScore + objectScore, 0, 1);
   return candidate.confidence >= CONFIDENCE.READY_THRESHOLD ? "ready" : "latent";
 }
 

@@ -1,8 +1,10 @@
-import type { Evidence, Cluster, Candidate } from "../../../types/skills";
+import type { Quest } from "../../../types/quest";
+import type { Evidence, Cluster } from "../../../types/skills";
+import { calculateConfidence } from "../analysis/confidence";
+import { xpToLevel, calculateXP, applyXP } from "../analysis/experience";
+
 // import { getCoEdges } from "./cooccurence";
 // import { getTransitions } from "./transitions";
-// import { CLUSTERING } from "../../constants";
-// import { calculateConfidence } from "../analysis/confidence";
 
 export class ClusterStore {
   private clusters = new Map<string, Cluster>();
@@ -11,38 +13,44 @@ export class ClusterStore {
     return [...this.clusters.values()];
   }
 
-  cluster(evidence: Evidence[]) {
-    this.clusters.clear();
-    for(const e of evidence){
-      const key = `${e.verb}:${e.object}`;
-      const existing = this.clusters.get(key);
-      if(!existing){
-        this.clusters.set(key, {
-          key,
-          verb: e.verb,
-          object: e.object,
-          count: 1,
-          origin: e.origin ? [e.origin] : [],
-          confidence: 0,
-        });
-      } else {
-        existing.count += 1;
-        // if(e.origin && !existing.origin.includes(e.origin)){
-          existing.origin.push(e.origin);
-        // }
-      }
-    }
-    for (const cluster of this.clusters.values()){
-      cluster.confidence = this.compute(cluster);
+  add(e: Evidence, xp: number): Cluster {
+    const key = `${e.verb}:${e.object}`;
+    const existing = this.clusters.get(key);
+    if(existing) {
+      return this.update(existing, e, xp);
+    } else {
+      return this.create(e, xp);
     }
   }
 
-  compute(cluster: Cluster): number {
-    let confidence = 0;
-    confidence += cluster.count * 0.1;
-    // confidence += Math.min(cluster.totalTime / 300, 0.3);
-    confidence += cluster.origin.length * 0.05;
-    return Math.min(confidence, 1)
+  private create(e: Evidence, xp: number): Cluster {
+    const cluster: Cluster = {
+      key: `${e.verb}:${e.object}`,
+      verb: e.verb,
+      object: e.object,
+      count: 1,
+      totalTime: e.timespent,
+      xp,
+      level: xpToLevel(xp),
+      confidence: 0,
+      firstSeenAt: e.timestamp,
+      lastSeenAt: e.timestamp,
+      origin: [e.origin],
+    }
+    cluster.confidence = calculateConfidence(cluster);
+    this.clusters.set(cluster.key, cluster);
+    return cluster;
+  }
+
+  private update(cluster: Cluster, e: Evidence, xp: number): Cluster {
+    cluster.count += 1;
+    cluster.totalTime += e.timespent;
+    applyXP(cluster, xp);
+    cluster.level = xpToLevel(cluster.xp);
+    cluster.lastSeenAt = Math.max(cluster.lastSeenAt, e.timestamp)
+    cluster.origin.push(e.origin);
+    cluster.confidence = calculateConfidence(cluster);
+    return cluster;
   }
 
   clear(){

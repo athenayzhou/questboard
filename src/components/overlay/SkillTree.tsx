@@ -6,7 +6,7 @@ import { loadTree } from "../../utils/skill/tree/persistence";
 
 import type { Skill, Candidate, SkillNode, Tree } from "../../types/skills";
 
-import { skillNodes, skillEdges } from "../../data/skills";
+import { skillNodes, skillEdges } from "../../dev/data/TEST_TREE";
 
 import { skillStore, candidateStore } from "../../utils/skill/store/stores";
 import { DEFAULT } from "../../utils/constants";

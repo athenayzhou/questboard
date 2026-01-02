@@ -1,4 +1,4 @@
-import type { SkillNode, SkillEdge } from "../types/skills";
+import type { SkillNode, SkillEdge } from "../../types/skills";
 
 export const skillNodes: SkillNode[] = [
   {

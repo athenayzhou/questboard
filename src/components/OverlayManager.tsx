@@ -7,7 +7,7 @@ import { SkillTree } from "./overlay/SkillTree";
 import { Settings } from "./overlay/Settings";
 
 import { QuestPage } from "./quest/QuestPage";
-import { quests } from "../data/quests";
+import { quests } from "../dev/data/TEST_BOARD";
 import type { Quest } from "../types/quest";
 
 export function OverlayManager(){

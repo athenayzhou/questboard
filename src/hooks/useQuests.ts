@@ -8,13 +8,13 @@ export function useQuests() {
     setQuests(q => [...q, quest]);
   };
 
-  function updateQuest(id: string, updates: Partial<Quest>) {
-    setQuests(q =>
-      q.map(quest =>
-        quest.id === id ? { ...quest, ...updates } : quest
-      )
-    );
-  }
+  // function updateQuest(id: string, updates: Partial<Quest>) {
+  //   setQuests(q =>
+  //     q.map(quest =>
+  //       quest.id === id ? { ...quest, ...updates } : quest
+  //     )
+  //   );
+  // }
 
   function deleteQuest(id: string) {
     setQuests(q => q.filter(quest => quest.id !== id));
@@ -23,7 +23,7 @@ export function useQuests() {
   return {
     quests,
     addQuest,
-    updateQuest,
+    // updateQuest,
     deleteQuest,
   };
 }

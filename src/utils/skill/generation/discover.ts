@@ -6,14 +6,11 @@ import { suggestNames } from "../analysis/name";
 export function discover(
   clusters: Cluster[], 
   candidateStore: CandidateStore,
-  now = Date.now()
 ) : Candidate[] {
-
   const discovered: Candidate[] = [];
   
   for(const cluster of clusters) {
-
-    const candidate = candidateStore.create(cluster, now);
+    const candidate = candidateStore.add(cluster);
 
     candidate.state = evaluateReadiness(candidate);
 
@@ -24,9 +21,9 @@ export function discover(
     
     if(candidate.state === "ready" && candidate.suggestedNames.length === 0){
       candidate.suggestedNames = suggestNames(candidate);
+      discovered.push(candidate);
     }
     candidateStore.save(candidate);
-    discovered.push(candidate);
   }
   return discovered;
 }

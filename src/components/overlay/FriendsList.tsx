@@ -1,5 +1,5 @@
 import { useOverlay } from "../../utils/overlay";
-import { friends } from "../../data/friends";
+import { friends } from "../../dev/data/TEST_FRIENDS";
 
 export function FriendsList(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);
