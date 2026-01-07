@@ -24,7 +24,7 @@ export function Scene({
       camera.position.set(6, 6, 6);
       controlsRef.current.target.set(0,0,0);
       controlsRef.current.update();
-      // controlsRef.current.saveState();
+      controlsRef.current.saveState();
     }
   }, [resetCamera, camera]);
 
@@ -50,8 +50,8 @@ export function Scene({
         <ambientLight intensity={1} />
         <directionalLight color="#ffffff" position={[55, 0, 5]} intensity={1} />
 
-        <Name position={[-5,4,5]} />
-        <SkillActivity position={[0,3,1]} />
+        <Name position={[-5,7,5]} />
+        <SkillActivity position={[-4.25,4,5]} />
         
         {/* ground */}
         <mesh position={[0, 0.1, 0]} rotation={[-Math.PI/2, 0, 0]} >

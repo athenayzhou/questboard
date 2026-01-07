@@ -1,9 +1,10 @@
 import { useSyncExternalStore } from "react";
-import { listenActivity, recentActivity } from "../utils/skill/store/skillActivity";
+import { listenActivity, getRecent } from "../utils/skill/store/skillActivity";
 
-export function useRecentSkills(limit = 3) {
+export function useRecentSkills() {
   return useSyncExternalStore(
     listenActivity,
-    () => recentActivity(limit)
+    getRecent,
+    getRecent
   );
 }

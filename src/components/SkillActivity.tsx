@@ -1,7 +1,7 @@
 import { useRecentSkills } from "../hooks/useRecentSkills";
 import { ProgressBar } from "./ui/ProgressBar";
 import { Html } from "@react-three/drei";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
 type SkillActivityProps = {
   position?: [number, number, number]
@@ -10,19 +10,16 @@ type SkillActivityProps = {
 export function SkillActivity({
   position = [0, 1.5, 0],
 }: SkillActivityProps){
-  const skills = useRecentSkills(3);
-  // if (skills.length === 0) return null;
+  const skills = useRecentSkills() ?? [];
 
-  // const htmlPortal = document.getElementById("html-layer");
-  // if(!htmlPortal) return null;
-  const [portal, setPortal] = useState<HTMLElement | null>(null);
+  const htmlPortal = document.getElementById("html-layer");
+  if(!htmlPortal) return null;
 
   useEffect(() => {
-    setPortal(document.getElementById("html-layer"));
-  }, []);
+  console.log("skill activity", skills);
+  }, [skills]);
 
-  if (!portal || skills.length === 0) return null;
-  console.log("portal:", portal);
+
 
   return(
     <Html 
@@ -30,20 +27,16 @@ export function SkillActivity({
     transform
     className="name" 
     wrapperClass="name-wrapper"
-    portal={{ current: portal }}
+    portal={{ current: htmlPortal }}
     center
     >
-    <div className="skill-activity">
-      <h3>skills</h3>
-      <div className="skill-list">
+    <div className="skill-activity-wrapper">
+      <div className="skill-activity-container">
         {skills.map((skill) => (
           <div key={skill.id} className="skill-progress-bar">
             <div className="bar-text">
               <span className="skill-name">{skill.name}</span>
             </div>
-            <pre style={{ color: "white" }}>
-  {JSON.stringify(skill, null, 2)}
-</pre>
             <ProgressBar xp={skill.progress} />
           </div>
         ))}

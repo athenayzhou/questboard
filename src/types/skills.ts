@@ -52,11 +52,20 @@ export type Skill = {
 
 export type XPEvent = {
   id: string;
+  name?: string;
   amount: number;
   source: "quest" | "habit" | "manual";
   sourceId: string;
   timestamp: number;
 }
+
+export type SkillActivity = {
+  id: string;
+  name: string;
+  level: number;
+  progress: number;
+  lastSeenAt: number;
+} //ui
 
 export type Progress = {
   level: number;

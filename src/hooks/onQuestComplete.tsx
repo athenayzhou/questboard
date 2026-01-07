@@ -32,7 +32,7 @@ export function onQuestComplete(
     for(const candidate of candidates) {
       if(candidate.state === "ready"){
         const skill = promote(candidate, skillStore);
-        skillStore.gainXP(skill.id, xp);
+        skillStore.gainXP(skill.id, xp, quest.id);
         candidateStore.remove(candidate.key);
       }
     }

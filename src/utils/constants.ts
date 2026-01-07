@@ -59,4 +59,4 @@ export const DISCOVERY = {
   DISMISS_COOLDOWN: 7 * MS.DAY,
 }
 
-export const RECENT_SKILLS = 3; 
+export const NUMOF_SKILLS = 3; 

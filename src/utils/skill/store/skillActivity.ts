@@ -1,53 +1,51 @@
-import type { Skill, XPEvent } from "../../../types/skills";
+import type { XPEvent, SkillActivity } from "../../../types/skills";
 import { levelToProgress } from "../analysis/experience";
-import { RECENT_SKILLS } from "../../constants";
+import { NUMOF_SKILLS } from "../../constants";
 
-type SkillActivity ={
-  id: string;
-  name: string;
-  level: number;
-  progress: number;
-  lastSeenAt: number;
-}
-
-const skills = new Map<string, SkillActivity>();
+type InternalActivity = SkillActivity & {
+  xp: number;
+};
 const listeners = new Set<() => void>();
+const skills = new Map<string, InternalActivity>();
 let cachedRecent: SkillActivity[] = [];
-let cachedLimit = RECENT_SKILLS;
 
 export function listenActivity(fn: () => void) {
   listeners.add(fn);
   return () => listeners.delete(fn);
 }
 
-export function recordXP(e: {
-  id: string;
-  name: string;
-  xp: number;
-  level: number;
-  timestamp: number
-}) {
-  skills.set(e.id, {
+export function recordXP(e: XPEvent) {
+  const prev = skills.get(e.id);
+  const nextXP = (prev?.xp ?? 0) + e.amount;
+  const { level, progress } = levelToProgress(nextXP);
+
+  const internal: InternalActivity = {
     id: e.id,
-    name: e.name ?? "skill",
-    level: e.level,
-    progress: levelToProgress(e.xp).progress,
+    name: e.name ?? prev?.name ?? "unnamed skill",
+    level,
+    progress,
     lastSeenAt: e.timestamp,
-  })
-  recomputeRecent(cachedLimit);
+    xp: nextXP
+  }
+  skills.set(e.id, internal);
+
+  recomputeRecent(NUMOF_SKILLS);
   listeners.forEach(l => l());
 }
 
 export function recomputeRecent(limit: number){
-  cachedLimit = limit;
   cachedRecent = [...skills.values()]
     .sort((a, b) => b.lastSeenAt - a.lastSeenAt)
     .slice(0, limit)
+    .map(skill => ({
+      id: skill.id,
+      name: skill.name,
+      level: skill.level,
+      progress: levelToProgress(skill.xp).progress,
+      lastSeenAt: skill.lastSeenAt,
+    }))
 }
 
-export function recentActivity(limit = 3): SkillActivity[] {
-  if(limit !== cachedLimit){
-    recomputeRecent(limit);
-  }
+export function getRecent() {
   return cachedRecent;
 }
