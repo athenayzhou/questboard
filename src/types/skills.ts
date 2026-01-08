@@ -33,13 +33,14 @@ export type Candidate = {
   origin: string[];
   firstSeenAt: number;
   lastSeenAt: number;
-  state: "latent" | "emerging" | "ready" | "named" | "decayed";
-  // dismissedUntil?: number;
-  suggestedNames: string[];
+  state: "latent" | "emergent" | "ready" | "decayed";
+  // readyAt?: number;
+  // namingOfferedAt?: number;
 }
 
 export type Skill = {
   id: string;
+  key: string;
   name: string;
   verb: string;
   objects: string[];
@@ -62,10 +63,10 @@ export type XPEvent = {
 export type SkillActivity = {
   id: string;
   name: string;
+  xp: number;
   level: number;
-  progress: number;
   lastSeenAt: number;
-} //ui
+}
 
 export type Progress = {
   level: number;
@@ -81,7 +82,7 @@ export type SkillNode = {
   object: string;
   proficiency: number;
   confidence: number;
-  discoveredAt: number;
+  firstSeenAt: number;
 }
 
 export type SkillEdge = {

@@ -6,10 +6,11 @@ import { loadTree } from "../../utils/skill/tree/persistence";
 
 import type { Skill, Candidate, SkillNode, Tree } from "../../types/skills";
 
-import { skillNodes, skillEdges } from "../../dev/data/TEST_TREE";
+// import { skillNodes, skillEdges } from "../../dev/data/TEST_TREE";
 
 import { skillStore, candidateStore } from "../../utils/skill/store/stores";
 import { DEFAULT } from "../../utils/constants";
+
 
 export function SkillTree(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);
@@ -32,22 +33,22 @@ export function SkillTree(){
     return {
       id: skill.id,
       name: skill.name,
-      verb: skill.verbs[0],
+      verb: skill.verb,
       object: skill.objects[0],
-      proficiency: skill.proficiency,
-      confidence: 1,
-      discoveredAt: skill.createdAt,
+      proficiency: skill.xp,
+      confidence: skill.confidence,
+      firstSeenAt: skill.firstSeenAt,
     }
   }
   function candidateToNode(candidate: Candidate): SkillNode {
     return {
       id: candidate.id,
-      name: candidate.suggestedNames?.[0] ?? DEFAULT.SKILL_NAME,
-      verb: candidate.verbs[0],
+      name: DEFAULT.SKILL_NAME,
+      verb: candidate.verb,
       object: candidate.objects[0],
-      proficiency: candidate.confidence,
+      proficiency: candidate.xp,
       confidence: candidate.confidence,
-      discoveredAt: candidate.firstSeenAt,
+      firstSeenAt: candidate.firstSeenAt,
     }
   }
 

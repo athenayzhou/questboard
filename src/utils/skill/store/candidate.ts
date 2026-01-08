@@ -32,7 +32,6 @@ export class CandidateStore {
       firstSeenAt: now,
       lastSeenAt: now,
       state: "latent",
-      suggestedNames:[],
     };
     this.candidates.set(candidate.key, candidate);
     return candidate;

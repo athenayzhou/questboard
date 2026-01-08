@@ -4,7 +4,7 @@ import { DECAY, MS } from "../../constants";
 
 export function decaySkills(skills: SkillNode[], now: number){
   return skills.map(s => {
-    const lapsed = now - s.discoveredAt;
+    const lapsed = now - s.firstSeenAt;
     const decayedProficiency = Math.max(0, s.proficiency - lapsed * DECAY.RATE);
     return {...s, proficiency: decayedProficiency}
   });

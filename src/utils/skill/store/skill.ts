@@ -1,5 +1,5 @@
 import type { Skill } from "../../../types/skills";
-import { xpToLevel } from "../analysis/experience";
+import { applyXP, xpToLevel } from "../analysis/experience";
 import { recordXP } from "./skillActivity";
 
 export class SkillStore {
@@ -16,9 +16,10 @@ export class SkillStore {
   gainXP(id:string, amount: number, questId?: string, now = Date.now()) {
     const skill = this.skills.get(id);
     if(!skill) return;
-    skill.xp += amount;
-    skill.level = xpToLevel(skill.xp);
-    skill.lastSeenAt = now;
+    applyXP(skill, amount);
+    // skill.xp += amount;
+    // skill.level = xpToLevel(skill.xp);
+    // skill.lastSeenAt = now;
     skill.confidence = Math.min (1, skill.confidence + 0.05);
 
     recordXP({

@@ -1,10 +1,8 @@
-import { useThree } from "@react-three/fiber"
 import { OrthographicCamera, OrbitControls, Environment } from "@react-three/drei"
 import { Model } from "./Model";
 import { useRef, useEffect } from "react";
-
-import Name from "./Name"
 import { SkillActivity } from "./SkillActivity";
+import Name from "./Name"
 
 export function Scene({ 
   orbitEnabled,
@@ -14,19 +12,16 @@ export function Scene({
   resetCamera: boolean 
 }) {
   const controlsRef = useRef<any>(null);
-  const { camera } = useThree();
 
   useEffect(() => {
-    if(!controlsRef.current) return;
-    if(!resetCamera) return;
-
-    if(!orbitEnabled){
-      camera.position.set(6, 6, 6);
-      controlsRef.current.target.set(0,0,0);
-      controlsRef.current.update();
-      controlsRef.current.saveState();
-    }
-  }, [resetCamera, camera]);
+    if(!resetCamera || !controlsRef.current) return;
+    const cam = controlsRef.current.object;
+    controlsRef.current.target.set(0,0,0);
+    cam.position.set(6,6,6);
+    cam.zoom = 50;
+    cam.updateProjectionMatrix();
+    controlsRef.current.update();
+  }, [resetCamera]);
 
   useEffect(() => {
     if(!controlsRef.current) return;

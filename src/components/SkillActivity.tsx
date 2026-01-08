@@ -2,6 +2,7 @@ import { useRecentSkills } from "../hooks/useRecentSkills";
 import { ProgressBar } from "./ui/ProgressBar";
 import { Html } from "@react-three/drei";
 import { useEffect } from "react";
+import { levelToProgress } from "../utils/skill/analysis/experience";
 
 type SkillActivityProps = {
   position?: [number, number, number]
@@ -32,14 +33,17 @@ export function SkillActivity({
     >
     <div className="skill-activity-wrapper">
       <div className="skill-activity-container">
-        {skills.map((skill) => (
+        {skills.map((skill) => {
+          const { progress } = levelToProgress(skill.xp, 1);
+          return(
           <div key={skill.id} className="skill-progress-bar">
             <div className="bar-text">
               <span className="skill-name">{skill.name}</span>
             </div>
-            <ProgressBar xp={skill.progress} />
+            <ProgressBar level={skill.level} progress={progress} />
           </div>
-        ))}
+          )
+        })}
       </div>
     </div>
     </Html>

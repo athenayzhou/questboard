@@ -1,6 +1,6 @@
 /*  ACTIVE QUEST  */
 
-.progress-bar {
+/* .progress-bar {
   height: 6px;
   background: rgba(255,255,255,0.1);
   border-radius: 999px;
@@ -10,7 +10,7 @@
   height: 100%;
   background: linear-gradient(90def, #7cf, #8ff);
   transition: width 0.3s ease;
-}
+} */
 
 /*  SKILL - UI / PROGRESS BAR  */
 .progress-wrapper{
@@ -25,6 +25,7 @@
   text-align: right;
 }
 .progress-bar{
+  width: 100%;
   flex: 1;
   height: 0.5rem;
   background-color: #e5e7eb;
@@ -33,9 +34,10 @@
 }
 .progress-fill{
   height: 100%;
-  background-color: linear-gradient(90deg, #4ade80, #22c55e);
+  background: linear-gradient(90deg, #4ade80, #22c55e);
   border-radius: 9999px;
-  transform: width 0.3s ease;
+  width: 0%;
+  transition: width 0.3s ease;
 }
 .skill-progress-bar:hover .progress-fill{
   filter: brightness(1.1);

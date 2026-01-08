@@ -17,13 +17,12 @@ export function listenActivity(fn: () => void) {
 export function recordXP(e: XPEvent) {
   const prev = skills.get(e.id);
   const nextXP = (prev?.xp ?? 0) + e.amount;
-  const { level, progress } = levelToProgress(nextXP);
+  const { level } = levelToProgress(nextXP);
 
   const internal: InternalActivity = {
     id: e.id,
     name: e.name ?? prev?.name ?? "unnamed skill",
     level,
-    progress,
     lastSeenAt: e.timestamp,
     xp: nextXP
   }
@@ -40,8 +39,8 @@ export function recomputeRecent(limit: number){
     .map(skill => ({
       id: skill.id,
       name: skill.name,
+      xp: skill.xp,
       level: skill.level,
-      progress: levelToProgress(skill.xp).progress,
       lastSeenAt: skill.lastSeenAt,
     }))
 }

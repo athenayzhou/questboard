@@ -24,7 +24,10 @@ export function evaluateReadiness(candidate: Candidate) : Candidate["state"] {
   const xpScore = candidate.xp / 10;
   const objectScore = candidate.objects.length * 0.2;
   candidate.confidence = clamp(xpScore + objectScore, 0, 1);
-  return candidate.confidence >= CONFIDENCE.READY_THRESHOLD ? "ready" : "latent";
+
+  if (candidate.confidence >= CONFIDENCE.READY_THRESHOLD) return "ready";
+  if (candidate.confidence >= CONFIDENCE.EMERGENT_THRESHOLD) return "emergent";
+  return "latent";
 }
 
 export function aura(confidence: number) {

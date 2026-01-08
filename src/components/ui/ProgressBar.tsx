@@ -1,11 +1,9 @@
-import { levelToProgress } from "../../utils/skill/analysis/experience";
-
 type ProgressBarProps = {
-  xp: number;
+  level: number;
+  progress: number
 };
 
-export function ProgressBar({ xp }: ProgressBarProps) {
-  const { level, progress } = levelToProgress(xp);
+export function ProgressBar({ level, progress }: ProgressBarProps) {
   return (
     <div className="progress-wrapper">
       <div className="progress-label">lv {level}</div>

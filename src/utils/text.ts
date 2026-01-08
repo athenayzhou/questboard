@@ -53,7 +53,7 @@ export function trackVerb(verb: string) {
   verbFrequency.set(verb, count)
   if (!KNOWN_VERBS.has(verb) && count > VERB.THRESHOLD) {
     KNOWN_VERBS.add(verb);
-    console.log(`new verb: ${verb}`);
+    // console.log(`new verb: ${verb}`);
   }
 }
 

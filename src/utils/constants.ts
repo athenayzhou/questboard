@@ -13,6 +13,26 @@ export const DEFAULT = {
   DAY: 1000 * 60 * 60 * 24,
 }
 
+export const NAME = {
+  TEMPLATES: [
+  "{verb} {object}",
+  "{verb}ing {object}",
+  "{object} {verb}",
+  "{adjective} {object}",
+  "{verb} practice",
+  "{object} development",
+  "{object} design",
+  ],
+  ADJECTIVES: [
+  "micro",
+  "adaptive",
+  "intentional",
+  "iterative",
+  "expressive",
+  "systems",
+  ]
+}
+
 export const VERB ={
   THRESHOLD: 3,
 }
@@ -28,7 +48,8 @@ export const CLUSTERING = {
 }
 
 export const CONFIDENCE = {
-  READY_THRESHOLD: 0.3,
+  EMERGENT_THRESHOLD: 0.3,
+  READY_THRESHOLD: 0.6,
   GROWING_THRESHOLD: 0.75,
   STRONG_THRESHOLD: 0.85,
   MASTERY_THRESHOLD: 1.2,
@@ -53,10 +74,6 @@ export const DECAY = {
   RATE: 0.001,
   THRESHOLD: 0.15,
   PER_DAY: 0.01,
-}
-
-export const DISCOVERY = {
-  DISMISS_COOLDOWN: 7 * MS.DAY,
 }
 
 export const NUMOF_SKILLS = 3; 

@@ -7,8 +7,9 @@ import { SkillStore } from "../utils/skill/store/skill";
 import { process } from "../utils/skill/generation/process";
 import { aggregate } from "../utils/skill/generation/aggregate";
 import { discover } from "../utils/skill/generation/discover";
-import { promote } from "../utils/skill/generation/promote";
 import { calculateXP } from "../utils/skill/analysis/experience";
+
+import { name } from "../utils/skill/generation/name";
 
 export function onQuestComplete(
     quest: Quest,
@@ -22,18 +23,20 @@ export function onQuestComplete(
       clusterStore: ClusterStore;
       candidateStore: CandidateStore;
       skillStore: SkillStore;
-      now?: number;
     }
   ){
     const xp = calculateXP(quest);
-    process(quest, evidenceStore);
+    const { evidence, keys } = process(quest, evidenceStore);
     const clusters = aggregate(xp, evidenceStore, clusterStore);
-    const candidates = discover(clusters, candidateStore);
-    for(const candidate of candidates) {
-      if(candidate.state === "ready"){
-        const skill = promote(candidate, skillStore);
-        skillStore.gainXP(skill.id, xp, quest.id);
-        candidateStore.remove(candidate.key);
-      }
+    discover(clusters, candidateStore);
+
+  //for testing
+    const ready = candidateStore.getAll().filter(c => c.state === "ready");
+    name(ready, candidateStore, skillStore);
+  //
+
+    for(const skill of skillStore.getAll()) {
+      if(!keys.includes(skill.key)) continue;
+      skillStore.gainXP(skill.id, xp, quest.id);
     }
 }
