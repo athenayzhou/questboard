@@ -1,4 +1,4 @@
-import { useOverlay } from "../../utils/overlay";
+import { useOverlay } from "./overlay";
 import { useMemo, useReducer, useState } from "react";
 import type { PlayerData, EquipSlot, SystemItem } from "../../types/profile";
 import { TEST_SYSTEM_ITEMS as SystemItems, TEST_SYSTEM_TITLES as SystemTitles, TEST_SYSTEM_BADGES as SystemBadges } from "../../dev/data/TEST_SYSTEM";

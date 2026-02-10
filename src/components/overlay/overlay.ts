@@ -26,8 +26,15 @@ type OverlayState = {
 
 export const useOverlay = create<OverlayState>((set) => ({
   activeOverlay: null,
-  openOverlay: (type) => set({ activeOverlay: type }),
-  closeOverlay: () => set({ activeOverlay: null }),
+  openOverlay: (type) => 
+    set(() => ({ 
+      activeOverlay: type, 
+    })),
+  closeOverlay: () => 
+    set((s) => ({
+      activeOverlay: null,
+      openQuestPages: s.activeOverlay === "quests" ? [] : s.openQuestPages,
+    })),
   
   openQuestPages: [],
   openQuest: (id) => 
@@ -73,6 +80,4 @@ export const useOverlay = create<OverlayState>((set) => ({
       ? s.pinnedQuestIds.filter(q => q !== id)
       : [...s.pinnedQuestIds,id],
     })),
-
-
 }));

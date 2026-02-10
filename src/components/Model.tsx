@@ -1,5 +1,5 @@
 import { useGLTF, Html } from "@react-three/drei"
-import { useOverlay } from "../utils/overlay"
+import { useOverlay } from "./overlay/overlay"
 import { useMemo } from "react";
 
 type ModelProps = {

@@ -1,4 +1,4 @@
-import { useOverlay } from "../../utils/overlay";
+import { useOverlay } from "./overlay";
 import { TEST_BOARD as quests } from "../../dev/data/TEST_BOARD";
 import { LogCard } from "../quest/LogCard";
 import type { Quest } from "../../types/quest";

@@ -1,14 +1,20 @@
 import { TEST_BOARD as quests } from "../../dev/data/TEST_BOARD";
-import { useOverlay } from "../../utils/overlay";
+import { useOverlay } from "../overlay/overlay";
 import { questProgress } from "../../utils/progress";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function ActiveQuest() {
+  const activeOverlay = useOverlay(s => s.activeOverlay);
   const openQuest = useOverlay(s=> s.openQuest);
   const togglePin = useOverlay(s=> s.togglePin);
   const pinnedQuestIds = useOverlay(s=> s.pinnedQuestIds);
-
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    if(activeOverlay) {
+      setCollapsed(true);
+    }
+  }, [activeOverlay]);
 
   // const pinned = quests.filter(q=> pinnedQuestIds.includes(q.id));
   const active = quests.filter(q=> q.status === "accepted");

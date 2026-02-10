@@ -1,4 +1,4 @@
-import { useOverlay } from "../../utils/overlay";
+import { useOverlay } from "./overlay";
 import { TEST_FRIENDS as friends } from "../../dev/data/TEST_FRIENDS";
 
 export function FriendsList(){

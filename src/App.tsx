@@ -1,8 +1,8 @@
 import { Scene } from './components/Scene'
-import { OverlayManager } from './components/OverlayManager'
+import { OverlayManager } from './components/overlay/OverlayManager'
 import { useEffect, useState } from 'react';
 import { OrbitToggle } from './components/ui/OrbitToggle';
-import { useOverlay } from './utils/overlay';
+import { useOverlay } from './components/overlay/overlay';
 import { Canvas } from '@react-three/fiber';
 import { ActiveQuest } from './components/quest/ActiveQuests';
 

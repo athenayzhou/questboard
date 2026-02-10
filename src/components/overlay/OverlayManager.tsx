@@ -1,16 +1,14 @@
-import { useOverlay } from "../utils/overlay";
-import { Profile } from "./overlay/Profile";
-import { QuestBoard } from "./overlay/QuestBoard";
-import { QuestLog } from "./overlay/QuestLog";
-import { FriendsList } from "./overlay/FriendsList";
-import { SkillTree } from "./overlay/SkillTree";
-import { Settings } from "./overlay/Settings";
+import { useOverlay } from "./overlay";
+import { Profile } from "./Profile";
+import { QuestBoard } from "./QuestBoard";
+import { QuestLog } from "./QuestLog";
+import { FriendsList } from "./FriendsList";
+import { SkillTree } from "./SkillTree";
+import { Settings } from "./Settings";
 
-import { QuestPage } from "./quest/QuestPage";
-import { TEST_BOARD as quests } from "../dev/data/TEST_BOARD";
-import type { Quest } from "../types/quest";
-
-import { TEST_PLAYER_DATA as player } from "../dev/data/TEST_PROFILE";
+import { QuestPage } from "../quest/QuestPage";
+import { TEST_BOARD as quests } from "../../dev/data/TEST_BOARD";
+import type { Quest } from "../../types/quest";
 
 export function OverlayManager(){
   const activeOverlay = useOverlay((s)=>s.activeOverlay);

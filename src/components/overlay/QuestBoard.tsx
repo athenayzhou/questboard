@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useOverlay } from "../../utils/overlay";
+import { useOverlay } from "./overlay";
 import type { Quest } from "../../types/quest";
 import { BoardCard } from "../quest/BoardCard";
 
@@ -12,9 +12,9 @@ export function QuestBoard({
   quests = [], 
   onSelect,
 } : QuestBoardProps) {
+  const activeOverlay = useOverlay((s) => s.activeOverlay);
   const closeOverlay = useOverlay((s) => s.closeOverlay);
   const board = quests.filter(q => q.status === "available");
-
   const [questState, setQuestsState] = useState(
     board.map(q => ({
       ...q,
@@ -33,6 +33,7 @@ export function QuestBoard({
     });
   };
 
+  if(activeOverlay !== "quests") return null;
 
   return (
     <div className="overlay quests-overlay">

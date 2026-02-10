@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useOverlay } from "../../utils/overlay";
+import { useOverlay } from "./overlay";
 
 import { buildTree } from "../../utils/skill/tree/buildTree";
 import { loadTree } from "../../utils/skill/tree/persistence";
