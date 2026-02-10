@@ -1,4 +1,4 @@
-import type { XPEvent } from "../../../types/skills";
+import type { XPEvent } from "../types/skills";
 
 export class XPEventStore {
   private events: XPEvent[] = [];

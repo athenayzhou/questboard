@@ -1,4 +1,6 @@
 import { Html } from "@react-three/drei";
+import { usePlayerStore } from "../store/player";
+import { TEST_SYSTEM_TITLES as SYSTEM_TITLES, TEST_SYSTEM_BADGES as SYSTEM_BADGES } from "../dev/data/TEST_SYSTEM";
 
 type NameProps = {
   position?: [number, number, number]
@@ -7,9 +9,20 @@ type NameProps = {
 export default function Name({
   position = [0, 1.5, 0],
 } : NameProps){
-
   const htmlPortal = document.getElementById("html-layer");
   if(!htmlPortal) return null;
+
+  const name = usePlayerStore(s => s.player.profile.name);
+  const activeTitle = usePlayerStore(s => s.player.achievements.activeTitle);
+  const activeBadge = usePlayerStore(s => s.player.achievements.activeBadge);
+
+
+  const playerTitle = activeTitle
+    ? SYSTEM_TITLES[activeTitle]
+    : null;
+  const playerBadge = activeBadge
+    ? SYSTEM_BADGES[activeBadge]
+    : null;
 
   return(
     <Html 
@@ -21,8 +34,18 @@ export default function Name({
     center
     >
       <div className="name-container">
-        <div className="name-text">donna</div>
-        <div className="name-title">amateur stewer</div>
+        <div style={{display: "flex", flexDirection: "row"}}>
+        <div className="name-text">{name}</div>
+        {playerBadge && (
+          <div 
+            className="name-badge"
+            title={playerBadge.display}
+          >{playerBadge.icon ?? playerBadge.display[0]}</div>
+        )}
+        </div>
+        {playerTitle && (
+          <div className="name-title">{playerTitle.display}</div>
+        )}
       </div>
     </Html>
   )

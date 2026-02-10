@@ -1,5 +1,5 @@
-import type { Cluster, Candidate } from "../../../types/skills";
-import { xpToLevel } from "../analysis/experience";
+import type { Cluster, Candidate } from "../types/skills";
+import { xpToLevel } from "../utils/skill/analysis/experience";
 
 export class CandidateStore {
   private candidates = new Map<string, Candidate>();

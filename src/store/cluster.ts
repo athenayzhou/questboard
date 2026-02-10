@@ -1,7 +1,7 @@
-import type { Quest } from "../../../types/quest";
-import type { Evidence, Cluster } from "../../../types/skills";
-import { calculateConfidence } from "../analysis/confidence";
-import { xpToLevel, calculateXP, applyXP } from "../analysis/experience";
+import type { Quest } from "../types/quest";
+import type { Evidence, Cluster } from "../types/skills";
+import { calculateConfidence } from "../utils/skill/analysis/confidence";
+import { xpToLevel, calculateXP, applyXP } from "../utils/skill/analysis/experience";
 
 // import { getCoEdges } from "./cooccurence";
 // import { getTransitions } from "./transitions";

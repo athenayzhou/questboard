@@ -1,6 +1,6 @@
 import type { Cluster } from "../../../types/skills";
-import { EvidenceStore } from "../store/evidence";
-import { ClusterStore } from "../store/cluster";
+import { EvidenceStore } from "../../../store/evidence";
+import { ClusterStore } from "../../../store/cluster";
 
 export function aggregate(
   xp: number,

@@ -1,6 +1,6 @@
-import type { XPEvent, SkillActivity } from "../../../types/skills";
-import { levelToProgress } from "../analysis/experience";
-import { NUMOF_SKILLS } from "../../constants";
+import type { XPEvent, SkillActivity } from "../types/skills";
+import { levelToProgress } from "../utils/skill/analysis/experience";
+import { NUMOF_SKILLS } from "../utils/constants";
 
 type InternalActivity = SkillActivity & {
   xp: number;

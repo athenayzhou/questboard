@@ -1,0 +1,282 @@
+/*  PROFILE  */
+
+.profile-overlay {
+    /* display: flex; */
+    gap: 2rem;
+}
+
+.character-information {
+    display: flex;
+    flex-direction: row;
+    padding: 2rem;
+}
+.character-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    /* min-width: 200px; */
+}
+.player-identity {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+.player-identity h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+.player-achievements {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+}
+.active-title{
+    margin-top: 6px;
+    padding: 4px 10px;
+    background: #2a2a35;
+    border-radius: 999px;
+    font-size: 0.8rem;
+}
+.active-badge {
+    display: flex;
+    flex-direction: column;
+}
+.active-badge-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #2a2a35;
+    border: 2px solid rgba(255,255,255,0.15);
+}
+.active-badge-name {
+    width: 28px;
+    height: 28px;
+    margin-top: 0.5rem;
+    border-radius: 50%;
+    font-weight: bold;
+    text-align: center;
+    color: #3e3e3e;
+}
+
+.player-preview {
+    display: flex;
+    /* flex-direction: row; */
+    gap: 1rem;
+    align-items: flex-start;
+}
+.character-slot {
+    padding: 0.5rem;
+    background: #2a2a2a;
+    border-radius: 12px;
+}
+.character-image {
+    background-color: #1f1f25;
+    height: 250px;
+    width: 250px;
+    border-radius: 12px;
+    border: 2px dashed #444;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #666;
+}
+.equip-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.equip-slot {
+    padding: 0.4rem;
+    background: #2a2a2a;
+    border-radius: 8px;
+}
+.equip-slot.filled {
+    cursor: pointer;
+}
+.equip-slot.filled:hover {
+    outline: 2px solid rgba(255, 255, 255, 0.2);
+}
+.equip-slot.targeted {
+    outline: 2px dashed #7aa2f7
+}
+.equip-slot-image {
+    width: 45px;
+    height: 45px;
+    border-radius: 6px;
+    background-color: #1f1f25;
+    border: 2px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+}
+
+.item-panel {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.item-panel section {
+    background: #2a2a2a;
+    padding: 0.75rem;
+    border-radius: 8px;
+}
+.item-panel h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.25rem;
+}
+.item {
+    background: #2a2a30;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+}
+.item.equipped {
+    outline: 2px solid #7aa2f7;
+    background: #22223a;
+}
+.item-image {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+}
+.item-name {
+    font-size: 0.75rem;
+    line-height: 1.1;
+}
+
+.title-section,
+.badge-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.title-banner {
+    position: relative;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #2a2a35, #1f1f28);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+}
+.title-banner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0));
+}
+.title-banner.active {
+    border-color: #ffb347;
+    background: linear-gradient(135deg, #3a2a1a, #2a1f15);
+}
+.title-text {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #9b9b9b;
+}
+
+.badge-card{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+    background: #1a1a20;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    cursor: pointer;
+}
+.badge-card.active {
+    outline: 2px solid #ffb347;
+}
+.badge-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #2a2a35;
+    border: 2px solid rgba(255,255,255,0.15);
+}
+.badge-name {
+    font-size: 0.75rem;
+    text-align: center;
+    opacity: 0.85;
+    color: #9b9b9b;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+}
+.grid button {
+    padding: 0.5rem;
+    background: #444;
+    border: none;
+    border-radius: 6px;
+}
+.grid button:hover:not(:disabled) {
+    background: #666;
+}
+.grid button:disabled {
+    background: #222;
+    color: #888;
+
+}
+.subsection {
+    margin-top: 0.75rem;
+}
+.subsection h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.85rem;
+    color: #aaa;
+    letter-spacing: 0.04em;
+}
+
+#save-profile {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: #7aa2f7;
+    color: #000;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+#save-profile:hover {
+    background: #bdd2ff;
+}
+
+.profile-overlay > button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #ff4444;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    text-align: center;
+    line-height: 32px;
+    transition: 0.2s;
+}
+
+.profile-overlay > button:hover {
+    background: #ff0000;
+}

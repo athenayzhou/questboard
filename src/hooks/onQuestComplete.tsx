@@ -1,8 +1,8 @@
 import type { Quest } from "../types/quest";
-import { EvidenceStore } from "../utils/skill/store/evidence";
-import { ClusterStore } from "../utils/skill/store/cluster";
-import { CandidateStore } from "../utils/skill/store/candidate";
-import { SkillStore } from "../utils/skill/store/skill";
+import { EvidenceStore } from "../store/evidence";
+import { ClusterStore } from "../store/cluster";
+import { CandidateStore } from "../store/candidate";
+import { SkillStore } from "../store/skill";
 
 import { process } from "../utils/skill/generation/process";
 import { aggregate } from "../utils/skill/generation/aggregate";

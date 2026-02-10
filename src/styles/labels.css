@@ -49,19 +49,43 @@
     0 2px 8px rgba(0,0,0, 0.4),
     inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
+.name-container-top {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
 .name-text {
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
 .name-title {
-  font-size: 11px;
+  /* font-size: 11px;
   font-weight: 400;
   opacity: 0.8;
   text-transform: lowercase;
   padding: 2px 6px;
   background: rgba(30,30,30,0.8);
-  border-radius: 8px;
+  border-radius: 8px; */
+  margin-top: 4px;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #2a2a35, #1f1f28);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+.name-badge {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: pink;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  font-size: 12px;
+  margin-left: 8px;
+  margin-top: 2px;
 }
 
 

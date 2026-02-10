@@ -8,7 +8,7 @@ import type { Skill, Candidate, SkillNode, Tree } from "../../types/skills";
 
 // import { skillNodes, skillEdges } from "../../dev/data/TEST_TREE";
 
-import { skillStore, candidateStore } from "../../utils/skill/store/stores";
+import { skillStore, candidateStore } from "../../store/bundledStores";
 import { DEFAULT } from "../../utils/constants";
 
 

@@ -1,6 +1,6 @@
 import type { Candidate, Skill } from "../../../types/skills";
-import { SkillStore } from "../store/skill";
-import { CandidateStore } from "../store/candidate";
+import { SkillStore } from "../../../store/skill";
+import { CandidateStore } from "../../../store/candidate";
 
 export function promote(
   candidate: Candidate,

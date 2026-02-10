@@ -7,8 +7,10 @@ import { SkillTree } from "./overlay/SkillTree";
 import { Settings } from "./overlay/Settings";
 
 import { QuestPage } from "./quest/QuestPage";
-import { quests } from "../dev/data/TEST_BOARD";
+import { TEST_BOARD as quests } from "../dev/data/TEST_BOARD";
 import type { Quest } from "../types/quest";
+
+import { TEST_PLAYER_DATA as player } from "../dev/data/TEST_PROFILE";
 
 export function OverlayManager(){
   const activeOverlay = useOverlay((s)=>s.activeOverlay);

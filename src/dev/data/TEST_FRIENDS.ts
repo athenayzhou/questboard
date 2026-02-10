@@ -1,6 +1,6 @@
 import type { Friend } from "../../types/friend";
 
-export const friends: Friend[] = [
+export const TEST_FRIENDS: Friend[] = [
   {
     id: "1",
     name: "goldie",

@@ -1,6 +1,6 @@
 import type { Quest } from "../../types/quest";
 
-export const quests: Quest[] = [
+export const TEST_BOARD: Quest[] = [
   {
     id: "quests-dishes",
     title: "wash the dishes",

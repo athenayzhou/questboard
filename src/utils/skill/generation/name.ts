@@ -1,6 +1,6 @@
 import type { Candidate } from "../../../types/skills";
-import type { CandidateStore } from "../store/candidate";
-import type { SkillStore } from "../store/skill";
+import type { CandidateStore } from "../../../store/candidate";
+import type { SkillStore } from "../../../store/skill";
 import { DEFAULT, NAME } from "../../constants";
 import { promote } from "./promote";
 

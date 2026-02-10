@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { listenActivity, getRecent } from "../utils/skill/store/skillActivity";
+import { listenActivity, getRecent } from "../store/skillActivity";
 
 export function useRecentSkills() {
   return useSyncExternalStore(

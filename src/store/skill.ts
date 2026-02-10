@@ -1,5 +1,5 @@
-import type { Skill } from "../../../types/skills";
-import { applyXP, xpToLevel } from "../analysis/experience";
+import type { Skill } from "../types/skills";
+import { applyXP, xpToLevel } from "../utils/skill/analysis/experience";
 import { recordXP } from "./skillActivity";
 
 export class SkillStore {

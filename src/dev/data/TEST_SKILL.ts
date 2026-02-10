@@ -1,6 +1,6 @@
 import type { Quest } from "../../types/quest";
 
-export const TEST_DATA: Quest[] = [
+export const TEST_SKILL: Quest[] = [
   {
     id: "q-001",
     title: "Tidy the Desk Realm",

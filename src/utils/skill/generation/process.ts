@@ -1,6 +1,6 @@
 import type { Quest } from "../../../types/quest";
 import type { Evidence } from "../../../types/skills";
-import { EvidenceStore } from "../store/evidence";
+import { EvidenceStore } from "../../../store/evidence";
 import { extractPair } from "../../text";
 import { DIFFICULTY_EFFORT } from "../../constants";
 
