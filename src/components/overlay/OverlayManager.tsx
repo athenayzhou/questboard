@@ -3,10 +3,11 @@ import { Profile } from "./Profile";
 import { QuestBoard } from "./QuestBoard";
 import { QuestLog } from "./QuestLog";
 import { FriendsList } from "./FriendsList";
-import { SkillTree } from "./SkillTree";
+// import { SkillTree } from "./SkillTree";
+import { SkillLedger } from "./SkillLedger";
 import { Settings } from "./Settings";
 
-import { QuestPage } from "../quest/QuestPage";
+import { QuestPage } from "../secondary/QuestPage";
 import { TEST_BOARD as quests } from "../../dev/data/TEST_BOARD";
 import type { Quest } from "../../types/quest";
 
@@ -52,7 +53,7 @@ export function OverlayManager(){
     case "friends":
       return <FriendsList />
     case "skills":
-      return <SkillTree />
+      return <SkillLedger />
     case "settings":
       return <Settings />
     default:

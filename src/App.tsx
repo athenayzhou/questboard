@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { OrbitToggle } from './components/ui/OrbitToggle';
 import { useOverlay } from './components/overlay/overlay';
 import { Canvas } from '@react-three/fiber';
-import { ActiveQuest } from './components/quest/ActiveQuests';
+import { ActiveQuest } from './components/secondary/ActiveQuests';
 
 import { evidenceStore, candidateStore, clusterStore, skillStore } from './store/bundledStores';
 import { TEST_SKILL } from './dev/data/TEST_SKILL';

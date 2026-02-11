@@ -1,7 +1,7 @@
 import type { Quest } from "../../../types/quest";
 import type { Evidence } from "../../../types/skills";
 import { EvidenceStore } from "../../../store/evidence";
-import { extractPair } from "../../text";
+import { extractPair } from "../../format/text";
 import { DIFFICULTY_EFFORT } from "../../constants";
 
 export type ProcessResult ={

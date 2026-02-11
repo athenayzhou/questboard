@@ -1,6 +1,6 @@
 import { useOverlay } from "./overlay";
 import { TEST_BOARD as quests } from "../../dev/data/TEST_BOARD";
-import { LogCard } from "../quest/LogCard";
+import { LogCard } from "../secondary/LogCard";
 import type { Quest } from "../../types/quest";
 
 import { group } from "../../utils/grouping";

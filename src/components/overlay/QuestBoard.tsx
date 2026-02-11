@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useOverlay } from "./overlay";
 import type { Quest } from "../../types/quest";
-import { BoardCard } from "../quest/BoardCard";
+import { BoardCard } from "../secondary/BoardCard";
 
 type QuestBoardProps = {
   quests: Quest[];

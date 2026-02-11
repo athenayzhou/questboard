@@ -1,0 +1,159 @@
+/*  SKILL LEDGER  */
+
+.skill-overlay{
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+} 
+/* .skill-header{
+} */
+
+.ledger-content{
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  overflow: hidden;
+}
+.ledger-list-column{
+  flex: 0.8;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  padding-right: 8px;
+}
+.ledger-detail-column{
+  flex: 1.2;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+  padding-left: 8px;
+}
+
+.ledger-controls{
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+.ledger-controls input {
+  flex: 1;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: none;
+}
+.ledger-controls select, .ledger-controls label {
+ margin-left: 4px;
+}
+
+.ledger-list{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ledger-item{
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  background: rgba(255,255,255,0.05);
+  transition: background 0.2s;
+}
+.ledger-item:hover {
+  background: rgba(255,255,255,0.15);
+}
+.ledger-item.selected {
+  background: rgba(255,255,255,0.2);
+}
+.ledger-item.dormant {
+  opacity: 0.5;
+}
+.ledger-header{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ledger-name{
+  font-weight: bold;
+}
+.ledger-meta{
+  font-size: 0.8rem;
+  color: #ccc;
+}
+
+.no-selection{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #888;
+  font-style: italic;
+  height: 100%;
+}
+
+
+/*  SKILL DETAIL  */
+
+.skill-detail{
+  position: relative;
+  /* width: 100%; */
+  height: 100%;
+  background: rgba(30, 30, 40, 0.95);
+  color: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: hidden;
+}
+.skill-detail .close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor:pointer;
+}
+.ledger-xp-log{
+  margin-top: 8px;
+  font-size: 0.85rem;
+  max-height: 150px;
+  overflow-y: auto;
+}
+.ledger-xp-log h4 {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+.ledger-xp-log ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.ledger-xp-log li {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.ledger-xp-log li span {
+  margin-right: 8px;
+}
+.xp-date{
+  flex: 1;
+}
+.xp-source{
+  flex: 1;
+}
+.xp-source-name{
+  flex: 2;
+}
+.xp-amount{
+  flex: 1;
+  text-align: right;
+  font-weight: bold;
+}
+.cooccurence ul{
+  padding-left: 16px;
+  margin-top: 4px;
+}

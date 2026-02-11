@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Quest } from "../../types/quest";
 import type { QuestGroup } from "../../utils/grouping";
-import { formatDate } from "../../utils/date";
+import { formatDate } from "../../utils/format/date";
 import { getGroupSummary, getLatest } from "../../utils/grouping";
 import { StatusBadge } from "../ui/StatusBadge";
 

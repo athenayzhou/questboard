@@ -12,22 +12,3 @@ export function discover(
     candidateStore.save(candidate);
   }
 }
-
-// function discoverSkill(candidate: Candidate[]): Candidate[]{
-//   const ready = candidate.filter(
-//     c => c.type === "specific" && c.state === "emerging"
-//   );
-
-//   const skillCandidate = new Map<string, Candidate[]>();
-//   for (const c of ready) {
-//     if(!skillCandidate.has(c.verb)){
-//       skillCandidate.set(c.verb, []);
-//     }
-//     skillCandidate.get(c.verb)!.push(c);
-//   }
-
-//   const masteryCandidate: Candidate[] = [];
-//   for (const [verb, clusters] of skillCandidate.entries()) {
-//     const confidence = 
-//   }
-// }

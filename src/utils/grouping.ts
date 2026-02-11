@@ -1,5 +1,8 @@
+// QUEST LOG // 
+
+
 import type { Quest } from "../types/quest";
-import { tokenize, normalize } from "./text";
+import { tokenize, normalize } from "./format/text";
 
 export type CompletedQuest = Extract<
   Quest,

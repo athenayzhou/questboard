@@ -26,16 +26,15 @@ function unique(arr: string[]) {
 }
 
 
-
 export function name(candidates: Candidate[], candidateStore: CandidateStore, skillStore: SkillStore){
   for (const candidate of candidates){
     const suggestions = generateNames(candidate);
-    suggestName(candidate, suggestions);
+    // suggestName(candidate, suggestions);
 
     promote(candidate, suggestions[0], candidateStore, skillStore)
   }
 }
-function suggestName(candidate: Candidate, suggestions: string[]){
+// function suggestName(candidate: Candidate, suggestions: string[]){
   // console.log(`Prompt naming for candidate: ${candidate.key}`);
   // console.log("Suggested names:", suggestions);
-}
+// }

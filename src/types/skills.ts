@@ -53,19 +53,22 @@ export type Skill = {
 
 export type XPEvent = {
   id: string;
-  name?: string;
   amount: number;
   source: "quest" | "habit" | "manual";
   sourceId: string;
+  skillId?: string;
+  name?: string;
   timestamp: number;
 }
 
-export type SkillActivity = {
+export type SkillLedgerEntry = {
   id: string;
+  skillId: string | null;
   name: string;
   xp: number;
   level: number;
   lastSeenAt: number;
+  isDormant: boolean;
 }
 
 export type Progress = {

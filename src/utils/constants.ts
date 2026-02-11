@@ -77,3 +77,5 @@ export const DECAY = {
 }
 
 export const NUMOF_SKILLS = 3; 
+
+export const COOCCURENCE_WINDOW = 1000 * 60 * 30;

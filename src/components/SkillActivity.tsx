@@ -1,8 +1,7 @@
-import { useRecentSkills } from "../hooks/useRecentSkills";
-import { ProgressBar } from "./ui/ProgressBar";
 import { Html } from "@react-three/drei";
-import { useEffect } from "react";
+import { ProgressBar } from "./ui/ProgressBar";
 import { levelToProgress } from "../utils/skill/analysis/experience";
+import { useRecentSkills } from "../hooks/useRecentSkills";
 
 type SkillActivityProps = {
   position?: [number, number, number]
@@ -16,12 +15,6 @@ export function SkillActivity({
   const htmlPortal = document.getElementById("html-layer");
   if(!htmlPortal) return null;
 
-  useEffect(() => {
-  console.log("skill activity", skills);
-  }, [skills]);
-
-
-
   return(
     <Html 
     position={position}
@@ -33,7 +26,7 @@ export function SkillActivity({
     >
     <div className="skill-activity-wrapper">
       <div className="skill-activity-container">
-        {skills.map((skill) => {
+        {skills.map(skill => {
           const { progress } = levelToProgress(skill.xp, 1);
           return(
           <div key={skill.id} className="skill-progress-bar">

@@ -1,10 +1,10 @@
 import { useSyncExternalStore } from "react";
-import { listenActivity, getRecent } from "../store/skillActivity";
+import { listenSkillLedger, getRecentActivity } from "../store/skillLedger";
 
 export function useRecentSkills() {
   return useSyncExternalStore(
-    listenActivity,
-    getRecent,
-    getRecent
+    listenSkillLedger,
+    getRecentActivity,
+    getRecentActivity
   );
 }

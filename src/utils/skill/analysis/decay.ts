@@ -1,13 +1,13 @@
-import type { Candidate, SkillNode } from "../../../types/skills";
+import type { Candidate } from "../../../types/skills";
 import { clamp } from "three/src/math/MathUtils.js";
 import { DECAY, MS } from "../../constants";
 
-export function decaySkills(skills: SkillNode[], now: number){
-  return skills.map(s => {
-    const lapsed = now - s.firstSeenAt;
-    const decayedProficiency = Math.max(0, s.proficiency - lapsed * DECAY.RATE);
-    return {...s, proficiency: decayedProficiency}
-  });
+export function decaySkills(){
+  // return skills.map(s => {
+  //   const lapsed = now - s.firstSeenAt;
+  //   const decayedProficiency = Math.max(0, s.proficiency - lapsed * DECAY.RATE);
+  //   return {...s, proficiency: decayedProficiency}
+  // });
 }
 
 export function decayCandidates(candidate: Candidate, now: number){
