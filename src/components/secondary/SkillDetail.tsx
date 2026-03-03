@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 import type { SkillLedgerEntry } from "../../types/skills";
-import { XPEventStoreInstance } from "../../store/xpEvent";
+import { useXPEventStore } from "../../store/xpEvent";
 import { getSkillCooccurence } from "../../utils/skill/analysis/cooccurence";
-import { getSkillKeyFromLedger } from "../../store/skillLedger";
 
 type Props = {
   skill: SkillLedgerEntry;
@@ -10,49 +9,53 @@ type Props = {
 }
 
 export function SkillDetail({ skill, onClose }: Props) {
-  const skillKey = useMemo(
-    () => getSkillKeyFromLedger(skill),
-    [skill]
+  const skillId = skill.id;
+  const events = useXPEventStore((s) => s.events);
+
+  const xpEvents = useMemo(
+    () => events.filter((e) => e.skillId === skillId),
+    [events, skillId]
   );
 
-  const xpEvents = useMemo(() => {
-    return XPEventStoreInstance.getBySkill(skillKey);
-  }, [skillKey]);
-  const cooccuring = useMemo(() => {
-    return getSkillCooccurence(skillKey);
-  }, [skillKey]);
+  const sortedXP = useMemo(
+    () => [...xpEvents].sort((a,b) => b.timestamp - a.timestamp),
+    [xpEvents]
+  );
+  const totalXP = useMemo(
+    () => xpEvents.reduce((sum, e) => sum + e.amount, 0),
+    [xpEvents]
+  );
 
-  // console.log({
-  //   skill: skill.name,
-  //   skillKey,
-  //   matchingEvents: xpEvents,
-  //   allEvents: XPEventStoreInstance.getAll()
-  // });
+  const cooccuring = useMemo(
+    () => getSkillCooccurence(skillId),
+    [skillId]
+  );
 
   return (
     <div className="skill-detail">
       <button className="close-btn" onClick={onClose}>x</button>
       <h2>{skill.name}</h2>
+      <div className="skill-summary">
+        <p>total xp: {totalXP}</p>
+        <p>sessions: {xpEvents.length}</p>
+      </div>
 
-      {xpEvents.length > 0 && (
+      {sortedXP.length > 0 && (
         <div className="ledger-xp-log">
           <h4>recent xp log</h4>
           <ul>
-            {xpEvents
-              .slice()
-              .reverse()
-              .map((e) => (
-                <li key={e.id}>
-                  <span className="xp-date">{new Date(e.timestamp).toLocaleDateString()}</span>
-                  <span className="xp-source">{e.source}</span>
-                  <span className="xp-source-name">{e.sourceId}</span>
-                  <span className="xp-amount">+{e.amount} xp</span>
-                </li>
-              ))
-            }
-          </ul>
-        </div>
-      )}
+            {sortedXP.map((e) => (
+              <li key={e.id}>
+                <span className="xp-date">{new Date(e.timestamp).toLocaleDateString()}</span>
+                <span className="xp-source">{e.source}</span>
+                <span className="xp-source-name">{e.sourceId}</span>
+                <span className="xp-amount">+{e.amount} xp</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    )}
 
       {cooccuring.length > 0 && (
         <div className = "cooccurence">

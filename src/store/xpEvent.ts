@@ -1,28 +1,44 @@
+import { create } from "zustand";
 import type { XPEvent } from "../types/skills";
-import { recomputeSkillLedger, getSkillKeyFromEvent } from "./skillLedger";
 
-export class XPEventStore {
-  private events: XPEvent[] = [];
+type XPEventState = {
+  events: XPEvent[];
+  recordXP: (params: {
+    skillId: string;
+    amount: number;
+    source: XPEvent["source"];
+    sourceId?: string;
+    name?: string;
+  }) => void;
 
-  recordXP(event: Omit<XPEvent, "timestamp">) {
-    this.events.push({
-      ...event,
-      timestamp: Date.now()
-    });
-    recomputeSkillLedger();
-  }
-
-  getAll(): XPEvent[]{
-    return [...this.events];
-  }
-
-  getBySkill(skillKey:string) {
-    return this.events.filter(e => getSkillKeyFromEvent(e) === skillKey);
-  }
-
-  clear() {
-    this.events = [];
-  }
+  getAll: () => XPEvent[];
+  getBySkill: (skillId: string) => XPEvent[];
+  clear: () => void;
 }
 
-export const XPEventStoreInstance = new XPEventStore();
+export const useXPEventStore = create<XPEventState>((set, get) => ({
+  events: [],
+
+  recordXP: ({ skillId, amount, source, sourceId, name}) => {
+    const timestamp = Date.now();
+
+    const newEvent: XPEvent = {
+      id: crypto.randomUUID(),
+      skillId,
+      amount,
+      source,
+      sourceId,
+      name,
+      timestamp,
+    }
+
+    set(state => ({
+      events: [newEvent, ...state.events],
+    }))
+  },
+
+  getAll: () => get().events,
+  getBySkill: (skillId) => 
+    get().events.filter(e => e.skillId === skillId),
+  clear: () => set({ events: [] }),
+}))

@@ -2,13 +2,13 @@ import type { Quest } from "../../types/quest";
 import { useRef } from "react";
 import { createPortal } from "react-dom";
 import { Detail } from "../ui/Detail";
+import { useQuestStore } from "../../store/quest";
 
 type QuestPageProps = {
   quest: Quest;
   x: number;
   y: number;
   z: number;
-  onAccept?: () => void;
   onClose: () => void;
   onFocus: () => void;
   onMove: (x: number, y: number) => void;
@@ -19,11 +19,30 @@ export function QuestPage({
   x,
   y,
   z,
-  onAccept,
   onClose, 
   onFocus,
   onMove,
 } : QuestPageProps) {
+  const accept = useQuestStore((s) => s.acceptQuest);
+  const complete = useQuestStore((s) => s.completeQuest);
+  const fail = useQuestStore((s) => s.failQuest);
+  const pin = useQuestStore((s) => s.togglePin);
+
+  if(!quest) return null;
+
+  function handleAccept() {
+    accept(quest.id);
+    onClose()
+  }
+  function handleComplete() {
+    complete(quest.id);
+    onClose()
+  }
+  function handleFail() {
+    fail(quest.id);
+    onClose()
+  }
+
   const dragOffset = useRef<{ x: number; y: number } | null>(null);
 
   function onMouseDown(e: React.MouseEvent) {
@@ -72,6 +91,12 @@ export function QuestPage({
         </div>
       )}
 
+      {quest.status === "accepted" && (
+        <button onClick={() => pin(quest.id)}>
+          {quest.pinned ? "unpin" : "pin"}
+        </button>
+      )}
+
       <section className="quest-details">
         <Detail label="difficulty" value={quest.difficulty} />
         {quest.priority && <Detail label="priority" value={quest.priority} />}
@@ -113,9 +138,16 @@ export function QuestPage({
 
       <footer className="quest-actions">
         {quest.status === "available" && (
-          <button className="accept" onClick={onAccept}>
+          <button className="accept" onClick={handleAccept}>
             accept quest
           </button>
+        )}
+
+        {quest.status === "accepted" && (
+          <>
+          <button onClick={handleComplete}>complete</button>
+          <button onClick={handleFail}>give up</button>
+          </>
         )}
       </footer>
 

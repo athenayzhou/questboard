@@ -1,6 +1,7 @@
-import { getSkillKeyFromEvent, getSkillKeyFromLedger, getSkillLedger } from "../../../store/skillLedger";
-import { XPEventStoreInstance } from "../../../store/xpEvent";
+import { useXPEventStore } from "../../../store/xpEvent";
+import { useSkillStore } from "../../../store/skill";
 import { COOCCURENCE_WINDOW } from "../../constants";
+
 
 type Cooccurence = {
   id: string;
@@ -9,14 +10,13 @@ type Cooccurence = {
 }
 
 export function getSkillCooccurence(skillKey: string): Cooccurence[]{
-  const events = XPEventStoreInstance.getAll();
+  const events = useXPEventStore.getState().events;
   const sessions: Record< string, Set<string>> = {};
   
   for(const e of events){
     const bucket = Math.floor(e.timestamp / COOCCURENCE_WINDOW);
     if(!sessions[bucket]) sessions[bucket] = new Set();
-    const key = getSkillKeyFromEvent(e);
-    if(key) sessions[bucket].add(key);
+    if(e.skillId) sessions[bucket].add(e.skillId);
   }
 
   const cooccurenceMap: Record<string, number> = {};
@@ -28,10 +28,10 @@ export function getSkillCooccurence(skillKey: string): Cooccurence[]{
     }
   }
 
-  const ledger = getSkillLedger();
+  const skills = useSkillStore.getState().skills;
   return Object.entries(cooccurenceMap)
     .map(([key, count]) => {
-      const skill = ledger.find(s => getSkillKeyFromLedger(s) === key);
+      const skill = skills[key];
       return skill 
         ? { id: key, name: skill.name, count } 
         : null;

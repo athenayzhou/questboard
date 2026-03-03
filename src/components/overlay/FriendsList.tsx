@@ -1,8 +1,9 @@
-import { useOverlay } from "./overlay";
-import { TEST_FRIENDS as friends } from "../../dev/data/TEST_FRIENDS";
+import { useOverlay } from "../../store/overlay";
+import { useFriendsStore } from "../../store/friends";
 
 export function FriendsList(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);
+  const friends = useFriendsStore((s) => s.friends);
 
   return(
     <div className="overlay friends-overlay">

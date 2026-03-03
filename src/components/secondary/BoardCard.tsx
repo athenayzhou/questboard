@@ -10,6 +10,7 @@ export function BoardCard({
   quest,
   onSelect,
 }: BoardCardProps) {
+
   return (
     <div className="quest-card" onClick={onSelect}>
       <div className="quest-card-header">

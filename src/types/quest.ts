@@ -10,10 +10,17 @@ type QuestReward = {
   items?: string[];
 }
 
-type QuestBase = {
+type QuestStatus = 
+  | "available"
+  | "accepted"
+  | "completed"
+  | "failed";
+
+export type Quest = {
   id: string;
   title: string;
   description?: string;
+  
   category?: string[];
   difficulty: "easy"|"medium"|"hard";
   priority?: "high"|"low";
@@ -21,19 +28,21 @@ type QuestBase = {
   duration?: number;
   deadline?: string|null;
   subquests?: QuestAction[]
-  reward?: QuestReward
+
+  reward?: QuestReward;
+  pinned?: boolean;
+  status: QuestStatus;
+
   createdAt: number;
+  acceptedAt?: number;
+  completedAt?: number | null;
+
   x?: number;
   y?: number;
   zIndex?: number;
 }
 
-export type Quest = 
-  | (QuestBase & {
-    status: "available" | "accepted";
-    completedAt: null;
-    })
-  | (QuestBase & {
-    status: "completed" | "failed";
-    completedAt: number;
-    })
+export type CompletedQuest = Quest & {
+  status: "completed" | "failed";
+  completedAt: number;
+}

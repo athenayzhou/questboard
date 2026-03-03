@@ -1,5 +1,4 @@
 import type { Evidence } from "../types/skills";
-// import { clamp } from "three/src/math/MathUtils.js";
 import { DEFAULT } from "../utils/constants";
 
 export class EvidenceStore {

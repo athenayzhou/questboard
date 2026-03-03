@@ -1,6 +1,6 @@
 import type { Evidence, Cluster } from "../types/skills";
 import { calculateConfidence } from "../utils/skill/analysis/confidence";
-import { xpToLevel, applyXP } from "../utils/skill/analysis/experience";
+import { applyXP } from "../utils/skill/analysis/experience";
 
 export class ClusterStore {
   private clusters = new Map<string, Cluster>();
@@ -27,7 +27,6 @@ export class ClusterStore {
       count: 1,
       totalTime: e.timespent,
       xp,
-      level: xpToLevel(xp),
       confidence: 0,
       firstSeenAt: e.timestamp,
       lastSeenAt: e.timestamp,
@@ -42,7 +41,6 @@ export class ClusterStore {
     cluster.count += 1;
     cluster.totalTime += e.timespent;
     applyXP(cluster, xp);
-    cluster.level = xpToLevel(cluster.xp);
     cluster.lastSeenAt = Math.max(cluster.lastSeenAt, e.timestamp)
     cluster.origin.push(e.origin);
     cluster.confidence = calculateConfidence(cluster);

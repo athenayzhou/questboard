@@ -1,46 +1,55 @@
-import { Scene } from './components/Scene'
-import { OverlayManager } from './components/overlay/OverlayManager'
-import { useEffect, useState } from 'react';
+import { Scene } from './components/Scene';
+import { OverlayManager } from './components/overlay/OverlayManager';
+import { useState } from 'react';
 import { OrbitToggle } from './components/ui/OrbitToggle';
-import { useOverlay } from './components/overlay/overlay';
+import { useOverlay } from './store/overlay';
 import { Canvas } from '@react-three/fiber';
 import { ActiveQuest } from './components/secondary/ActiveQuests';
 
-import { evidenceStore, candidateStore, clusterStore, skillStore } from './store/bundledStores';
-import { TEST_SKILL } from './dev/data/TEST_SKILL';
-import { onQuestComplete } from './hooks/onQuestComplete';
-import { usePlayerStore } from './store/player';
-import { TEST_PLAYER_DATA } from './dev/data/TEST_PROFILE';
-
 function App() {
   const [orbitUser, setOrbitUser] = useState(true);
-  const activeOverlay = useOverlay(s=> s.activeOverlay)
+  const activeOverlay = useOverlay(s => s.activeOverlay);
   const overlayOpen = activeOverlay !== null;
   const orbitEnabled = orbitUser && !overlayOpen;
 
-
   //dev
-  const testPlayer = usePlayerStore(s => s.setPlayer);
-  useEffect(() => {
-    clusterStore.clear();
-    candidateStore.clear();
-    skillStore.clear();
+  // const testPlayer = usePlayerStore(s => s.setPlayer);
+  // useEffect(() => {
+  //   clusterStore.clear();
+  //   candidateStore.clear();
 
-    TEST_SKILL.forEach((quest) => {
-      onQuestComplete(quest, {
-        evidenceStore,
-        clusterStore,
-        candidateStore,
-        skillStore,
-      });
-    })
-    // console.log("evidence:",evidenceStore)
-    // console.log("cluster:",clusterStore)
-    // console.log("candidate:",candidateStore)
-    // console.log("skill:",skillStore)
+  //   const questState = useQuestStore.getState();
+  //   if(!questState.quests.length){
+  //     useQuestStore.setState({
+  //       ...questState,
+  //       quests: structuredClone(TEST_BOARD)
+  //     });
+  //   }
 
-    testPlayer(structuredClone(TEST_PLAYER_DATA));
-  }, [])
+  //   const friendsState = useFriendsStore.getState();
+  //   if(!friendsState.friends.length){
+  //     useFriendsStore.setState({
+  //       ...friendsState,
+  //       friends: structuredClone(TEST_FRIENDS),
+  //     });
+  //   }
+
+  // }, []);
+
+  // useEffect(() => {
+  //   const timeout = setTimeout(() => {
+
+  //   // TEST_SKILL.forEach((quest) => {
+  //   //   onQuestComplete(quest, {
+  //   //     evidenceStore,
+  //   //     clusterStore,
+  //   //     candidateStore,
+  //   //   });
+  //   // });
+  //   testPlayer(structuredClone(TEST_PLAYER_DATA));
+  //   }, 0)
+  //   return () => clearTimeout(timeout);
+  // }, [])
 
 
 

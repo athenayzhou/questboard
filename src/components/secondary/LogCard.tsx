@@ -1,6 +1,5 @@
 import { useState } from "react";
-import type { Quest } from "../../types/quest";
-import type { QuestGroup } from "../../utils/grouping";
+import type { QuestGroup, CompletedQuest } from "../../utils/grouping";
 import { formatDate } from "../../utils/format/date";
 import { getGroupSummary, getLatest } from "../../utils/grouping";
 import { StatusBadge } from "../ui/StatusBadge";
@@ -13,9 +12,9 @@ export function LogCard({
   group,
 } : LogCardProps){
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState<Quest>(()=>{
+  const [active, setActive] = useState<CompletedQuest | null>(() => {
     return getLatest(group.quests);
-  })
+  });
   const summary = getGroupSummary(group);
 
   return(
@@ -33,7 +32,7 @@ export function LogCard({
         </div>
       </button>
 
-      {open && (
+      {open && active && (
         <div className="log-expanded">
           <div className= "log-details">
               <h5>{active.title}</h5>

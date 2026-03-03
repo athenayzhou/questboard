@@ -1,4 +1,4 @@
-import { useOverlay } from "./overlay";
+import { useOverlay } from "../../store/overlay";
 
 export function Settings(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);

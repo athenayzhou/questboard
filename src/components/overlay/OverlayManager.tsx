@@ -1,15 +1,15 @@
-import { useOverlay } from "./overlay";
+import { useOverlay } from "../../store/overlay";
 import { Profile } from "./Profile";
 import { QuestBoard } from "./QuestBoard";
 import { QuestLog } from "./QuestLog";
 import { FriendsList } from "./FriendsList";
-// import { SkillTree } from "./SkillTree";
 import { SkillLedger } from "./SkillLedger";
 import { Settings } from "./Settings";
 
 import { QuestPage } from "../secondary/QuestPage";
-import { TEST_BOARD as quests } from "../../dev/data/TEST_BOARD";
-import type { Quest } from "../../types/quest";
+import { useQuestStore } from "../../store/quest";
+import { useMemo } from "react";
+import { AddQuestOverlay } from "../secondary/AddQuest";
 
 export function OverlayManager(){
   const activeOverlay = useOverlay((s)=>s.activeOverlay);
@@ -18,14 +18,19 @@ export function OverlayManager(){
   const bringToFront = useOverlay((s) => s.bringToFront);
   const moveQuest = useOverlay((s) => s.moveQuest);
   const closeQuest = useOverlay((s) => s.closeQuest);
-
-  const openQuests = openQuestPages
-    .map(p => {
-      const quest = quests.find(q => q.id === p.id);
-      if(!quest) return null;
-      return { page: p, quest }
+  const quests = useQuestStore((s) => s.quests);
+  const openQuests = useMemo(() => {
+    return openQuestPages
+    .map((page) => {
+      const quest = quests.find((q) => q.id === page.id);
+      if (!quest) return null;
+      return { page, quest };
     })
-    .filter((v): v is { page: typeof openQuestPages[number]; quest: Quest } => v !== null);
+    .filter(
+      (v): v is { page: typeof openQuestPages[number]; quest: typeof quests[number] } => 
+        v !== null
+    );
+  }, [openQuestPages, quests]);
 
   switch (activeOverlay) {
     case "profile":
@@ -34,7 +39,8 @@ export function OverlayManager(){
       return (
         <>
           <QuestBoard quests={quests} onSelect={openQuest} />
-          {openQuests.map(({page, quest}) => (
+
+          {openQuests.map(({ page, quest }) => (
             <QuestPage 
               key={quest.id}
               quest={quest} 
@@ -48,6 +54,8 @@ export function OverlayManager(){
           ))}
         </>
       )
+    case "addQuest":
+      return <AddQuestOverlay />
     case "logs":
       return <QuestLog />
     case "friends":

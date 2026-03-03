@@ -18,15 +18,3 @@ export function decayCandidates(candidate: Candidate, now: number){
     candidate.state = "decayed";
   }
 }
-
-// export function decayTransitions(now: number, halfLifeMs = 1000 * 60 * 60 * 24 * 7){
-//   for (const [k, t] of transitions) {
-//     const age = now-t.lastSeen;
-//     const decay = Math.exp(-age / halfLifeMs);
-//     t.weight *= decay;
-
-//     if(t.weight < 0.05) {
-//       transitions.delete(k);
-//     };
-//   }
-// }

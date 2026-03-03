@@ -1,13 +1,22 @@
-import { TEST_BOARD as quests } from "../../dev/data/TEST_BOARD";
-import { useOverlay } from "../overlay/overlay";
+import { useOverlay } from "../../store/overlay";
 import { questProgress } from "../../utils/progress";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useQuestStore } from "../../store/quest";
 
 export function ActiveQuest() {
   const activeOverlay = useOverlay(s => s.activeOverlay);
   const openQuest = useOverlay(s=> s.openQuest);
-  const togglePin = useOverlay(s=> s.togglePin);
-  const pinnedQuestIds = useOverlay(s=> s.pinnedQuestIds);
+
+  const togglePin = useQuestStore((s) => s.togglePin);
+  const completeQuest = useQuestStore((s) => s.completeQuest);
+  const failQuest = useQuestStore((s) => s.failQuest)
+
+  const quests = useQuestStore(s => s.quests);
+  const active = useMemo(
+    () => quests.filter(q => q.status === "accepted" && q.pinned),
+    [quests]
+  );
+
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -16,8 +25,6 @@ export function ActiveQuest() {
     }
   }, [activeOverlay]);
 
-  // const pinned = quests.filter(q=> pinnedQuestIds.includes(q.id));
-  const active = quests.filter(q=> q.status === "accepted");
   if(active.length === 0) return null;
 
   return (
@@ -34,7 +41,7 @@ export function ActiveQuest() {
         <div className="active-quest-list">
           {active.map(q=> {
           const progress = questProgress(q);
-          const isPinned = pinnedQuestIds.includes(q.id);
+          const isPinned = q.pinned;
           return (
             <div
               key={q.id}
@@ -42,15 +49,22 @@ export function ActiveQuest() {
               onClick={() => openQuest(q.id)}
             >
               <span className="title">{q.title}</span>
-              {/* <span className={`difficulty ${q.difficulty}`}>{q.difficulty}</span> */}
-              <button 
-                className="pin-btn" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  togglePin(q.id);
-                }}>
-                  {isPinned ? "📌" : "📍"}
-                </button>
+              <div className="action-buttons">
+                <button 
+                  className="pin-btn" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePin(q.id);
+                  }}>
+                    {isPinned ? "📌" : "📍"}
+                  </button>
+                  <button className="complete-btn" onClick={() => completeQuest(q.id)}>
+                    ✅
+                  </button>
+                  <button className="fail-btn" onClick={() => failQuest(q.id)}>
+                    ❌
+                  </button>
+                </div>
               {progress && (
                 <div className = "progress-bar">
                   <div className="fill" style={{width : `${progress.ratio *100}%`}} />

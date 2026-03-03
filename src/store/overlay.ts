@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type OverlayType = "profile"|"quests"|"logs"|"friends"|"skills"|"settings"|null
+type OverlayType = "profile"|"quests"|"logs"|"friends"|"skills"|"settings"|"addQuest" | null
 
 type QuestPage = {
   id: string;
@@ -16,12 +16,11 @@ type OverlayState = {
 
   openQuestPages: QuestPage[];
   openQuest: (id: string) => void;
+  closeAllQuests: () => void;
   closeQuest: (id: string) => void;
   bringToFront: (id: string) => void;
   moveQuest: (id: string, x: number, y: number) => void;
 
-  pinnedQuestIds: string[];
-  togglePin: (id: string) => void;
 }
 
 export const useOverlay = create<OverlayState>((set) => ({
@@ -29,6 +28,7 @@ export const useOverlay = create<OverlayState>((set) => ({
   openOverlay: (type) => 
     set(() => ({ 
       activeOverlay: type, 
+      openQuestPages: []
     })),
   closeOverlay: () => 
     set((s) => ({
@@ -53,6 +53,11 @@ export const useOverlay = create<OverlayState>((set) => ({
         ],
       };
     }),
+
+  closeAllQuests: () =>
+    set(() => ({
+      openQuestPages: []
+    })),
   closeQuest: (id) => 
     set((s) => ({
       openQuestPages: s.openQuestPages.filter((q) => q.id !== id),
@@ -73,11 +78,4 @@ export const useOverlay = create<OverlayState>((set) => ({
       )
     })),
 
-  pinnedQuestIds: [],
-  togglePin: (id) => 
-    set((s) => ({
-      pinnedQuestIds: s.pinnedQuestIds.includes(id)
-      ? s.pinnedQuestIds.filter(q => q !== id)
-      : [...s.pinnedQuestIds,id],
-    })),
 }));

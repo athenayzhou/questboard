@@ -101,14 +101,14 @@ export function Scene({
           label="Friends List"
         />
 
-        {/* skill tree */}
+        {/* skill ledger */}
         <Model 
           src="./bonsai.glb"
           position={[3.5, 1.85, 5.8]}
           rotation={[0,Math.PI/2,0]}
           scale={2}
           overlay="skills"
-          label="Skill Tree"
+          label="Skill Ledger"
         />
 
         {/* settings */}

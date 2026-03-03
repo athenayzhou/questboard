@@ -44,3 +44,5 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
         set({ player });
     },
 }));
+
+export const playerStore = usePlayerStore;

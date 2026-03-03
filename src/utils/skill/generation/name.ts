@@ -1,6 +1,5 @@
 import type { Candidate } from "../../../types/skills";
 import type { CandidateStore } from "../../../store/candidate";
-import type { SkillStore } from "../../../store/skill";
 import { DEFAULT, NAME } from "../../constants";
 import { promote } from "./promote";
 
@@ -26,12 +25,12 @@ function unique(arr: string[]) {
 }
 
 
-export function name(candidates: Candidate[], candidateStore: CandidateStore, skillStore: SkillStore){
+export function name(candidates: Candidate[], candidateStore: CandidateStore){
   for (const candidate of candidates){
     const suggestions = generateNames(candidate);
     // suggestName(candidate, suggestions);
 
-    promote(candidate, suggestions[0], candidateStore, skillStore)
+    promote(candidate, suggestions[0], candidateStore)
   }
 }
 // function suggestName(candidate: Candidate, suggestions: string[]){

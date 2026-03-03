@@ -1,5 +1,4 @@
 import type { Cluster, Candidate } from "../types/skills";
-import { xpToLevel } from "../utils/skill/analysis/experience";
 
 export class CandidateStore {
   private candidates = new Map<string, Candidate>();
@@ -26,7 +25,6 @@ export class CandidateStore {
       objects: [cluster.object],
       clusters: [cluster],
       xp: cluster.xp,
-      level: xpToLevel(cluster.xp),
       confidence: 0,
       origin: [...cluster.origin],
       firstSeenAt: now,
@@ -44,7 +42,6 @@ export class CandidateStore {
     if(!candidate.clusters.some(c => c.key === cluster.key)) {
       candidate.clusters.push({...cluster});
       candidate.xp += cluster.xp;
-      candidate.level = xpToLevel(candidate.xp);
     }
     for(const o of cluster.origin){
       if(!candidate.origin.includes(o)){

@@ -1,22 +1,22 @@
-import { useOverlay } from "./overlay";
-import { TEST_BOARD as quests } from "../../dev/data/TEST_BOARD";
+import { useOverlay } from "../../store/overlay";
 import { LogCard } from "../secondary/LogCard";
-import type { Quest } from "../../types/quest";
+import type { CompletedQuest } from "../../types/quest";
+import { useQuestStore } from "../../store/quest";
 
 import { group } from "../../utils/grouping";
 
 export function QuestLog(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);
-  const log = quests.filter(
-    (q): q is Extract<Quest, {status: "completed" | "failed"}> =>
-      q.status === "completed" || q.status === "failed"
-  );
+  const quests = useQuestStore((s) => s.quests);
+  const log: CompletedQuest[] = quests
+    .filter(
+      (q): q is CompletedQuest =>
+        (q.status === "completed" || q.status === "failed") &&
+        typeof q.completedAt === "number"
+    )
+    .sort((a, b) => b.completedAt - a.completedAt);
 
-  const groups = group(log)
-
-  if(log.length === 0) {
-    return <p className="empty-log">no completed tasks yet</p>
-  }
+  const groups = group(log);
 
   return(
     <div className="overlay log-overlay">
@@ -27,9 +27,13 @@ export function QuestLog(){
         </div>
       </div>
 
-      {groups.map(group => (
-        <LogCard key={group.title} group={group} />
-      ))}
+      {log.length === 0 ? (
+        <p className="empty-log">no completed tasks yet</p>
+      ) : (
+        groups.map(group => (
+          <LogCard key={group.title} group={group} />
+        ))
+      )}
 
     </div>
   )

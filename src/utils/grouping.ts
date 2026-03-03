@@ -1,13 +1,12 @@
 // QUEST LOG // 
 
-
 import type { Quest } from "../types/quest";
 import { tokenize, normalize } from "./format/text";
 
-export type CompletedQuest = Extract<
-  Quest,
-  { status: "completed" | "failed" }
->
+export type CompletedQuest = Quest & {
+  status: "completed" | "failed";
+  completedAt: number;
+};
 
 export type QuestGroup = {
   id: string,
@@ -76,10 +75,7 @@ export function getGroupSummary(group: QuestGroup) {
   }
 }
 
-export function getLatest(
-  quests: QuestGroup["quests"]
-) {
-  return [...quests].sort(
-    (a, b) => b.completedAt - a.completedAt
-  )[0]
+export function getLatest(quests: CompletedQuest[]): CompletedQuest | null {
+  if (quests.length === 0) return null;
+  return [...quests].sort((a, b) => b.completedAt - a.completedAt)[0];
 }

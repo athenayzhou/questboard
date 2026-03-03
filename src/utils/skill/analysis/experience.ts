@@ -18,7 +18,6 @@ export function calculateXP(quest: Quest): number {
 }
 export function applyXP(entity: Cluster | Skill, xp: number) {
   entity.xp += xp;
-  entity.level = xpToLevel(entity.xp);
   entity.lastSeenAt = Date.now(); 
 }
 
