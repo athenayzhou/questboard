@@ -1,70 +1,272 @@
-/*  ACTIVE QUEST  */
+/*  ACTIVE QUEST — Sandy path strip + grass handle  */
 
 .active-quest-panel {
   position: fixed;
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 260px;
+  width: 280px;
   height: auto;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 10px 0 0 10px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
+  background: var(--bg-path-strip);
+  border-radius: 16px 0 0 16px;
+  border: 3px solid var(--path-shadow);
+  border-right: none;
+  box-shadow:
+    -6px 0 24px rgba(92, 74, 50, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    inset 0 0 60px var(--sunbeam);
   display: flex;
   z-index: 200;
   transition: transform 0.3s ease;
 }
+
 .active-quest-panel.collapsed {
-  transform: translate(calc(100% - 32px), -50%);
+  transform: translate(calc(100% - 40px), -50%);
 }
+
 .active-quest-handle {
-  width: 32px;
-  min-width: 32px;
-  background: rgba(0,0,0,0.4);
+  width: 40px;
+  min-width: 40px;
+  background: var(--bg-field);
   border: none;
-  color: white;
+  border-right: 2px solid var(--grass-dark);
+  color: var(--sand-bright);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px 0 0 10px;
+  border-radius: 16px 0 0 16px;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
 }
+
 .active-quest {
   flex: 1;
-  padding: 10px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.active-quest-title{
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  opacity: 0.7;
-  margin-bottom: 8px;
+
+.active-quest-title {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--grass-dark);
+  margin-bottom: 4px;
+  font-weight: 700;
 }
-.active-quest-list{
+
+.no-pinned-quests {
+  padding: 12px;
+  text-align: center;
+  color: var(--text-path);
+  font-size: 12px;
+}
+
+.active-quest-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
+
 .active-quest-item {
-  background: #222;
-  border-radius: 6px;
-  padding: 6px;
-  color: white;
+  background: var(--sand-bright);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: var(--text-path);
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  transition: all 0.2s ease;
+  user-select: none;
+  border: 2px solid var(--path-light);
+  box-shadow: var(--shadow-soft), inset 0 0 20px var(--sunbeam);
 }
-.active-quest-item:hover{
-  background: rgba(255,255,255,0.12);
+
+.active-quest-item:hover {
+  background: var(--sand-sun);
+  border-color: var(--path);
+  box-shadow: var(--shadow-path), inset 0 0 30px var(--sunbeam);
 }
-.active-quest-item .title{
-  font-size: 13px;
-}
-.active-quest-item .difficulty{
-  font-size: 10px;
+
+.active-quest-item.dragging {
   opacity: 0.7;
+  transform: rotate(2deg);
+}
+
+.active-quest-item.drag-over {
+  border: 2px dashed var(--grass);
+  background: rgba(184, 220, 176, 0.3);
+}
+
+.active-quest-item .quest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+.active-quest-item .title {
+  font-size: 13px;
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--text-path);
+}
+
+.active-quest-item .drag-handle {
+  flex-shrink: 0;
+  cursor: grab;
+  color: var(--grass);
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 4px;
+  user-select: none;
+  letter-spacing: -0.2em;
+}
+
+.active-quest-item .drag-handle:hover {
+  color: var(--grass-dark);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pin-btn,
+.complete-btn,
+.fail-btn {
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 2px solid var(--path);
+  background: var(--path-light);
+  color: var(--text-path);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s ease;
+}
+
+.pin-btn:hover,
+.complete-btn:hover,
+.fail-btn:hover {
+  background: var(--grass-light);
+  color: var(--sand-bright);
+  border-color: var(--grass);
+}
+
+.progress-bar {
+  height: 6px;
+  background: var(--path-light);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar .fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--meadow), var(--grass));
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.active-quest-expanded {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 2px solid var(--path-light);
+}
+
+.quest-description {
+  font-size: 12px;
+  color: var(--text-path);
+  line-height: 1.4;
+}
+
+.quest-description p {
+  margin: 0;
+}
+
+.quest-categories {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Category tags as labels only — distinct from clickable buttons */
+.active-quest-item .category-tag {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--path-light);
+  color: var(--text-path);
+  border: 1px dashed var(--path);
+  box-shadow: none;
+  cursor: default;
+  opacity: 0.9;
+}
+
+.quest-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detail-row .label {
+  color: var(--text-path);
+  font-weight: 600;
+}
+
+.detail-row .value {
+  color: var(--text-path);
+}
+
+.quest-subtasks h5 {
+  margin: 0 0 6px 0;
+  font-size: 12px;
+  color: var(--grass-dark);
+}
+
+.quest-subtasks ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.quest-subtasks li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 12px;
+}
+
+.quest-subtasks li.completed {
+  opacity: 0.7;
+}
+
+.quest-subtasks li.completed span {
+  text-decoration: line-through;
+}
+
+.open-full-btn {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 2px solid var(--grass);
+  background: var(--bg-field);
+  color: var(--sand-bright);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.open-full-btn:hover {
+  background: var(--grass-light);
+  border-color: var(--grass-dark);
 }

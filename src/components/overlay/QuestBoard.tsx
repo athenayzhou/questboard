@@ -1,7 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useOverlay } from "../../store/overlay";
 import type { Quest } from "../../types/quest";
 import { BoardCard } from "../secondary/BoardCard";
+
+const DRAG_THRESHOLD_PX = 6;
+const SPAWN_X_MAX = 72;
+const SPAWN_Y_MIN = 5;
+const SPAWN_Y_MAX = 62;
 
 type QuestBoardProps = {
   quests: Quest[];
@@ -13,26 +18,41 @@ export function QuestBoard({
   onSelect,
 } : QuestBoardProps) {
   const activeOverlay = useOverlay((s) => s.activeOverlay);
-  const openOverlay = useOverlay((s) => s.openOverlay)
+  const openOverlay = useOverlay((s) => s.openOverlay);
   const closeOverlay = useOverlay((s) => s.closeOverlay);
   const closeAllQuests = useOverlay((s) => s.closeAllQuests);
+  const tab = useOverlay((s) => s.boardTab);
+  const setTab = useOverlay((s) => s.setBoardTab);
+  const openQuestPages = useOverlay((s) => s.openQuestPages);
+  const dragEnabled = openQuestPages.length === 0;
 
-  const [tab, setTab] = useState<"available" | "accepted">("available");
+  const boardRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{
+    id: string;
+    startX: number;
+    startY: number;
+    startLeft: number;
+    startTop: number;
+    moved: boolean;
+  } | null>(null);
+  const didDragRef = useRef<string | null>(null);
+
   const filtered = useMemo(() => {
     return quests.filter(q => q.status === tab);
   }, [quests, tab]);
-  function handleTabSwitch(newTab: "available" | "accepted"){
+  function handleTabSwitch(newTab: "available" | "accepted") {
     if (newTab === tab) return;
     closeAllQuests();
     setTab(newTab);
   }
 
+  const [draggingId, setDraggingId] = useState<string | null>(null);
   const [questState, setQuestsState] = useState(
     () =>
       filtered.map(q => ({
         ...q,
-        x: Math.random() * 80,
-        y: Math.random() * 60 + 20,
+        x: Math.random() * SPAWN_X_MAX,
+        y: SPAWN_Y_MIN + Math.random() * (SPAWN_Y_MAX - SPAWN_Y_MIN),
         zIndex: 1,
       }))
   );
@@ -42,28 +62,96 @@ export function QuestBoard({
       const byId = new Map(prev.map(q => [q.id, q]));
       return filtered.map(q => {
         const existing = byId.get(q.id);
-        return (
-          existing ?? {
-            ...q,
-            x: Math.random() * 80,
-            y: Math.random() * 60 + 20,
-            zIndex: 1,
-          }
-        );
+        const safeX = (v: number) => Math.max(0, Math.min(v, SPAWN_X_MAX));
+        const safeY = (v: number) => Math.max(SPAWN_Y_MIN, Math.min(v, SPAWN_Y_MAX));
+        if (existing) {
+          return { ...existing, x: safeX(existing.x), y: safeY(existing.y) };
+        }
+        return {
+          ...q,
+          x: Math.random() * SPAWN_X_MAX,
+          y: SPAWN_Y_MIN + Math.random() * (SPAWN_Y_MAX - SPAWN_Y_MIN),
+          zIndex: 1,
+        };
       });
     });
   }, [filtered]);
 
-  const bringToFront = (id:string) => {
+  const bringToFront = (id: string) => {
     setQuestsState(prev => {
       const maxZ = Math.max(...prev.map(q => q.zIndex || 1));
-      return prev.map(q => 
+      return prev.map(q =>
         q.id === id ? { ...q, zIndex: maxZ + 1 } : q
       );
     });
   };
 
-  if(activeOverlay !== "quests") return null;
+  function handleCardMouseDown(e: React.MouseEvent, q: { id: string; x: number; y: number }) {
+    if (e.button !== 0 || !dragEnabled) return;
+    e.preventDefault();
+    bringToFront(q.id);
+    dragRef.current = {
+      id: q.id,
+      startX: e.clientX,
+      startY: e.clientY,
+      startLeft: q.x,
+      startTop: q.y,
+      moved: false,
+    };
+    window.addEventListener("mousemove", handleCardMouseMove);
+    window.addEventListener("mouseup", handleCardMouseUp);
+  }
+
+  function handleCardMouseMove(e: MouseEvent) {
+    const board = boardRef.current;
+    const d = dragRef.current;
+    if (!board || !d) return;
+    const dx = e.clientX - d.startX;
+    const dy = e.clientY - d.startY;
+    if (!d.moved && (Math.abs(dx) > DRAG_THRESHOLD_PX || Math.abs(dy) > DRAG_THRESHOLD_PX)) {
+      d.moved = true;
+      setDraggingId(d.id);
+    }
+    const rect = board.getBoundingClientRect();
+    let percentX = (d.startLeft * rect.width / 100 + dx) / rect.width * 100;
+    let percentY = (d.startTop * rect.height / 100 + dy) / rect.height * 100;
+    const cardEl = board.querySelector(`[data-quest-id="${d.id}"]`);
+    if (cardEl) {
+      const cardRect = cardEl.getBoundingClientRect();
+      const cardW = (cardRect.width / rect.width) * 100;
+      const cardH = (cardRect.height / rect.height) * 100;
+      percentX = Math.max(0, Math.min(percentX, 100 - cardW));
+      percentY = Math.max(0, Math.min(percentY, 100 - cardH));
+    } else {
+      percentX = Math.max(0, Math.min(percentX, 100));
+      percentY = Math.max(0, Math.min(percentY, 100));
+    }
+    setQuestsState(prev =>
+      prev.map(q =>
+        q.id === d.id ? { ...q, x: percentX, y: percentY } : q
+      )
+    );
+  }
+
+  function handleCardMouseUp() {
+    if (dragRef.current?.moved) {
+      didDragRef.current = dragRef.current.id;
+    }
+    setDraggingId(null);
+    window.removeEventListener("mousemove", handleCardMouseMove);
+    window.removeEventListener("mouseup", handleCardMouseUp);
+    dragRef.current = null;
+  }
+
+  function handleCardClick(_e: React.MouseEvent, questId: string) {
+    if (didDragRef.current === questId) {
+      didDragRef.current = null;
+      return;
+    }
+    onSelect(questId);
+  }
+
+  if (activeOverlay !== "quests") return null;
 
   return (
     <div className="overlay quests-overlay">
@@ -73,10 +161,10 @@ export function QuestBoard({
           <div>
             <button className={tab === "available" ? "active" : ""} onClick={() => handleTabSwitch("available")}>
               available
-              </button>
+            </button>
             <button className={tab === "accepted" ? "active" : ""} onClick={() => handleTabSwitch("accepted")}>
               accepted
-              </button>
+            </button>
           </div>
           <div>
             <button className="add-quest-btn" onClick={() => openOverlay("addQuest")}>+ quest</button>
@@ -85,31 +173,32 @@ export function QuestBoard({
         </div>
       </div>
 
-      <div className="quest-board">
-      {questState.map(q => (
-        <div
-          key={q.id}
-          className="quest-page-card"
-          style={{
-            position: "absolute",
-            left: `${q.x}%`,
-            top: `${q.y}%`,
-            zIndex: q.zIndex,
-          }}
-          onMouseEnter={() => bringToFront(q.id)}
-        >
-          <BoardCard
-            quest={q}
-            onSelect={() => onSelect(q.id)}
-          />
+      <div className="quest-board-body">
+        <div ref={boardRef} className="quest-board">
+          {questState.map(q => (
+            <div
+              key={q.id}
+              data-quest-id={q.id}
+              className={`quest-page-card${draggingId === q.id ? " is-dragging" : ""}${!dragEnabled ? " drag-disabled" : ""}`}
+              style={{
+                position: "absolute",
+                left: `${q.x}%`,
+                top: `${q.y}%`,
+                zIndex: q.zIndex,
+              }}
+              onMouseDown={(e) => handleCardMouseDown(e, q)}
+              onClick={(e) => handleCardClick(e, q.id)}
+              onMouseEnter={() => bringToFront(q.id)}
+            >
+              <BoardCard quest={q} onSelect={() => {}} />
+            </div>
+          ))}
         </div>
-      ))}
+        {filtered.length === 0 && (
+          <div className="empty-state">no quests here</div>
+        )}
       </div>
 
-      {filtered.length === 0 && (
-        <div className="empty-state">no quests here</div>
-      )}
-
     </div>
-  )
+  );
 }

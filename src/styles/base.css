@@ -1,13 +1,96 @@
+/*  GREEN FIELD · SANDY PATH · SUNLIGHT  */
+
+:root {
+  /*  Green field  */
+  --grass-dark: #2d5a27;
+  --grass: #3d7a35;
+  --grass-light: #5a9c4e;
+  --meadow: #6bb86b;
+  --clover: #7cb87c;
+  --field: #8fc98f;
+  --grass-pale: #b8dcb0;
+
+  /*  Sandy path  */
+  --path-shadow: #c4a574;
+  --path: #d4b896;
+  --path-light: #e8d4b8;
+  --sand: #f0e6d2;
+  --sand-bright: #faf5eb;
+  --sand-sun: #fffbf0;
+
+  /*  Sunlight  */
+  --sun: #ffec8b;
+  --sun-strong: #ffe066;
+  --golden: #f5d547;
+  --golden-pale: #fef9e0;
+  --sky-gold: rgba(255, 248, 220, 0.95);
+  --sunbeam: rgba(255, 255, 200, 0.4);
+  --sun-overlay: rgba(255, 236, 139, 0.15);
+
+  /*  Accent (flowers / path edge)  */
+  --flower: #c75b7a;
+  --stone: #a09078;
+  --text-field: #1a3317;
+  --text-path: #5c4a32;
+  --text-sun: #4a3c1a;
+
+  /*  Backgrounds  */
+  --bg-sky: linear-gradient(180deg, #e8f4e8 0%, #d0e8d0 30%, #b5dbb5 70%, #9bcf9b 100%);
+  --bg-field: linear-gradient(180deg, #a8d4a0 0%, #8fc98f 50%, #7abd72 100%);
+  --bg-path: linear-gradient(135deg, #e8d4b8 0%, #f0e6d2 40%, #faf5eb 100%);
+  --bg-path-strip: linear-gradient(90deg, #d4b896 0%, #e8d4b8 30%, #f0e6d2 70%, #faf5eb 100%);
+  --bg-sunlit: linear-gradient(180deg, #fffef8 0%, #fffbf0 25%, #fef9e0 50%, #faf5eb 75%, #f0e6d2 100%);
+  --bg-panel: linear-gradient(180deg, #faf5eb 0%, #f0e6d2 50%, #e8d4b8 100%);
+  --bg-panel-header: rgba(245, 235, 210, 0.98);
+  --bg-card: linear-gradient(145deg, #f5f0e0 0%, #ebe3d0 100%);
+
+  /*  Shadows  */
+  --shadow-path: 0 4px 20px rgba(92, 74, 50, 0.2);
+  --shadow-grass: 0 4px 16px rgba(45, 90, 39, 0.25);
+  --shadow-sun: 0 2px 12px rgba(255, 236, 139, 0.35);
+  --shadow-soft: 0 8px 32px rgba(92, 74, 50, 0.12);
+
+  /*  Legacy compatibility  */
+  --color-wood-dark: var(--grass-dark);
+  --color-wood-medium: var(--grass);
+  --color-wood-light: var(--grass-light);
+  --color-cream: var(--sand-bright);
+  --color-butter: var(--golden);
+  --color-honey: var(--path-shadow);
+  --color-moss: var(--grass-dark);
+  --color-sage: var(--meadow);
+  --color-mint: var(--clover);
+  --color-terracotta: var(--path-shadow);
+  --bg-parchment: var(--sand-bright);
+  --bg-wood-panel: var(--bg-field);
+  --panel: var(--bg-panel);
+  --panel-header: var(--bg-panel-header);
+  --text-warm-dark: var(--text-path);
+  --text-warm-medium: #6b5a42;
+  --text-warm-light: #8a7355;
+  --shadow-warm: var(--shadow-path);
+  --shadow-golden: var(--shadow-sun);
+}
+
 html, body, #root {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
+  background: var(--bg-sunlit);
+  font-family: 'Georgia', 'Times New Roman', serif;
 }
+
 #root {
   position: relative;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -10%, var(--sunbeam) 0%, transparent 50%),
+    radial-gradient(ellipse 100% 60% at 80% 20%, var(--sun-overlay) 0%, transparent 45%),
+    radial-gradient(ellipse 80% 50% at 20% 80%, rgba(184, 220, 176, 0.4) 0%, transparent 50%),
+    var(--bg-sunlit);
 }
+
 canvas {
   position: absolute;
   inset: 0;
@@ -16,9 +99,16 @@ canvas {
   display: block;
   z-index: 0;
 }
+
 #html-layer {
   position: absolute;
   inset: 0;
   z-index: 10;
   pointer-events: none;
+}
+
+body {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  line-height: 1.6;
+  color: var(--text-path);
 }

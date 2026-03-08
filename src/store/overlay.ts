@@ -21,6 +21,8 @@ type OverlayState = {
   bringToFront: (id: string) => void;
   moveQuest: (id: string, x: number, y: number) => void;
 
+  boardTab: "available" | "accepted";
+  setBoardTab: (tab: "available" | "accepted") => void;
 }
 
 export const useOverlay = create<OverlayState>((set) => ({
@@ -77,5 +79,8 @@ export const useOverlay = create<OverlayState>((set) => ({
         q.id === id ? { ...q, x, y } : q
       )
     })),
+
+  boardTab: "available",
+  setBoardTab: (tab) => set({boardTab: tab}),
 
 }));

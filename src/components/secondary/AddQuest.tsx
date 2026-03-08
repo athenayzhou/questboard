@@ -8,26 +8,38 @@ export function AddQuestOverlay() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
+  const [currentCategory, setCurrentCategory] = useState("");
   const [difficulty, setDifficulty] = useState<"easy"|"medium"|"hard">("easy");
   const [priority, setPriority] = useState<"high"|"low">("low");
   const [frequency, setFrequency] = useState<"once"|"daily"|"weekly"|"monthly">("once");
   const [deadline, setDeadline] = useState<string | null>(null);
 
+  const addCategory = () => {
+    if(currentCategory.trim() && !categories.includes(currentCategory.trim())){
+      setCategories(prev => [...prev, currentCategory.trim()]);
+      setCurrentCategory("");
+    }
+  };
+  const removeCategory = (category: string) => {
+    setCategories(prev => prev.filter(c => c !== category));
+  }
+
   const handleCreate = () => {
     if(!title.trim()) return;
-
     addQuest({
       title,
       description,
+      category: categories.length > 0 ? categories: undefined,
       difficulty,
       priority,
       frequency,
       deadline,
     });
-
     setTitle("");
     setDescription("");
-
+    setCategories([]);
+    setCurrentCategory("");
     setOverlay("quests")
   };
 
@@ -54,6 +66,27 @@ export function AddQuestOverlay() {
         />
 
         <div className="row">
+          <label>categories</label>
+          {categories.length > 0 && (
+            <div className="category-tags">
+              {categories.map(category => (
+                <span key={category} className="category-tag">
+                  {category}
+                  <button onClick={() => removeCategory(category)}>x</button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="category-input">
+            <input
+              placeholder="add category"
+              value={currentCategory}
+              onChange={(e) => setCurrentCategory(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addCategory()}
+            />
+            <button type="button" onClick={addCategory}>add</button>
+          </div>
+
           <label>difficulty</label>
           <select
             value={difficulty}

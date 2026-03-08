@@ -3,6 +3,8 @@ import type { QuestGroup, CompletedQuest } from "../../utils/grouping";
 import { formatDate } from "../../utils/format/date";
 import { getGroupSummary, getLatest } from "../../utils/grouping";
 import { StatusBadge } from "../ui/StatusBadge";
+import { useQuestStore } from "../../store/quest";
+import { useOverlay } from "../../store/overlay";
 
 type LogCardProps = {
   group: QuestGroup
@@ -16,6 +18,16 @@ export function LogCard({
     return getLatest(group.quests);
   });
   const summary = getGroupSummary(group);
+
+  const handleAddAsNewQuest = () => {
+    if(!active) return;
+    const duplicateQuest = useQuestStore((s) => s.duplicateQuest);
+    const newQuest = duplicateQuest(active.id);
+    if(newQuest){
+      const setOverlay = useOverlay((s) => s.openOverlay)
+      setOverlay("quests");
+    }
+  };
 
   return(
     <div className={`log-item ${open ? "open" : ""}`}>
@@ -36,10 +48,19 @@ export function LogCard({
         <div className="log-expanded">
           <div className= "log-details">
               <h5>{active.title}</h5>
+              {active.category && active.category.length > 0 && (
+                <div className="category-tags">
+                  {active.category.map(category => (
+                    <span key={category} className="category-tag">
+                      {category}
+                    </span>
+                  ))}
+                </div>
+              )}
               {active.frequency && <p>Frequency: {active.frequency}</p>}
               {active.duration && <p>Duration: {active.duration} min</p>}
               <p>Difficulty: {active.difficulty}</p>
-              <button>add as new quest</button>
+              <button onClick={handleAddAsNewQuest}>add as new quest</button>
           </div>
           <div className="log-timeline">
             {group.quests.map(q => (

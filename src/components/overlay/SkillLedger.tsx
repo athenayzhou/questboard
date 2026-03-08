@@ -65,13 +65,13 @@ export function SkillLedger() {
           <div className="ledger-controls">
             <input
               type="text"
-              placeholder="search skills..."
+              placeholder="search..."
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
             <select value={sortKey} onChange={e => setSortKey(e.target.value as SortKey)}>
-              <option value="lastSeen">most recent</option>
-              <option value="level">highest level</option>
+              <option value="lastSeen">recent</option>
+              <option value="level">level</option>
               <option value="name">name</option>
             </select>
             <label>
@@ -79,7 +79,7 @@ export function SkillLedger() {
                 type="checkbox"
                 checked={showDormantOnly}
                 onChange={e => setShowDormantOnly(e.target.checked)}
-              /> dormant only
+              /> dormant
             </label>
           </div>
           <div className="ledger-list">

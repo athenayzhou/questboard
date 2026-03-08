@@ -25,6 +25,8 @@ export function promote(
     confidence: candidate.confidence,
     firstSeenAt: Date.now(),
     lastSeenAt: Date.now(),
+    lastDecayAt: Date.now(),
+    isDormant: false,
   }
   candidateStore.remove(candidate.key);
   addSkill(skill);

@@ -1,3 +1,5 @@
+// SUBQUEST, ACTIVE QUEST? //
+
 import type { Quest } from "../types/quest";
 
 export function questProgress(quest: Quest){

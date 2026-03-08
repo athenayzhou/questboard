@@ -3,22 +3,25 @@
 .label-wrapper {
   pointer-events: none;
   z-index: 5;
+  display: inline-flex;
+  justify-content: center;
+  transform: translateY(-8px);
+  transform-origin: center bottom;
 }
+
 .label {
   position: relative;
-  padding: 6px 10px 7px;
-  border-radius: 8px;
-  background: rgba(101, 101, 101, 0.1);
-  backdrop-filter: blur(4px);
-  color: white;
+  padding: 6px 12px 8px;
+  border-radius: 10px;
+  background: var(--sand-bright);
+  backdrop-filter: blur(6px);
+  color: var(--text-path);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.03em;
   white-space: nowrap;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  transform-origin: center bottom;
-  /* animation: LabelFloat 3s ease-in-out infinite; */
+  border: 2px solid var(--path);
+  box-shadow: var(--shadow-soft), inset 0 0 20px var(--sunbeam);
 }
 /* @keyframes labelFloat {
   0% { transform: translateY(0); }
@@ -33,21 +36,25 @@
 .name-wrapper {
   pointer-events: none;
   z-index: 10;
+  display: inline-flex;
+  justify-content: center;
+  transform: translateY(-4px);
+  transform-origin: center bottom;
 }
+
 .name-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 6px 12px 8px;
+  border-radius: 10px;
+  border: 2px solid var(--path);
   backdrop-filter: blur(6px);
-  color: white;
+  background: var(--sand-bright);
+  color: var(--text-path);
   white-space: nowrap;
-  box-shadow:
-    0 2px 8px rgba(0,0,0, 0.4),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-soft), inset 0 0 24px var(--sunbeam);
 }
 .name-container-top {
   display: flex;
@@ -60,25 +67,20 @@
   letter-spacing: 0.02em;
 }
 .name-title {
-  /* font-size: 11px;
-  font-weight: 400;
-  opacity: 0.8;
-  text-transform: lowercase;
-  padding: 2px 6px;
-  background: rgba(30,30,30,0.8);
-  border-radius: 8px; */
   margin-top: 4px;
   padding: 4px 10px;
-  background: linear-gradient(135deg, #2a2a35, #1f1f28);
-  border-radius: 6px;
+  background: var(--bg-field);
+  color: var(--sand-bright);
+  border: 1px solid var(--grass-dark);
+  border-radius: 8px;
   font-size: 0.75rem;
-  opacity: 0.9;
+  opacity: 0.95;
 }
 .name-badge {
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  background-color: pink;
+  background: var(--golden);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -95,21 +97,21 @@
 .skill-activity-wrapper {
   pointer-events: none;
   z-index: 9;
+  display: inline-flex;
+  justify-content: center;
+  transform: translateY(-4px);
+  transform-origin: center bottom;
 }
-.skill-activity-container{
-  /* display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px; */
-  padding: 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+
+.skill-activity-container {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid var(--path);
   backdrop-filter: blur(6px);
-  color: white;
+  background: var(--sand-bright);
+  color: var(--text-path);
   white-space: nowrap;
-  box-shadow:
-    0 2px 8px rgba(0,0,0, 0.4),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-soft), inset 0 0 30px var(--sunbeam);
 }
 .skill-progress-bar{
   margin-bottom: 0.75rem;
@@ -121,7 +123,10 @@
   font-weight: 500;
   letter-spacing: 0.02em;
 }
-/* .skill-name{} */
+.skill-name {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
 
 
 
@@ -133,8 +138,10 @@
   right: 20px;
   z-index: 100;
   padding: 8px 12px;
-  background: #111;
-  color: white;
-  border-radius: 6px;
+  background: var(--bg-field);
+  color: var(--sand-bright);
+  border: 2px solid var(--grass-dark);
+  border-radius: 10px;
   cursor: pointer;
+  box-shadow: var(--shadow-grass);
 }

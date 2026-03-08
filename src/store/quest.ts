@@ -13,7 +13,9 @@ type QuestState = {
   acceptQuest: (id: string) => void;
   completeQuest: (id: string) => void;
   failQuest: (id: string) => void;
+  duplicateQuest: (id: string) => Quest | null;
   togglePin: (id: string) => void;
+  reorderPinnedQuests: (questId: string, newIndex: number) => void;
 
   getAvailable: () => Quest[];
   getAccepted: () => Quest[];
@@ -52,7 +54,6 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       try {
         localStorage.setItem("quests", JSON.stringify(next));
       } catch {
-        // ignore persistence failures
       }
       return { quests: next, isCreating: false } as any;
     });
@@ -62,9 +63,12 @@ export const useQuestStore = create<QuestState>((set, get) => ({
 
   acceptQuest: (id) => 
     set((state) => {
-      const next = state.quests.map(q =>
+      const next: Quest[] = state.quests.map(q =>
         q.id === id 
-          ? {...q, status: "accepted", acceptedAt: Date.now() } 
+          ? {
+              ...q, 
+              status: "accepted" as Quest["status"], 
+              acceptedAt: Date.now() } 
           : q
       );
       try {
@@ -79,15 +83,17 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     if (!quest || quest.status !== "accepted") return;
 
     set(state => {
-      const next = state.quests.map(q => 
+      const next: Quest[] = state.quests.map(q => 
         q.id === id
-          ? {...q, status: "completed", completedAt: Date.now()}
+          ? {
+              ...q, 
+              status: "completed" as Quest["status"], 
+              completedAt: Date.now()}
           : q
       );
       try {
         localStorage.setItem("quests", JSON.stringify(next));
       } catch {
-        // ignore persistence failures
       }
       return { quests: next };
     });
@@ -102,11 +108,11 @@ export const useQuestStore = create<QuestState>((set, get) => ({
   failQuest: (id) => 
     set(state => {
       const now = Date.now();
-      const next = state.quests.map(q =>
+      const next: Quest[] = state.quests.map(q =>
         q.id === id
           ? { 
               ...q, 
-              status: "failed", 
+              status: "failed" as Quest["status"], 
               completedAt: now,
               failedAt: now,
             }
@@ -115,33 +121,89 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       try {
         localStorage.setItem("quests", JSON.stringify(next));
       } catch {
-        // ignore persistence failures
       }
       return { quests: next };
     }),
 
+    duplicateQuest: (id) => {
+      const originalQuest = get().quests.find(q => q.id === id);
+      if (!originalQuest) return null;
+
+      const duplicatedQuest: Quest = {
+        ...originalQuest,
+        id: crypto.randomUUID(),
+        status: "available",
+        createdAt: Date.now(),
+        acceptedAt: undefined,
+        completedAt: undefined,
+        pinned: false,
+      }
+
+      set(state => ({
+        quests: [...state.quests, duplicatedQuest],
+      }));
+
+      try {
+        const current = JSON.parse(localStorage.getItem("quests") || "[]");
+        localStorage.setItem("quests", JSON.stringify([...current, duplicatedQuest]));
+      } catch {
+      }
+      return duplicatedQuest;
+    },
+
   togglePin: (id) =>
     set((state) => {
-      const next = state.quests.map((q) =>
-        q.id === id ? { ...q, pinned: !q.pinned } : q
-      );
+      const pinnedCount = state.quests.filter(
+        (q) => q.status === "accepted" && q.pinned
+      ).length;
+      const next = state.quests.map((q) => {
+        if (q.id !== id) return q;
+        const nowPinned = !q.pinned;
+        return {
+          ...q,
+          pinned: nowPinned,
+          order: nowPinned ? pinnedCount : undefined,
+        };
+      });
       try {
         localStorage.setItem("quests", JSON.stringify(next));
       } catch {
       }
       return { quests: next };
     }),
-  
+
+  reorderPinnedQuests: (questId, newIndex) =>
+    set((state) => {
+      const pinned = state.quests
+        .filter((q) => q.status === "accepted" && q.pinned)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const fromIndex = pinned.findIndex((q) => q.id === questId);
+      if (fromIndex === -1 || fromIndex === newIndex) return state;
+      const reordered = [...pinned];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(newIndex, 0, moved);
+      const orderById = new Map(reordered.map((q, i) => [q.id, i]));
+      const next = state.quests.map((q) => {
+        const o = orderById.get(q.id);
+        return o !== undefined ? { ...q, order: o } : q;
+      });
+      try {
+        localStorage.setItem("quests", JSON.stringify(next));
+      } catch {
+      }
+      return { quests: next };
+    }),
+
   getAvailable: () =>
     get().quests.filter((q) => q.status === "available"),
 
-  getAccepted: () => 
+  getAccepted: () =>
     get().quests.filter((q) => q.status === "accepted"),
 
   getPinned: () =>
-    get().quests.filter(
-      (q) => q.status === "accepted" && q.pinned
-    ),
+    get()
+      .quests.filter((q) => q.status === "accepted" && q.pinned)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
 
   getQuestById: (id) => 
     get().quests.find((q) => q.id === id),

@@ -46,13 +46,17 @@ export type Skill = {
   confidence: number;
   firstSeenAt: number;
   lastSeenAt: number;
+
+  lastDecayAt: number;
+  isDormant: boolean;
+  dormantAt?: number;
 }
 
 export type XPEvent = {
   id: string;
   amount: number;
   source: "quest" | "habit" | "manual";
-  sourceId?: string;
+  sourceId: string;
   skillId?: string;
   name?: string;
   timestamp: number;

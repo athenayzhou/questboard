@@ -6,11 +6,15 @@ import { useOverlay } from './store/overlay';
 import { Canvas } from '@react-three/fiber';
 import { ActiveQuest } from './components/secondary/ActiveQuests';
 
+import { useSkillDecay } from './hooks/useSkillDecay';
+
 function App() {
   const [orbitUser, setOrbitUser] = useState(true);
   const activeOverlay = useOverlay(s => s.activeOverlay);
   const overlayOpen = activeOverlay !== null;
   const orbitEnabled = orbitUser && !overlayOpen;
+
+  useSkillDecay();
 
   //dev
   // const testPlayer = usePlayerStore(s => s.setPlayer);

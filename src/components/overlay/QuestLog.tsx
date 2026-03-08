@@ -27,13 +27,15 @@ export function QuestLog(){
         </div>
       </div>
 
-      {log.length === 0 ? (
-        <p className="empty-log">no completed tasks yet</p>
-      ) : (
-        groups.map(group => (
-          <LogCard key={group.title} group={group} />
-        ))
-      )}
+      <div className="log-content">
+        {log.length === 0 ? (
+          <p className="empty-log">no completed tasks yet</p>
+        ) : (
+          groups.map(group => (
+            <LogCard key={group.title} group={group} />
+          ))
+        )}
+      </div>
 
     </div>
   )

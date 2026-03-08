@@ -34,7 +34,7 @@ export default function Name({
     center
     >
       <div className="name-container">
-        <div style={{display: "flex", flexDirection: "row"}}>
+        <div className="name-container-top">
         <div className="name-text">{name}</div>
         {playerBadge && (
           <div 

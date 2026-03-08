@@ -1,39 +1,106 @@
+/*  Buttons — Green field + sandy path  */
+
 button.close {
-  font-size: 12px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: none;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 2px solid var(--path-shadow);
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.12);
-  color: white;
+  background: var(--path-light);
+  color: var(--text-path);
   white-space: nowrap;
+  font-family: inherit;
+  font-weight: 600;
+  box-shadow: var(--shadow-soft);
+  transition: all 0.2s ease;
 }
-/* .quest-btn{} */
-/* .log-btn {} */
-/* .friend-btn {} */
+
+button.close:hover {
+  background: var(--path);
+  border-color: var(--grass);
+  color: var(--text-path);
+}
+
 button.accept {
   width: 100%;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 2px solid var(--grass-dark);
+  background: var(--bg-field);
+  color: var(--sand-bright);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
+button.accept:hover {
+  background: var(--grass-light);
+  border-color: var(--grass);
+}
 
-/* ACTIVE QUESTS */
-/* .pin-btn{} */
-/* .collapse-btn{} */
+.header-actions button.active {
+  background: var(--bg-field);
+  border: 2px solid var(--grass-dark);
+  color: var(--sand-bright);
+}
 
+.header-actions button:not(.active) {
+  background: var(--path-light);
+  border: 2px solid var(--path);
+  color: var(--text-path);
+}
 
-/*  QUEST BOARD  */
-/* .add-quest-btn{} */
+.header-actions button:not(.active):hover {
+  background: var(--grass-pale);
+  border-color: var(--grass-light);
+}
 
-
-/*  FRIEND LIST  */
- .add-friend-btn {
-  width: auto;
-  font-size: 12px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: none;
+.quest-btn,
+.log-btn,
+.friend-btn,
+.profile-btn,
+.skill-btn {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 2px solid var(--path);
+  background: var(--path-light);
+  color: var(--text-path);
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.12);
-  color: white;
+  font-weight: 600;
+}
+
+.add-quest-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 2px solid var(--grass-dark);
+  background: var(--bg-field);
+  color: var(--sand-bright);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.add-quest-btn:hover {
+  background: var(--grass-light);
+  border-color: var(--grass);
+}
+
+.add-friend-btn {
+  width: auto;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 2px solid var(--path-shadow);
+  cursor: pointer;
+  background: var(--bg-path);
+  color: var(--text-path);
   white-space: nowrap;
+  font-weight: 600;
+  box-shadow: var(--shadow-soft);
+  transition: all 0.2s ease;
+}
+
+.add-friend-btn:hover {
+  background: var(--path-light);
+  border-color: var(--grass-light);
 }

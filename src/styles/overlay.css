@@ -1,31 +1,76 @@
+
 .overlay {
-  position: absolute;
-  top: 10%;
-  left: 10%;
-  width: 80%;
-  height: 80%;
-  /* background: rgba(0,0,0,0.5); */
-  /* color: white; */
-  padding: 20px;
-  /* border-radius: 10px; */
-  overflow-y: auto;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 860px;
+  height: 640px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 24px;
+  border-radius: 16px;
   z-index: 100;
   pointer-events: auto;
-  
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(6px);
-  color: white;
-  white-space: nowrap;
+  background: var(--bg-panel);
+  border: 3px solid var(--path-shadow);
   box-shadow:
-    0 2px 8px rgba(0,0,0, 0.4),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    var(--shadow-path),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6),
+    inset 0 0 80px var(--sunbeam);
+  color: var(--text-path);
 }
+
+.overlay > .header {
+  flex-shrink: 0;
+}
+
+.overlay > *:not(.header) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.profile-overlay > .character-information {
+  overflow: hidden;
+  overflow-y: hidden;
+}
+
+.friends-overlay > .friends-list {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.addQuest-overlay {
+  height: auto;
+  min-height: auto;
+  max-height: 95vh;
+  overflow-y: auto;
+}
+.addQuest-overlay > *:not(.header) {
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+}
+
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 4px 12px;
+  margin-bottom: 16px;
+  border-bottom: 3px solid var(--grass-light);
+  padding-bottom: 12px;
+}
+
+.overlay .header h1,
+.overlay .header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 .header-actions {
   display: flex;
@@ -34,8 +79,141 @@
   gap: 8px;
 }
 .tag {
-  background: #222;
-  padding: 2px 8px;
-  border-radius: 12px;
+  background: var(--bg-field);
+  color: var(--sand-bright);
+  padding: 4px 12px;
+  border-radius: 20px;
   font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--grass-dark);
+  box-shadow: var(--shadow-grass);
+}
+
+/*  ADD QUEST / MODAL  */
+
+.addQuest-overlay {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal.quest-create {
+  width: 100%;
+  max-width: 480px;
+  padding: 24px;
+  background: var(--sand-bright);
+  border: 3px solid var(--grass);
+  border-radius: 16px;
+  box-shadow: var(--shadow-path), inset 0 0 40px var(--sunbeam);
+}
+
+.quest-create h2 {
+  margin: 0 0 20px 0;
+  color: var(--text-warm-dark);
+  font-size: 1.25rem;
+}
+
+.quest-create input[type="text"],
+.quest-create input[type="date"],
+.quest-create textarea,
+.quest-create select {
+  width: 100%;
+  padding: 10px 12px;
+  margin: 6px 0 14px 0;
+  border: 2px solid var(--path);
+  border-radius: 10px;
+  background: var(--sand-sun);
+  color: var(--text-path);
+  font-family: inherit;
+}
+
+.quest-create textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.quest-create .row {
+  margin-bottom: 18px;
+}
+
+.quest-create .row label {
+  display: block;
+  font-weight: 600;
+  color: var(--text-warm-medium);
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.quest-create .category-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.quest-create .category-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+}
+
+.quest-create .category-tag button {
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: var(--color-cream);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.quest-create .category-input {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.quest-create .category-input input {
+  flex: 1;
+  margin: 0;
+}
+
+.quest-create .category-input button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 2px solid var(--color-moss);
+  background: linear-gradient(135deg, var(--color-sage), var(--color-moss));
+  color: var(--color-cream);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.quest-create > button {
+  display: inline-block;
+  margin-top: 12px;
+}
+
+.quest-create button[type="submit"],
+.quest-create button.primary,
+.quest-create > button:first-of-type {
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 2px solid var(--color-moss);
+  background: linear-gradient(135deg, var(--color-sage), var(--color-moss));
+  color: var(--color-cream);
+  cursor: pointer;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.quest-create button[type="button"]:not(.close):not(.primary),
+.quest-create > button:not(:first-of-type):not(.close) {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 2px solid var(--path);
+  background: var(--path-light);
+  color: var(--text-path);
+  cursor: pointer;
 }

@@ -48,7 +48,7 @@ export function SkillDetail({ skill, onClose }: Props) {
               <li key={e.id}>
                 <span className="xp-date">{new Date(e.timestamp).toLocaleDateString()}</span>
                 <span className="xp-source">{e.source}</span>
-                <span className="xp-source-name">{e.sourceId}</span>
+                <span className="xp-source-name">{e.name || e.sourceId}</span>
                 <span className="xp-amount">+{e.amount} xp</span>
               </li>
             ))

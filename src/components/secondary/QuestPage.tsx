@@ -79,8 +79,8 @@ export function QuestPage({
       onMouseDown={onFocus}
     >
       <header className="quest-page-header" onMouseDown={onMouseDown}>
-        <h2>{quest.title}</h2>
-        <button onClick={onClose}>x</button>
+        <h2 className="quest-page-title">{quest.title}</h2>
+        <button type="button" className="quest-page-close" onClick={onClose} aria-label="Close">×</button>
       </header>
 
       {quest.category && (
@@ -92,7 +92,7 @@ export function QuestPage({
       )}
 
       {quest.status === "accepted" && (
-        <button onClick={() => pin(quest.id)}>
+        <button type="button" className="quest-page-pin" onClick={() => pin(quest.id)}>
           {quest.pinned ? "unpin" : "pin"}
         </button>
       )}

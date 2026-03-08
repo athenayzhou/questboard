@@ -1,0 +1,11 @@
+/*  SETTINGS OVERLAY  */
+
+.settings-overlay h2 {
+  margin: 0 0 1rem 0;
+  color: var(--text-warm-dark);
+  font-size: 1.25rem;
+}
+
+.settings-overlay .header {
+  margin-bottom: 1.5rem;
+}

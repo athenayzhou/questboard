@@ -1,6 +1,7 @@
 import type { Evidence, Cluster } from "../types/skills";
 import { calculateConfidence } from "../utils/skill/analysis/confidence";
 import { applyXP } from "../utils/skill/analysis/experience";
+import { DECAY, MS } from "../utils/constants";
 
 export class ClusterStore {
   private clusters = new Map<string, Cluster>();
@@ -17,6 +18,26 @@ export class ClusterStore {
     } else {
       return this.create(e, xp);
     }
+  }
+
+  decay(now: number){
+    const toRemove: string[] = [];
+    this.clusters.forEach(cluster => {
+      const daysIdle = (now - cluster.lastSeenAt) / MS.DAY;
+      if(daysIdle > 7){
+        const decay = daysIdle * DECAY.CLUSTER_DECAY_RATE;
+        cluster.confidence = Math.max(0, cluster.confidence - decay);
+      
+        if(cluster.confidence < DECAY.CLUSTER_REMOVAL_THRESHOLD){
+          toRemove.push(cluster.key);
+        }
+      }
+    });
+    toRemove.forEach(key => this.clusters.delete(key));
+  }
+
+  remove(key: string){
+    this.clusters.delete(key);
   }
 
   private create(e: Evidence, xp: number): Cluster {

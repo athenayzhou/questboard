@@ -8,9 +8,6 @@ export function useSkillLedger() {
     const events = useXPEventStore((s) => s.events);
 
     return useMemo(() => {
-        const now = Date.now();
-        const DORMANT_AFTER = 1000 * 60 * 60 * 24 * 14;
-
         return Object.values(skills).map(skill => {
             const skillEvents = events.filter(e => e.skillId === skill.id);
             const lastSeenAt =
@@ -26,7 +23,7 @@ export function useSkillLedger() {
                 xp: skill.xp,
                 level,
                 lastSeenAt,
-                isDormant: now - lastSeenAt > DORMANT_AFTER,
+                isDormant: skill.isDormant,
             };
         });
     }, [skills, events]);

@@ -1,4 +1,6 @@
 import type { Cluster, Candidate } from "../types/skills";
+import { DECAY, MS } from "../utils/constants";
+import { clamp } from "three/src/math/MathUtils.js";
 
 export class CandidateStore {
   private candidates = new Map<string, Candidate>();
@@ -16,6 +18,25 @@ export class CandidateStore {
       return this.create(cluster);
     }
   }
+
+  decay(now: number) {
+    const toRemove: string[] = [];
+    this.candidates.forEach(candidate => {
+      const daysIdle = (now - candidate.lastSeenAt) / MS.DAY;
+      if(daysIdle > 3) {
+        const decay = daysIdle * DECAY.CANDIDATE_DECAY_RATE;
+        candidate.confidence = clamp(candidate.confidence - decay, 0, 1);
+        if(candidate.confidence < DECAY.CANDIDATE_REMOVAL_THRESHOLD){
+          candidate.state = "decayed";
+          if(daysIdle > DECAY.CANDIDATE_REMOVAL_DAYS){
+            toRemove.push(candidate.key);
+          }
+        }
+      }
+    });
+    toRemove.forEach(key => this.candidates.delete(key));
+  }
+
 
   private create(cluster: Cluster, now = Date.now()): Candidate {
     const candidate: Candidate = {

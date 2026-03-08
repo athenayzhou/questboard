@@ -30,12 +30,13 @@ export type Quest = {
   subquests?: QuestAction[]
 
   reward?: QuestReward;
-  pinned?: boolean;
   status: QuestStatus;
-
   createdAt: number;
   acceptedAt?: number;
   completedAt?: number | null;
+
+  pinned?: boolean;
+  order?: number;
 
   x?: number;
   y?: number;
