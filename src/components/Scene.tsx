@@ -86,7 +86,7 @@ export function Scene({
         src="./kitchen.glb"
         position={[2.5, 0, 2.5]}
         scale={1}
-        hide={["Object_129"]}
+        hideMesh={["Object_129"]}
       />
 
       <Model

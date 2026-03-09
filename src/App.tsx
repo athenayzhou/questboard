@@ -16,47 +16,6 @@ function App() {
 
   useSkillDecay();
 
-  //dev
-  // const testPlayer = usePlayerStore(s => s.setPlayer);
-  // useEffect(() => {
-  //   clusterStore.clear();
-  //   candidateStore.clear();
-
-  //   const questState = useQuestStore.getState();
-  //   if(!questState.quests.length){
-  //     useQuestStore.setState({
-  //       ...questState,
-  //       quests: structuredClone(TEST_BOARD)
-  //     });
-  //   }
-
-  //   const friendsState = useFriendsStore.getState();
-  //   if(!friendsState.friends.length){
-  //     useFriendsStore.setState({
-  //       ...friendsState,
-  //       friends: structuredClone(TEST_FRIENDS),
-  //     });
-  //   }
-
-  // }, []);
-
-  // useEffect(() => {
-  //   const timeout = setTimeout(() => {
-
-  //   // TEST_SKILL.forEach((quest) => {
-  //   //   onQuestComplete(quest, {
-  //   //     evidenceStore,
-  //   //     clusterStore,
-  //   //     candidateStore,
-  //   //   });
-  //   // });
-  //   testPlayer(structuredClone(TEST_PLAYER_DATA));
-  //   }, 0)
-  //   return () => clearTimeout(timeout);
-  // }, [])
-
-
-
   return (
     <div id="root">
       <Canvas resize={{ scroll: false }} >

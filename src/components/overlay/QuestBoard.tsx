@@ -2,11 +2,8 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useOverlay } from "../../store/overlay";
 import type { Quest } from "../../types/quest";
 import { BoardCard } from "../secondary/BoardCard";
-
-const DRAG_THRESHOLD_PX = 6;
-const SPAWN_X_MAX = 72;
-const SPAWN_Y_MIN = 5;
-const SPAWN_Y_MAX = 62;
+import { UI } from "../../utils/constants";
+import { FilterQuest } from "../secondary/FilterQuest";
 
 type QuestBoardProps = {
   quests: Quest[];
@@ -17,15 +14,16 @@ export function QuestBoard({
   quests,
   onSelect,
 } : QuestBoardProps) {
-  const activeOverlay = useOverlay((s) => s.activeOverlay);
-  const openOverlay = useOverlay((s) => s.openOverlay);
-  const closeOverlay = useOverlay((s) => s.closeOverlay);
-  const closeAllQuests = useOverlay((s) => s.closeAllQuests);
-  const tab = useOverlay((s) => s.boardTab);
-  const setTab = useOverlay((s) => s.setBoardTab);
-  const openQuestPages = useOverlay((s) => s.openQuestPages);
-  const dragEnabled = openQuestPages.length === 0;
+  const activeOverlay = useOverlay(s => s.activeOverlay);
+  const openOverlay = useOverlay(s => s.openOverlay);
+  const closeOverlay = useOverlay(s => s.closeOverlay);
+  const closeAllQuests = useOverlay(s => s.closeAllQuests);
+  const tab = useOverlay(s => s.boardTab);
+  const setTab = useOverlay(s => s.setBoardTab);
+  const openQuestPages = useOverlay(s => s.openQuestPages);
+  const { questSearch, questFilters } = useOverlay();
 
+  const dragEnabled = openQuestPages.length === 0;
   const boardRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{
     id: string;
@@ -37,7 +35,7 @@ export function QuestBoard({
   } | null>(null);
   const didDragRef = useRef<string | null>(null);
 
-  const filtered = useMemo(() => {
+  const tabbed = useMemo(() => {
     return quests.filter(q => q.status === tab);
   }, [quests, tab]);
   function handleTabSwitch(newTab: "available" | "accepted") {
@@ -46,13 +44,36 @@ export function QuestBoard({
     setTab(newTab);
   }
 
+  const filtered = useMemo(() => {
+    return tabbed.filter(q => {
+      if(questSearch){
+        const searchLower = questSearch.toLowerCase();
+        if(!q.title.toLowerCase().includes(searchLower) &&
+           !q.description?.toLowerCase().includes(searchLower) &&
+           !q.category?.some(cat => cat.toLowerCase().includes(searchLower))) {
+          return false;
+        }
+      }
+      if(questFilters.category && !q.category?.includes(questFilters.category)){
+        return false;
+      }
+      if(questFilters.difficulty && q.difficulty !== questFilters.difficulty){
+        return false;
+      }
+      if(questFilters.status && q.status !== questFilters.status){
+        return false;
+      }
+      return true;
+    });
+  }, [tabbed, questSearch, questFilters]);
+
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [questState, setQuestsState] = useState(
     () =>
-      filtered.map(q => ({
+      tabbed.map(q => ({
         ...q,
-        x: Math.random() * SPAWN_X_MAX,
-        y: SPAWN_Y_MIN + Math.random() * (SPAWN_Y_MAX - SPAWN_Y_MIN),
+        x: Math.random() * UI.SPAWN_X_MAX,
+        y: UI.SPAWN_Y_MIN + Math.random() * (UI.SPAWN_Y_MAX - UI.SPAWN_Y_MIN),
         zIndex: 1,
       }))
   );
@@ -62,15 +83,15 @@ export function QuestBoard({
       const byId = new Map(prev.map(q => [q.id, q]));
       return filtered.map(q => {
         const existing = byId.get(q.id);
-        const safeX = (v: number) => Math.max(0, Math.min(v, SPAWN_X_MAX));
-        const safeY = (v: number) => Math.max(SPAWN_Y_MIN, Math.min(v, SPAWN_Y_MAX));
+        const safeX = (v: number) => Math.max(0, Math.min(v, UI.SPAWN_X_MAX));
+        const safeY = (v: number) => Math.max(UI.SPAWN_Y_MIN, Math.min(v, UI.SPAWN_Y_MAX));
         if (existing) {
           return { ...existing, x: safeX(existing.x), y: safeY(existing.y) };
         }
         return {
           ...q,
-          x: Math.random() * SPAWN_X_MAX,
-          y: SPAWN_Y_MIN + Math.random() * (SPAWN_Y_MAX - SPAWN_Y_MIN),
+          x: Math.random() * UI.SPAWN_X_MAX,
+          y: UI.SPAWN_Y_MIN + Math.random() * (UI.SPAWN_Y_MAX - UI.SPAWN_Y_MIN),
           zIndex: 1,
         };
       });
@@ -108,7 +129,7 @@ export function QuestBoard({
     if (!board || !d) return;
     const dx = e.clientX - d.startX;
     const dy = e.clientY - d.startY;
-    if (!d.moved && (Math.abs(dx) > DRAG_THRESHOLD_PX || Math.abs(dy) > DRAG_THRESHOLD_PX)) {
+    if (!d.moved && (Math.abs(dx) > UI.DRAG_THRESHOLD_PX || Math.abs(dy) > UI.DRAG_THRESHOLD_PX)) {
       d.moved = true;
       setDraggingId(d.id);
     }
@@ -166,6 +187,7 @@ export function QuestBoard({
               accepted
             </button>
           </div>
+          <FilterQuest />
           <div>
             <button className="add-quest-btn" onClick={() => openOverlay("addQuest")}>+ quest</button>
             <button className="close quest-btn" onClick={closeOverlay}>close</button>
@@ -195,7 +217,11 @@ export function QuestBoard({
           ))}
         </div>
         {filtered.length === 0 && (
-          <div className="empty-state">no quests here</div>
+          <div className="empty-state">
+            {questSearch || Object.keys(questFilters).length > 0
+              ? "no quests matching your search"
+              : "no quests here"}
+            </div>
         )}
       </div>
 

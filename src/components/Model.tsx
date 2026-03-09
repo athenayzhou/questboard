@@ -10,21 +10,21 @@ type ModelProps = {
   rotation?: [number, number, number]
   overlay?: "profile"| "quests" | "logs" | "friends" | "skills" | "settings" | null
   label?: string
-  hide?: string[]
+  hideMesh?: string[]
 }
 
 function useClonedScene(
   gltfScene: THREE.Group,
-  hide?: string[],
+  hideMesh?: string[],
 ) {
   return useMemo(() => {
     const clone = gltfScene.clone(true);
-    const hideMesh = new Set((hide ?? []).map((n) => n.toLowerCase()));
+    const hideMeshs = new Set((hideMesh ?? []).map((n) => n.toLowerCase()));
 
     clone.traverse((node) => {
       if (node instanceof THREE.Mesh) {
         const nameLower = (node.name ?? "").toLowerCase();
-        if (hideMesh.size && nameLower && hideMesh.has(nameLower)) {
+        if (hideMeshs.size && nameLower && hideMeshs.has(nameLower)) {
           node.visible = false;
         }
         if (node.visible && node.material) {
@@ -37,7 +37,7 @@ function useClonedScene(
       }
     });
     return clone;
-  }, [gltfScene, hide]);
+  }, [gltfScene, hideMesh]);
 }
 
 export function Model({
@@ -47,10 +47,10 @@ export function Model({
   rotation = [0,0,0],
   overlay= null,
   label,
-  hide,
+  hideMesh,
 } : ModelProps) {
   const { scene } = useGLTF(src);
-  const clonedScene = useClonedScene(scene, hide);
+  const clonedScene = useClonedScene(scene, hideMesh);
   const openOverlay = useOverlay((s) => s.openOverlay);
 
   const htmlPortal = useMemo(

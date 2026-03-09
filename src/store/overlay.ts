@@ -23,6 +23,16 @@ type OverlayState = {
 
   boardTab: "available" | "accepted";
   setBoardTab: (tab: "available" | "accepted") => void;
+
+  questSearch: string;
+  setQuestSearch: (search: string) => void;
+  questFilters: {
+    category?: string;
+    difficulty?: string;
+    status?: string;
+  };
+  setQuestFilters: (filters: Partial<OverlayState['questFilters']>) => void;
+  clearQuestFilters: () => void;
 }
 
 export const useOverlay = create<OverlayState>((set) => ({
@@ -82,5 +92,14 @@ export const useOverlay = create<OverlayState>((set) => ({
 
   boardTab: "available",
   setBoardTab: (tab) => set({boardTab: tab}),
+
+  questSearch: "",
+  setQuestSearch: (search) => set({ questSearch: search }),
+  questFilters: {},
+  setQuestFilters: (filters) => 
+    set(state => ({
+      questFilters: { ...state.questFilters, ...filters }
+    })),
+  clearQuestFilters: () => set({ questFilters: {} }),
 
 }));

@@ -4,7 +4,14 @@ import { applyXP } from "../utils/skill/analysis/experience";
 import { DECAY, MS } from "../utils/constants";
 
 export class ClusterStore {
-  private clusters = new Map<string, Cluster>();
+  private clusters: Map<string, Cluster> =(() => {
+    try {
+      const raw = localStorage.getItem("clusters");
+      return raw ? new Map(JSON.parse(raw)) : new Map();
+    } catch {
+      return new Map();
+    }
+  })();
 
   getAll(): Cluster[] {
     return [...this.clusters.values()];
@@ -34,6 +41,9 @@ export class ClusterStore {
       }
     });
     toRemove.forEach(key => this.clusters.delete(key));
+    try {
+      localStorage.setItem("clusters", JSON.stringify([...this.clusters]));
+    } catch {}
   }
 
   remove(key: string){

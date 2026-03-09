@@ -1,8 +1,9 @@
 import type { Quest } from "../../types/quest";
-import { useRef } from "react";
+import { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Detail } from "../ui/Detail";
 import { useQuestStore } from "../../store/quest";
+import { EditQuest } from "./EditQuest";
 
 type QuestPageProps = {
   quest: Quest;
@@ -23,12 +24,22 @@ export function QuestPage({
   onFocus,
   onMove,
 } : QuestPageProps) {
+  const editQuest = useQuestStore((s) => s.editQuest);
   const accept = useQuestStore((s) => s.acceptQuest);
   const complete = useQuestStore((s) => s.completeQuest);
   const fail = useQuestStore((s) => s.failQuest);
   const pin = useQuestStore((s) => s.togglePin);
+  const toggleSubquest = useQuestStore((s) => s.toggleSubquest);
 
   if(!quest) return null;
+
+  const [isEditing, setIsEditing] = useState(false);
+  const canEdit = quest.status === "available";
+
+  const handleEditSave = (updates: Partial<Quest>) => {
+    editQuest(quest.id, updates);
+    setIsEditing(false);
+  }
 
   function handleAccept() {
     accept(quest.id);
@@ -80,8 +91,22 @@ export function QuestPage({
     >
       <header className="quest-page-header" onMouseDown={onMouseDown}>
         <h2 className="quest-page-title">{quest.title}</h2>
-        <button type="button" className="quest-page-close" onClick={onClose} aria-label="Close">×</button>
+        <div className="quest-page-actions">
+          {canEdit && !isEditing && (
+            <button type="button" onClick={() => setIsEditing(true)}>edit</button>
+          )}
+          <button type="button" className="quest-page-close" onClick={onClose} aria-label="Close">×</button>
+        </div>
       </header>
+
+      {isEditing ? (
+        <EditQuest
+          quest={quest}
+          onSave={handleEditSave}
+          onCancel={() => setIsEditing(false)}
+        />
+      ) : (
+      <>
 
       {quest.category && (
         <div className="quest-tags">
@@ -114,7 +139,8 @@ export function QuestPage({
                 <input
                   type="checkbox"
                   checked={action.completed}
-                  readOnly
+                  onChange={() => quest.status === "accepted" && toggleSubquest(quest.id, action.id)}
+                  disabled={quest.status !== "accepted"}
                 />
                 <span>{action.title}</span>
               </li>
@@ -151,7 +177,9 @@ export function QuestPage({
         )}
       </footer>
 
+    </>
+    )}
     </div>,
     document.getElementById("windows")!
-  )
+  );
 }

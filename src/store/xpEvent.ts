@@ -7,7 +7,7 @@ type XPEventState = {
     skillId: string;
     amount: number;
     source: XPEvent["source"];
-    sourceId?: string;
+    sourceId: string;
     name?: string;
   }) => void;
 
@@ -17,7 +17,14 @@ type XPEventState = {
 }
 
 export const useXPEventStore = create<XPEventState>((set, get) => ({
-  events: [],
+  events: (() => {
+    try {
+      const raw = localStorage.getItem("xpEvents");
+      return raw ? (JSON.parse(raw) as XPEvent[]) : [];
+    } catch {
+      return [];
+    }
+  })(),
 
   recordXP: ({ skillId, amount, source, sourceId, name}) => {
     const timestamp = Date.now();
@@ -27,14 +34,18 @@ export const useXPEventStore = create<XPEventState>((set, get) => ({
       skillId,
       amount,
       source,
-      sourceId,
+      sourceId: sourceId ?? "unidentified",
       name,
       timestamp,
     }
 
-    set(state => ({
-      events: [newEvent, ...state.events],
-    }))
+    set(state => {
+      const next = [newEvent, ...state.events];
+      try {
+        localStorage.setItem("xpEvents", JSON.stringify(next));
+      } catch {}
+      return { events: next };
+    });
   },
 
   getAll: () => get().events,

@@ -3,7 +3,14 @@ import { DECAY, MS } from "../utils/constants";
 import { clamp } from "three/src/math/MathUtils.js";
 
 export class CandidateStore {
-  private candidates = new Map<string, Candidate>();
+  private candidates: Map<string, Candidate> = (() => {
+    try {
+      const raw = localStorage.getItem("candidates");
+      return raw ? new Map(JSON.parse(raw)) : new Map();
+    } catch {
+      return new Map();
+    }
+  })();
 
   getAll() {
     return [...this.candidates.values()];
@@ -35,6 +42,9 @@ export class CandidateStore {
       }
     });
     toRemove.forEach(key => this.candidates.delete(key));
+    try {
+      localStorage.setItem("candidates", JSON.stringify([...this.candidates]));
+    } catch {}
   }
 
 

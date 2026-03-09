@@ -4,6 +4,7 @@ import { SkillDetail } from "../secondary/SkillDetail";
 import { levelToProgress } from "../../utils/skill/analysis/experience";
 import { ProgressBar } from "../ui/ProgressBar";
 import { useSkillStore } from "../../store/skill";
+import { DECAY, DEFAULT } from "../../utils/constants";
 
 type SortKey = "name" | "level" | "lastSeen";
 
@@ -18,7 +19,7 @@ export function SkillLedger() {
 
   const ledgerEntries = useMemo(() => {
     const now = Date.now();
-    const DORMANT_AFTER = 1000 * 60 * 60 * 24 * 14;
+    const DORMANT_AFTER = DECAY.DORMANT_THRESHOLD_DAYS * DEFAULT.DAY;
     const skills = Object.values(skillsRecord);
     return skills.map((skill) => ({
       id: skill.id,

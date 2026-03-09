@@ -19,10 +19,24 @@ type SkillState = {
 }
 
 export const useSkillStore = create<SkillState>((set, get) => ({
-  skills: {},
+  skills: (() => {
+    try {
+      const raw = localStorage.getItem("skills");
+      return raw ? (JSON.parse(raw) as Record<string, Skill>) : {};
+    } catch {
+      return {};
+    }
+  })(),
 
-  addSkill: (skill) =>
-    set((state) => ({ skills: {...state.skills, [skill.id]: skill} })),
+  addSkill: (skill) => {
+    set((state) => { 
+      const next = {...state.skills, [skill.id]: skill };
+      try {
+        localStorage.setItem("skills", JSON.stringify(next));
+      } catch {}
+      return { skills: next };
+    });
+  },
 
   gainXP: (id, amount, questId) => {
     const skill = get().skills[id];
@@ -37,14 +51,25 @@ export const useSkillStore = create<SkillState>((set, get) => ({
       dormantAt: undefined,
     };
 
-    useXPEventStore.getState().recordXP({
+    const xpEvent = {
+      id: crypto.randomUUID(),
       skillId: id,
       amount,
-      source: "quest",
+      source: "quest" as const,
       sourceId: questId ?? "unidentified",
       name: skill.name,
-    });
-    set((state) => ({ skills: { ...state.skills, [id]: updated } }));
+      timestamp: Date.now(),
+    };
+
+    set((state) => { 
+      const next = { ...state.skills, [id]: updated };
+      try {
+        localStorage.setItem("skills", JSON.stringify(next));
+      } catch {}
+      return { skills: next };
+     });
+
+     useXPEventStore.getState().recordXP(xpEvent);
   },
 
   _applyXP: (id, amount) => {
@@ -97,6 +122,11 @@ export const useSkillStore = create<SkillState>((set, get) => ({
           }
         }
       });
+      if (hasChanges){
+        try {
+          localStorage.setItem("skills", JSON.stringify(updatedSkills));
+        } catch {}
+      }
       return hasChanges ? { skills: updatedSkills } : state;
     });
   },

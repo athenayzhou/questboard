@@ -1,6 +1,6 @@
 import { useOverlay } from "../../store/overlay";
 import { questProgress } from "../../utils/progress";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuestStore } from "../../store/quest";
 
 export function ActiveQuest() {
@@ -13,6 +13,7 @@ export function ActiveQuest() {
   const failQuest = useQuestStore((s) => s.failQuest);
   const togglePin = useQuestStore((s) => s.togglePin);
   const reorderPinned = useQuestStore((s) => s.reorderPinned);
+  const toggleSubquest = useQuestStore((s) => s.toggleSubquest);
 
   const quests = useQuestStore(s => s.quests);
   const active = useMemo(
@@ -24,7 +25,7 @@ export function ActiveQuest() {
   const [collapsed, setCollapsed] = useState(true);
   const [expandedQuestId, setExpandedQuestId] = useState<string | null>(null);
   const [draggedQuestId, setDraggedQuestId] = useState<string | null>(null);
-  const dragOverIndex = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if(activeOverlay) {
@@ -57,7 +58,7 @@ export function ActiveQuest() {
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     e.stopPropagation();
-    dragOverIndex.current = index;
+    setDragOverIndex(index);
   }
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
@@ -66,11 +67,16 @@ export function ActiveQuest() {
       reorderPinned(draggedQuestId, dropIndex);
     }
     setDraggedQuestId(null);
-    dragOverIndex.current = null;
+    setDragOverIndex(null);
   };
   const handleDragEnd = () => {
     setDraggedQuestId(null);
-    dragOverIndex.current = null;
+    setDragOverIndex(null);
+  }
+  const handleDragLeave = (e: React.DragEvent) => {
+    if(!e.currentTarget.contains(e.relatedTarget as Node)){
+      setDragOverIndex(null);
+    }
   }
 
   // if(active.length === 0) return null;
@@ -97,7 +103,7 @@ export function ActiveQuest() {
             const isPinned = q.pinned;
             const isExpanded = expandedQuestId === q.id;
             const isDragging = draggedQuestId === q.id;
-            const isDragOver = dragOverIndex.current === index;
+            const isDragOver = dragOverIndex === index;
             return (
               <div
                 key={q.id}
@@ -107,6 +113,7 @@ export function ActiveQuest() {
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDrop={(e) => handleDrop(e, index)}
                 onDragEnd={handleDragEnd}
+                onDragLeave={handleDragLeave}
                 onClick={() =>{
                   if(isDragging) return;
                   setExpandedQuestId(isExpanded ? null : q.id)
@@ -190,7 +197,11 @@ export function ActiveQuest() {
                               <input 
                                 type="checkbox" 
                                 checked={task.completed} 
-                                readOnly 
+                                onChangeCapture={(e) => {
+                                  e.stopPropagation();
+                                  toggleSubquest(q.id, task.id)
+                                }} 
+                                disabled={q.status !== "accepted"}
                               />
                               <span>{task.title}</span>
                             </li>

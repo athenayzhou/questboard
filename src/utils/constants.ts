@@ -13,6 +13,15 @@ export const DEFAULT = {
   DAY: 1000 * 60 * 60 * 24,
 }
 
+export const UI = {
+  DRAG_THRESHOLD_PX: 6,
+  QUEST_CARD_WIDTH: 180,
+  QUEST_CARD_HEIGHT: 120,
+  SPAWN_X_MAX: 72,
+  SPAWN_Y_MIN: 5,
+  SPAWN_Y_MAX: 62,
+}
+
 export const NAME = {
   TEMPLATES: [
   "{verb} {object}",
