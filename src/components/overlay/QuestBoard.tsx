@@ -4,6 +4,8 @@ import type { Quest } from "../../types/quest";
 import { BoardCard } from "../secondary/BoardCard";
 import { UI } from "../../utils/constants";
 import { FilterQuest } from "../secondary/FilterQuest";
+import { useQuestStore } from "../../store/quest";
+import { QuestCardSkeleton } from "../ui/SkeletonLoader";
 
 type QuestBoardProps = {
   quests: Quest[];
@@ -21,7 +23,9 @@ export function QuestBoard({
   const tab = useOverlay(s => s.boardTab);
   const setTab = useOverlay(s => s.setBoardTab);
   const openQuestPages = useOverlay(s => s.openQuestPages);
+
   const { questSearch, questFilters } = useOverlay();
+  const { isLoading } = useQuestStore();
 
   const dragEnabled = openQuestPages.length === 0;
   const boardRef = useRef<HTMLDivElement>(null);
@@ -170,6 +174,18 @@ export function QuestBoard({
       return;
     }
     onSelect(questId);
+  }
+
+  if (isLoading) {
+    return (
+      <div className="quest-board">
+        <div className="quest-grid">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <QuestCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (activeOverlay !== "quests") return null;

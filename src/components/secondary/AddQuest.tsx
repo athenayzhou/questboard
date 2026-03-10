@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useQuestStore } from "../../store/quest";
 import { useOverlay } from "../../store/overlay";
+import { LoadingButton } from "../ui/LoadingButton";
+import { useValidation } from "../../hooks/useValidation";
+import { VALIDATION_RULES } from "../../utils/constants";
 
 export function AddQuestOverlay() {
   const setOverlay = useOverlay((s) => s.openOverlay);
@@ -15,6 +18,9 @@ export function AddQuestOverlay() {
   const [frequency, setFrequency] = useState<"once"|"daily"|"weekly"|"monthly">("once");
   const [deadline, setDeadline] = useState<string | null>(null);
 
+  const { errors, setError, hasErrors } = useValidation();
+  const [isCreating, setIsCreating] = useState(false);
+
   const addCategory = () => {
     if(currentCategory.trim() && !categories.includes(currentCategory.trim())){
       setCategories(prev => [...prev, currentCategory.trim()]);
@@ -25,22 +31,52 @@ export function AddQuestOverlay() {
     setCategories(prev => prev.filter(c => c !== category));
   }
 
-  const handleCreate = () => {
-    if(!title.trim()) return;
-    addQuest({
-      title,
-      description,
-      category: categories.length > 0 ? categories: undefined,
-      difficulty,
-      priority,
-      frequency,
-      deadline,
-    });
-    setTitle("");
-    setDescription("");
-    setCategories([]);
-    setCurrentCategory("");
-    setOverlay("quests")
+  const handleTitleChange = (value: string) => {
+    setTitle(value);
+    
+    if(!value.trim()){
+      setError('title', 'title is required');
+    } else if (value.length < VALIDATION_RULES.TITLE_MIN){
+      setError('title', `title must be at least ${VALIDATION_RULES.TITLE_MIN} characters`)
+    } else if (value.length > VALIDATION_RULES.TITLE_MAX) {
+      setError('title', `title must be less than ${VALIDATION_RULES.TITLE_MAX} characters`);
+    } else {
+      setError('title', undefined);
+    }
+  }
+
+  const handleDescriptionChange = (value: string) => {
+    setDescription(value);
+    if (value.length > 1000) {
+      setError('description', 'Description must be less than 1000 characters');
+    } else {
+      setError('description', undefined);
+    }
+  };
+
+  const handleCreate = async () => {
+    if (!title.trim() || hasErrors) return;
+    
+    setIsCreating(true);
+    
+    try {
+      addQuest({
+        title,
+        description,
+        category: categories.length > 0 ? categories : undefined,
+        difficulty,
+        priority,
+        frequency,
+        deadline,
+      });
+      setTitle("");
+      setDescription("");
+      setCategories([]);
+      setCurrentCategory("");
+      setOverlay("quests");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleCancel = () => {
@@ -53,17 +89,25 @@ export function AddQuestOverlay() {
 
         <h2>new quest</h2>
 
+        <div className="form-field">
         <input
           placeholder="title"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => handleTitleChange(e.target.value)}
+          className={errors.title ? 'error' : ''}
         />
+        {errors.title && <div className="error-message">{errors.title}</div>}
+        </div>
 
+        <div className="form-field">
         <textarea
           placeholder = "description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => handleDescriptionChange(e.target.value)}
+          className={errors.description ? 'error' : ''}
         />
+        {errors.description && <div className="error-message">{errors.description}</div>}
+        </div>
 
         <div className="row">
           <label>categories</label>
@@ -130,9 +174,15 @@ export function AddQuestOverlay() {
             />
         </div>
 
-
-        <button onClick={handleCreate}>create</button>
+        <div className="form-actions">
         <button onClick={handleCancel}>cancel</button>
+        <LoadingButton 
+          onClick={handleCreate}
+          loading={isCreating}
+          disabled={hasErrors || !title.trim()}
+          className="primary"
+        >create</LoadingButton>
+        </div>
       </div>
 
     </div>

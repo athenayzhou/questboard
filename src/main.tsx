@@ -16,6 +16,8 @@ import './styles/overlay/setting.css';
 import './styles/ui/badges.css';
 import './styles/ui/buttons.css';
 import './styles/ui/progress-bar.css';
+import './styles/ui/toast.css';
+import './styles/ui/confirm.css';
 
 if (import.meta.env.DEV) {
   setupTestData();

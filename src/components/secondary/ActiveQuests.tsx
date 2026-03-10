@@ -193,14 +193,15 @@ export function ActiveQuest() {
                         <h5>Tasks:</h5>
                         <ul>
                           {q.subquests.map(task => (
-                            <li key={task.id} className={task.completed ? "completed" : ""}>
+                            <li
+                              key={task.id}
+                              className={task.completed ? "completed" : ""}
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <input 
                                 type="checkbox" 
                                 checked={task.completed} 
-                                onChangeCapture={(e) => {
-                                  e.stopPropagation();
-                                  toggleSubquest(q.id, task.id)
-                                }} 
+                                onChange={() => toggleSubquest(q.id, task.id)} 
                                 disabled={q.status !== "accepted"}
                               />
                               <span>{task.title}</span>

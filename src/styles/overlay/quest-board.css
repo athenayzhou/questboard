@@ -33,6 +33,48 @@
   box-sizing: border-box;
 }
 
+.quest-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 14px 0;
+}
+
+.quest-card-skeleton {
+  width: 180px;
+  height: 120px;
+  background: var(--bg-card);
+  border-radius: 14px;
+  padding: 16px;
+  border: 3px solid var(--path);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 12px;
+  background: var(--path-light);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeleton-title {
+  width: 80%;
+  margin-bottom: 12px;
+}
+
+.skeleton-meta {
+  width: 60%;
+}
+
+.skeleton-meta.short {
+  width: 40%;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
 .quest-page-card {
   flex: 0 0 auto;
   cursor: grab;
@@ -499,4 +541,29 @@
 .filter-select:focus {
   outline: none;
   border-color: var(--grass-light);
+}
+
+
+.form-field {
+  margin-bottom: 1rem;
+}
+.form-field input.error,
+.form-field textarea.error {
+  border-color: #e74c3c;
+  background-color: #fdf2f2;
+}
+.error-message {
+  color: #e74c3c;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

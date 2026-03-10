@@ -5,7 +5,12 @@ import { evidenceStore, candidateStore, clusterStore } from './bundledStores';
 
 type QuestState = {
   quests: Quest[];
+  isLoading: boolean;
+  operationLoading: Record<string, boolean>;
+
   setQuest: (q: Quest[]) => void;
+  setLoading: (loading: boolean) => void;
+  setOperationLoading: (operation: string, loading: boolean) => void;
 
   addQuest: (
     input: Omit<Quest, "id" | "status" | "createdAt">
@@ -42,10 +47,19 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       return [];
     }
   })(),
+  isLoading: false,
+  operationLoading: {},
+
   setQuest: (quests) => {
     syncToStorage(quests);
     set({ quests });
   },
+
+  setLoading: (loading) => set({ isLoading: loading }),
+
+  setOperationLoading: (operation, loading) => set((state) => ({
+    operationLoading: { ...state.operationLoading, [operation]: loading }
+  })),
 
   addQuest: (input) => {
     const quest: Quest = {

@@ -98,3 +98,11 @@ export const DECAY = {
 export const NUMOF_SKILLS = 3; 
 
 export const COOCCURENCE_WINDOW = 1000 * 60 * 30;
+
+export const VALIDATION_RULES = {
+  TITLE_MIN: 3,
+  TITLE_MAX: 100,
+  DESCRIPTION_MAX: 1000,
+  CATEGORY_MAX: 50,
+  CATEGORY_MIN: 1
+}

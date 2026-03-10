@@ -7,6 +7,9 @@ import { Canvas } from '@react-three/fiber';
 import { ActiveQuest } from './components/secondary/ActiveQuests';
 
 import { useSkillDecay } from './hooks/useSkillDecay';
+import { ToastProvider } from './store/ToastProvider';
+import { ConfirmProvider } from './store/ConfirmProvider';
+import { ToastContainer } from './components/ui/Toast';
 
 function App() {
   const [orbitUser, setOrbitUser] = useState(true);
@@ -17,6 +20,9 @@ function App() {
   useSkillDecay();
 
   return (
+    <ConfirmProvider>
+    <ToastProvider>
+    <ToastContainer />
     <div id="root">
       <Canvas resize={{ scroll: false }} >
         <Scene orbitEnabled={orbitEnabled} resetCamera={!orbitUser} />
@@ -27,7 +33,9 @@ function App() {
       <OverlayManager />
       <div id="windows" />
     </div>
+    </ToastProvider>
+    </ConfirmProvider>
   )
 }
 
-export default App
+export default App;
