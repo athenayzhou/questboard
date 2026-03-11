@@ -1,5 +1,5 @@
 import type { Evidence, Cluster } from "../types/skills";
-import { calculateConfidence } from "../utils/skill/analysis/confidence";
+import { calculateConfidence } from "../utils/skill/analysis/threshold";
 import { applyXP } from "../utils/skill/analysis/experience";
 import { DECAY, MS } from "../utils/constants";
 

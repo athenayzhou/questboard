@@ -1,6 +1,6 @@
 import type { Cluster } from "../../../types/skills";
 import type { CandidateStore } from "../../../store/candidate";
-import { evaluateReadiness } from "../analysis/confidence";
+import { evaluateReadiness } from "../analysis/threshold";
 import { CLUSTER } from "../../constants";
 
 export function discover(

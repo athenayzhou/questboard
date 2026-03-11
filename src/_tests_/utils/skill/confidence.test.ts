@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   calculateConfidence,
   evaluateReadiness,
-} from "../../../utils/skill/analysis/confidence";
+} from "../../../utils/skill/analysis/threshold";
 import type { Cluster, Candidate } from "../../../types/skills";
 
 describe("skill confidence utils", () => {
