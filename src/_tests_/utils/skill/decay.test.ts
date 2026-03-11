@@ -27,11 +27,20 @@ describe("skill decay utils", () => {
   });
 
   describe("calculateSkillDecay", () => {
-    it("should return 0 when skill was seen recently (within 7 days)", () => {
+    it("should return 0 when skill was seen recently (within SKILL_DECAY_IDLE_DAYS)", () => {
       const skill = createTestSkill({
         xp: 100,
         lastSeenAt: now - 2 * MS.DAY,
         lastDecayAt: now - 2 * MS.DAY,
+      });
+      expect(calculateSkillDecay(skill, now)).toBe(0);
+    });
+
+    it("should return 0 when skill idle less than SKILL_DECAY_IDLE_DAYS", () => {
+      const skill = createTestSkill({
+        xp: 100,
+        lastSeenAt: now - (DECAY.SKILL_DECAY_IDLE_DAYS - 1) * MS.DAY,
+        lastDecayAt: now - (DECAY.DECAY_CHECK_INTERVAL + 1),
       });
       expect(calculateSkillDecay(skill, now)).toBe(0);
     });

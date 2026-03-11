@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { Toast, ToastType, ToastOptions } from '../types/UI';
+import { setToastHandler } from '../utils/toastAPI';
 
 type ToastContextValue = {
   toasts: Toast[];
@@ -17,8 +18,7 @@ const ToastContext = createContext<ToastContextValue>({
 });
 
 export const useToast = (): ToastContextValue => {
-  const context = useContext(ToastContext);
-  return context;
+  return useContext(ToastContext);
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -46,6 +46,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }
     return id;
   }, []);
+
+  useEffect(() => {
+    setToastHandler(show);
+    return () => setToastHandler(null);
+  }, [show]);
+
 
   const hide = useCallback((id: string) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));

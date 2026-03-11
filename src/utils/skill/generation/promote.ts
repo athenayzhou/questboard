@@ -22,7 +22,7 @@ export function promote(
     verb: candidate.verb,
     objects: [...candidate.objects],
     xp: 0,
-    confidence: candidate.confidence,
+    proficiency: candidate.readiness,
     firstSeenAt: Date.now(),
     lastSeenAt: Date.now(),
     lastDecayAt: Date.now(),

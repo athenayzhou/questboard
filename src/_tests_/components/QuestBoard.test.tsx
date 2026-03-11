@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { QuestBoard } from "../../components/overlay/QuestBoard";
 import { createTestQuest } from "../../test/utils";
+import * as overlayStore from "../../store/overlay";
 
 vi.mock('../../store/overlay', () => ({
   useOverlay: vi.fn(() => ({
@@ -44,9 +45,8 @@ describe('QuestBoard', () => {
     expect(screen.getByText('accepted')).toBeInTheDocument()
   })
 
-  it('should not render when active overlay is not quests', () => {
-    // Temporarily override the mock for this test
-    const mockUseOverlay = vi.mocked(require('../../store/overlay').useOverlay)
+  it("should not render when active overlay is not quests", () => {
+    const mockUseOverlay = vi.mocked(overlayStore.useOverlay);
     mockUseOverlay.mockReturnValueOnce({
       activeOverlay: 'settings',
       openOverlay: vi.fn(),

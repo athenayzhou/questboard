@@ -10,7 +10,6 @@ export const DEFAULT = {
   SKILL_NAME: "emerging skill",
   OBJECT_NAME: "practice",
   EFFORT: 10 * MS.MINUTE,
-  DAY: 1000 * 60 * 60 * 24,
 }
 
 export const UI = {
@@ -56,6 +55,22 @@ export const CLUSTERING = {
   THRESHOLD: 0.2,
 }
 
+/** Cluster discovery and confidence (used by discover + confidence utils). */
+export const CLUSTER = {
+  MIN_SIZE: 3,
+  THRESHOLD: 0.2,
+  /** Divisor for totalTime in confidence volume factor (minutes). */
+  CONFIDENCE_EFFORTDIVISOR: 30,
+  CONFIDENCE_MAX: 1,
+}
+
+/** Candidate readiness thresholds (used by confidence utils). */
+export const CANDIDATE = {
+  MIN_SIZE: 3,
+  EMERGENT_THRESHOLD: 0.3,
+  LATENT_THRESHOLD: 0.15,
+}
+
 export const CONFIDENCE = {
   EMERGENT_THRESHOLD: 0.3,
   READY_THRESHOLD: 0.6,
@@ -71,7 +86,19 @@ export const PROFICIENCY = {
   EFFORT_DIVISOR: 20,
 }
 
-export const LEVELS = [0, 10, 30, 70, 150];
+/** Number of levels (1..MAX_LEVEL). Level 1 at 0 XP, each level requires more cumulative XP. */
+export const MAX_LEVEL = 50;
+
+function buildLevelCurve(count: number): number[] {
+  const arr: number[] = [0];
+  for (let i = 1; i < count; i++) {
+    arr.push(Math.round(10 * Math.pow(i, 1.5)));
+  }
+  return arr;
+}
+
+/** Cumulative XP thresholds: LEVELS[i] = min XP for level i+1. Scales so leveling gets harder. */
+export const LEVELS = buildLevelCurve(MAX_LEVEL);
 
 export const DIFFICULTY_EFFORT = {
   easy: 5,
@@ -88,10 +115,11 @@ export const DECAY = {
   CANDIDATE_REMOVAL_DAYS: 30,
 
   DORMANT_THRESHOLD_DAYS: 14,
-  DECAY_RATE_ACTIVE: 0.001,
-  DECAY_RATE_DORMANT: 0.005,
+  /** Days idle before any skill XP decay (longer = more forgiving). */
+  SKILL_DECAY_IDLE_DAYS: 21,
+  DECAY_RATE_ACTIVE: 0.0003,
+  DECAY_RATE_DORMANT: 0.0015,
   MIN_XP_BEFORE_DECAY: 10,
-  
   DECAY_CHECK_INTERVAL: MS.DAY,
 }
 

@@ -1,12 +1,13 @@
 import type { Quest } from "../../types/quest"
 import { DifficultyBadge } from "../ui/DifficultyBadge"
+import { memo } from "react"
 
 type BoardCardProps = {
   quest: Quest,
   onSelect: () => void;
 }
 
-export function BoardCard({
+export const BoardCard = memo(function BoardCard({
   quest,
   onSelect,
 }: BoardCardProps) {
@@ -36,4 +37,4 @@ export function BoardCard({
         )}
     </div>
   )
-}
+})

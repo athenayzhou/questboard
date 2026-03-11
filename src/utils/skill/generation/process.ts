@@ -2,7 +2,6 @@ import type { Quest } from "../../../types/quest";
 import type { Evidence } from "../../../types/skills";
 import { EvidenceStore } from "../../../store/evidence";
 import { extractPair } from "../../format/text";
-import { DIFFICULTY_EFFORT } from "../../constants";
 
 export type ProcessResult ={
   evidence: Evidence[];
@@ -17,17 +16,16 @@ export function process(
   const keys = new Set<string>();
 
   const pairs = extractPair(quest.title);
+  const now = Date.now();
   for (const {verb, object} of pairs){
-    const evidence = {
+    const evidence: Evidence = {
       id: crypto.randomUUID(),
-      verb, 
-      object, 
-      timespent:
-        quest.duration ??
-        DIFFICULTY_EFFORT[quest.difficulty],
+      verb,
+      object,
       origin: `${quest.id}:${quest.title}`,
-      timestamp: Date.now(),
-    }
+      timespent: quest.duration ?? 0,
+      timestamp: now,
+    };
     evidenceStore.add(evidence);
     processed.push(evidence);
     keys.add(`${verb}:${object}`);

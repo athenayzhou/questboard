@@ -31,8 +31,6 @@ export function QuestPage({
   const pin = useQuestStore((s) => s.togglePin);
   const toggleSubquest = useQuestStore((s) => s.toggleSubquest);
 
-  if(!quest) return null;
-
   const [isEditing, setIsEditing] = useState(false);
   const canEdit = quest.status === "available";
 

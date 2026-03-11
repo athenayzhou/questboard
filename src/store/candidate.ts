@@ -32,8 +32,8 @@ export class CandidateStore {
       const daysIdle = (now - candidate.lastSeenAt) / MS.DAY;
       if(daysIdle > 3) {
         const decay = daysIdle * DECAY.CANDIDATE_DECAY_RATE;
-        candidate.confidence = clamp(candidate.confidence - decay, 0, 1);
-        if(candidate.confidence < DECAY.CANDIDATE_REMOVAL_THRESHOLD){
+        candidate.readiness = clamp(candidate.readiness - decay, 0, 1);
+        if(candidate.readiness < DECAY.CANDIDATE_REMOVAL_THRESHOLD){
           candidate.state = "decayed";
           if(daysIdle > DECAY.CANDIDATE_REMOVAL_DAYS){
             toRemove.push(candidate.key);
@@ -44,6 +44,7 @@ export class CandidateStore {
     toRemove.forEach(key => this.candidates.delete(key));
     try {
       localStorage.setItem("candidates", JSON.stringify([...this.candidates]));
+      // eslint-disable-next-line no-empty
     } catch {}
   }
 
@@ -56,7 +57,7 @@ export class CandidateStore {
       objects: [cluster.object],
       clusters: [cluster],
       xp: cluster.xp,
-      confidence: 0,
+      readiness: 0,
       origin: [...cluster.origin],
       firstSeenAt: now,
       lastSeenAt: now,

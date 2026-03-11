@@ -28,13 +28,15 @@ export function ActiveQuest() {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    if(activeOverlay) {
+    if (activeOverlay) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCollapsed(true);
     }
   }, [activeOverlay]);
 
   useEffect(() => {
-    if(collapsed){
+    if (collapsed) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedQuestId(null);
     }
   }, [collapsed]);

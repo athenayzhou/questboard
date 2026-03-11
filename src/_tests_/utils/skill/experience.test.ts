@@ -5,7 +5,7 @@ import {
   levelToProgress,
 } from "../../../utils/skill/analysis/experience";
 import { createTestQuest } from "../../../test/utils";
-import { LEVELS } from "../../../utils/constants";
+import { LEVELS, MAX_LEVEL } from "../../../utils/constants";
 
 describe("skill experience utils", () => {
   describe("calculateXP", () => {
@@ -51,7 +51,9 @@ describe("skill experience utils", () => {
     });
 
     it("should return max level for exceeding highest LEVELS", () => {
-      expect(xpToLevel(1000)).toBe(LEVELS.length);
+      const maxThreshold = LEVELS[LEVELS.length - 1];
+      expect(xpToLevel(maxThreshold)).toBe(MAX_LEVEL);
+      expect(xpToLevel(maxThreshold + 10000)).toBe(MAX_LEVEL);
     });
   });
 

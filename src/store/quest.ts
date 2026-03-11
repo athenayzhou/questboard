@@ -2,16 +2,19 @@ import { create } from "zustand";
 import type { Quest } from "../types/quest";
 import { onQuestComplete } from "../hooks/onQuestComplete";
 import { evidenceStore, candidateStore, clusterStore } from './bundledStores';
+import { showToast } from "../utils/toastAPI";
+
+import { devLog, devError } from "../dev/devLogs";
 
 type QuestState = {
   quests: Quest[];
+
   isLoading: boolean;
   operationLoading: Record<string, boolean>;
-
-  setQuest: (q: Quest[]) => void;
   setLoading: (loading: boolean) => void;
   setOperationLoading: (operation: string, loading: boolean) => void;
 
+  setQuest: (q: Quest[]) => void;
   addQuest: (
     input: Omit<Quest, "id" | "status" | "createdAt">
   ) => Quest;
@@ -32,10 +35,14 @@ type QuestState = {
   getQuestById: (id: string) => Quest | undefined;
 }
 
-const syncToStorage = (quests: Quest[]) => {
+const syncToStorage = (quests: Quest[]):boolean => {
   try {
     localStorage.setItem("quests", JSON.stringify(quests));
-  } catch {}
+    return true;
+  } catch (error) {
+    devError('storage', 'quest sync failed', error)
+    return false;
+  }
 };
 
 export const useQuestStore = create<QuestState>((set, get) => ({
@@ -47,19 +54,21 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       return [];
     }
   })(),
+
   isLoading: false,
   operationLoading: {},
-
-  setQuest: (quests) => {
-    syncToStorage(quests);
-    set({ quests });
-  },
-
   setLoading: (loading) => set({ isLoading: loading }),
-
   setOperationLoading: (operation, loading) => set((state) => ({
     operationLoading: { ...state.operationLoading, [operation]: loading }
   })),
+
+  setQuest: (quests) => {
+    const success = syncToStorage(quests);
+    set({ quests });
+    if(!success){
+      showToast('error', 'failed to save quests');
+    }
+  },
 
   addQuest: (input) => {
     const quest: Quest = {
@@ -72,7 +81,10 @@ export const useQuestStore = create<QuestState>((set, get) => ({
 
     set((state) => {
       const next = [...state.quests, quest];
-      syncToStorage(next);
+      const success = syncToStorage(next);
+      if(!success){
+        showToast('error', 'failed to add quest');
+      }
       return { quests: next };
     });
 
@@ -91,7 +103,8 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     })
   },
 
-  acceptQuest: (id) => 
+  acceptQuest: (id) => {
+    const quest = get().quests.find(q => q.id === id);
     set((state) => {
       const next: Quest[] = state.quests.map(q =>
         q.id === id 
@@ -103,13 +116,19 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       );
       syncToStorage(next);
       return { quests: next };
-    }),
+    })
+    if (quest) {
+      showToast('success', `quest "${quest.title}" accepted`);
+      devLog('quest', 'quest accepted', { id, title: quest?.title })
+    }
+  },
 
   completeQuest: (id: string) => {
     const quest = get().quests.find(q => q.id === id);
     if (!quest || quest.status !== "accepted") return;
-
-    set(state => {
+    get().setOperationLoading(`complete-${id}`, true);
+    try {
+      set(state => {
       const next: Quest[] = state.quests.map(q => 
         q.id === id
           ? {
@@ -120,14 +139,21 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       );
       syncToStorage(next);
       return { quests: next };
-    });
-
-    onQuestComplete(quest, {
-      evidenceStore,
-      clusterStore,
-      candidateStore,
-    });
-  },
+      });
+      showToast('success', `quest "${quest.title}" completed`);
+      devLog('quest', 'quest completed', { id, title: quest.title });
+      onQuestComplete(quest, {
+        evidenceStore,
+        clusterStore,
+        candidateStore,
+      });
+    } catch (error) {
+      showToast('error', `failed to complete quest`);
+      devError('quest', 'quest complete failed', error);
+    } finally {
+      get().setOperationLoading(`complete-${id}`, false);
+    }
+},
 
   failQuest: (id) => 
     set(state => {
@@ -162,7 +188,10 @@ export const useQuestStore = create<QuestState>((set, get) => ({
 
       set(state => {
         const next = [...state.quests, duplicatedQuest];
-        syncToStorage(next);
+        const success = syncToStorage(next);
+        if(!success){
+          showToast('error', 'failed to add quest');
+        }
         return { quests: next };
       });
 

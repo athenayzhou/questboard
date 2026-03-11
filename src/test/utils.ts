@@ -30,29 +30,10 @@ export const createTestSkill = (overrides: Partial<Skill> = {}): Skill => ({
   verb: 'test',
   objects: ['object'],
   xp: 50,
-  confidence: 0.5,
+  proficiency: 0.5,
   firstSeenAt: Date.now(),
   lastSeenAt: Date.now(),
   lastDecayAt: Date.now(),
   isDormant: false,
   ...overrides
 })
-
-// export const mockLocalStorage = () => {
-//   const localStorageMock = {
-//     getItem: vi.fn(),
-//     setItem: vi.fn(),
-//     removeItem: vi.fn(),
-//     clear: vi.fn(),
-//   }
-//   globalThis.localStorage = localStorageMock
-//   return localStorageMock
-// }
-
-// export const mockCrypto = () => {
-//   Object.defineProperty(globalThis, 'crypto', {
-//     value: {
-//       randomUUID: vi.fn(() => 'test-uuid-' + Math.random().toString(36).substr(2,9))
-//     }
-//   })
-// }

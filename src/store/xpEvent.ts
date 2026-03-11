@@ -43,6 +43,7 @@ export const useXPEventStore = create<XPEventState>((set, get) => ({
       const next = [newEvent, ...state.events];
       try {
         localStorage.setItem("xpEvents", JSON.stringify(next));
+        // eslint-disable-next-line no-empty
       } catch {}
       return { events: next };
     });

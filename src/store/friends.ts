@@ -23,8 +23,8 @@ export const useFriendsStore = create<FriendsState>((set) => ({
       const next = [...state.friends, friend];
       try {
         localStorage.setItem("friends", JSON.stringify(next));
-      } catch {
-      }
+        // eslint-disable-next-line no-empty
+      } catch {}
       return { friends: next };
     }),
 
@@ -35,8 +35,8 @@ export const useFriendsStore = create<FriendsState>((set) => ({
       );
       try {
         localStorage.setItem("friends", JSON.stringify(next));
-      } catch {
-      }
+        // eslint-disable-next-line no-empty
+      } catch {}
       return { friends: next };
     }),
 
@@ -45,8 +45,8 @@ export const useFriendsStore = create<FriendsState>((set) => ({
       const next = state.friends.filter((f) => f.id !== id);
       try {
         localStorage.setItem("friends", JSON.stringify(next));
-      } catch {
-      }
+        // eslint-disable-next-line no-empty
+      } catch {}
       return { friends: next };
     }),
 }));

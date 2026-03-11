@@ -185,7 +185,9 @@ export function Profile(){
                     ""
                   }`}
                 onClick={() => {
-                  item && dispatch({ type: "UNEQUIP_ITEM", slot });
+                  if (item) {
+                    dispatch({ type: "UNEQUIP_ITEM", slot });
+                  }
                 }}
                 >
                 <div 

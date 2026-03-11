@@ -9,12 +9,12 @@ type NameProps = {
 export default function Name({
   position = [0, 1.5, 0],
 } : NameProps){
-  const htmlPortal = document.getElementById("html-layer");
-  if(!htmlPortal) return null;
-
   const name = usePlayerStore(s => s.player.profile.name);
   const activeTitle = usePlayerStore(s => s.player.achievements.activeTitle);
   const activeBadge = usePlayerStore(s => s.player.achievements.activeBadge);
+
+  const htmlPortal = document.getElementById("html-layer");
+  if (!htmlPortal) return null;
 
 
   const playerTitle = activeTitle

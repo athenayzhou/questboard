@@ -3,6 +3,7 @@ import type { Skill } from "../types/skills";
 import { useXPEventStore } from "./xpEvent";
 import { DECAY } from "../utils/constants";
 import { calculateSkillDecay, checkDormancy, shouldDecaySkill } from "../utils/skill/analysis/decay";
+import { devLog } from "../dev/devLogs";
 
 type SkillState = {
   skills: Record<string, Skill>;
@@ -33,6 +34,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
       const next = {...state.skills, [skill.id]: skill };
       try {
         localStorage.setItem("skills", JSON.stringify(next));
+        // eslint-disable-next-line no-empty
       } catch {}
       return { skills: next };
     });
@@ -45,7 +47,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
     const updated: Skill = {
       ...skill,
       xp: skill.xp + amount,
-      confidence: Math.min(1, skill.confidence + 0.05),
+      proficiency: Math.min(1, skill.proficiency + 0.05),
       lastSeenAt: Date.now(),
       isDormant: false,
       dormantAt: undefined,
@@ -65,11 +67,20 @@ export const useSkillStore = create<SkillState>((set, get) => ({
       const next = { ...state.skills, [id]: updated };
       try {
         localStorage.setItem("skills", JSON.stringify(next));
+        // eslint-disable-next-line no-empty
       } catch {}
       return { skills: next };
      });
 
      useXPEventStore.getState().recordXP(xpEvent);
+
+     devLog("skill", "gainXP", {
+       skillId: id,
+       amount,
+       source: "quest",
+       questId,
+       xpAfter: updated.xp,
+     });
   },
 
   _applyXP: (id, amount) => {
@@ -79,7 +90,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
       const updated: Skill = {
         ...skill,
         xp: skill.xp + amount,
-        confidence: Math.min(1, skill.confidence + 0.05),
+        proficiency: Math.min(1, skill.proficiency + 0.05),
         lastSeenAt: Date.now(),
       };
       return{
@@ -110,6 +121,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
     set(state => {
       const updatedSkills = { ...state.skills };
       let hasChanges = false;
+      let changedCount = 0;
 
       Object.values(updatedSkills).forEach(skill => {
         if(shouldDecaySkill(skill, now)) {
@@ -119,13 +131,21 @@ export const useSkillStore = create<SkillState>((set, get) => ({
             skill.lastDecayAt = now;
             skill.isDormant = checkDormancy(skill, now);
             hasChanges = true;
+            changedCount += 1;
           }
         }
       });
       if (hasChanges){
         try {
           localStorage.setItem("skills", JSON.stringify(updatedSkills));
+          // eslint-disable-next-line no-empty
         } catch {}
+      }
+      if (hasChanges) {
+        devLog("decay", "skill decay applied", {
+          changedCount,
+          now,
+        });
       }
       return hasChanges ? { skills: updatedSkills } : state;
     });

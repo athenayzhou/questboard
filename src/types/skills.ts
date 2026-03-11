@@ -27,7 +27,7 @@ export type Candidate = {
   objects: string[]
   clusters: Cluster[],
   xp: number,
-  confidence: number;
+  readiness: number;
   origin: string[];
   firstSeenAt: number;
   lastSeenAt: number;
@@ -43,7 +43,7 @@ export type Skill = {
   verb: string;
   objects: string[];
   xp: number;
-  confidence: number;
+  proficiency: number;
   firstSeenAt: number;
   lastSeenAt: number;
 

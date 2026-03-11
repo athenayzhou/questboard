@@ -43,6 +43,7 @@ export class ClusterStore {
     toRemove.forEach(key => this.clusters.delete(key));
     try {
       localStorage.setItem("clusters", JSON.stringify([...this.clusters]));
+      // eslint-disable-next-line no-empty
     } catch {}
   }
 

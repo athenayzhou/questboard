@@ -11,6 +11,9 @@ import { calculateXP } from "../utils/skill/analysis/experience";
 
 import { name } from "../utils/skill/generation/name";
 
+import { showToast } from "../utils/toastAPI";
+import { devLog, devError } from "../dev/devLogs";
+
 export function onQuestComplete(
     quest: Quest,
     {
@@ -23,20 +26,44 @@ export function onQuestComplete(
       candidateStore: CandidateStore;
     }
   ){
-    const xp = calculateXP(quest);
-    const { keys } = process(quest, evidenceStore);
-    const clusters = aggregate(xp, evidenceStore, clusterStore);
-    discover(clusters, candidateStore);
+    try{
+      devLog('pipeline', 'onQuestComplete started', { questId: quest.id, title: quest.title });
 
-  //for testing
-    const ready = candidateStore.getAll().filter(c => c.state === "ready");
-    name(ready, candidateStore);
-  //
+      const xp = calculateXP(quest);
+      devLog('pipeline', 'xp calculated', { xp });
 
-    for(const key of keys) {
-      const skill = useSkillStore.getState().getByKey(key);
-      if(skill) {
-        useSkillStore.getState().gainXP(skill.id, xp, quest.id);
+      const { keys } = process(quest, evidenceStore);
+      devLog('pipeline', 'evidence recorded', { keys });
+
+      const clusters = aggregate(xp, evidenceStore, clusterStore);
+      devLog('pipeline', 'evidence aggregated into clusters', { count: clusters?.length ?? 0 });
+
+      discover(clusters, candidateStore);
+      devLog('pipeline', 'candidates discovered from clusters');
+
+      //for testing
+      const ready = candidateStore.getAll().filter(c => c.state === "ready");
+      name(ready, candidateStore);
+      devLog("pipeline", "naming auto applied", { readyCount: ready.length });
+      //
+
+      for(const key of keys) {
+        const skill = useSkillStore.getState().getByKey(key);
+        if(skill) {
+          useSkillStore.getState().gainXP(skill.id, xp, quest.id);
+          devLog("pipeline", "xp applied to existing skill", { skillId: skill.id, xp: xp });
+        }
       }
+
+      devLog("pipeline", "onQuestComplete finished");
+    } catch (error) {
+      devError("pipeline", "onQuestComplete failed", error);
+      showToast("error", "something went wrong with processing quest. your quest was still completed.")
     }
+    
+
+
+
+
+
 }

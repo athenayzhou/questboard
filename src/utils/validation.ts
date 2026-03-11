@@ -3,8 +3,6 @@ import type { ValidationResult } from "../types/UI";
 
 export type ValidationErrors = Record<string, string>;
 
-
-
 export function sanitizeText(text: string): string {
   return text
     .trim()

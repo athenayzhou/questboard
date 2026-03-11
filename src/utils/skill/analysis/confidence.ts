@@ -1,27 +1,27 @@
 import type { Candidate, Cluster } from "../../../types/skills";
 import { clamp } from "three/src/math/MathUtils.js";
-import { DEFAULT, CONFIDENCE, PROFICIENCY } from "../../constants";
+import { MS, CLUSTER, CANDIDATE } from "../../constants";
 
-export function calculateConfidence(cluster: Cluster){
+export function calculateConfidence(cluster: Cluster) {
   const recency = Date.now() - cluster.lastSeenAt;
-  const recencyFactor = Math.exp(-recency / DEFAULT.DAY);
-  const volumeFactor = Math.min(cluster.totalTime / PROFICIENCY.EFFORT_DIVISOR, PROFICIENCY.MAX);
+  const recencyFactor = Math.exp(-recency / MS.DAY);
+  const volumeFactor = Math.min(cluster.totalTime / CLUSTER.CONFIDENCE_EFFORTDIVISOR, CLUSTER.CONFIDENCE_MAX);
   return clamp(recencyFactor * volumeFactor, 0, 1)
 }
 
-export function evaluateReadiness(candidate: Candidate) : Candidate["state"] {
+export function evaluateReadiness(candidate: Candidate, clusterConfidence: number) : Candidate["state"] {
   const xpScore = candidate.xp / 10;
-  const objectScore = candidate.objects.length * 0.2;
-  candidate.confidence = clamp(xpScore + objectScore, 0, 1);
+  const confidenceWeight = 0.5 + 0.5 * clusterConfidence;
+  const readiness = xpScore * confidenceWeight
 
-  if (candidate.confidence >= CONFIDENCE.READY_THRESHOLD) return "ready";
-  if (candidate.confidence >= CONFIDENCE.EMERGENT_THRESHOLD) return "emergent";
+  if (candidate.origin.length < CANDIDATE.MIN_SIZE){
+    candidate.readiness = Math.min(readiness, CANDIDATE.EMERGENT_THRESHOLD - 0.1);
+  } else {
+    candidate.readiness = clamp(readiness, 0, 1);
+  }
+  
+
+  if (candidate.readiness >= CANDIDATE.EMERGENT_THRESHOLD) return "ready";
+  if (candidate.readiness >= CANDIDATE.LATENT_THRESHOLD) return "emergent";
   return "latent";
-}
-
-export function aura(confidence: number) {
-  if (confidence < CONFIDENCE.READY_THRESHOLD) return "none";
-  if (confidence < CONFIDENCE.GROWING_THRESHOLD) return "mist";
-  if (confidence < CONFIDENCE.STRONG_THRESHOLD) return "glow";
-  return "pulse";
 }

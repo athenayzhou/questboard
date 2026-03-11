@@ -19,12 +19,13 @@ export function LogCard({
   });
   const summary = getGroupSummary(group);
 
+   const duplicateQuest = useQuestStore((s) => s.duplicateQuest);
+   const setOverlay = useOverlay((s) => s.openOverlay);
+
   const handleAddAsNewQuest = () => {
-    if(!active) return;
-    const duplicateQuest = useQuestStore((s) => s.duplicateQuest);
+    if (!active) return;
     const newQuest = duplicateQuest(active.id);
-    if(newQuest){
-      const setOverlay = useOverlay((s) => s.openOverlay)
+    if (newQuest) {
       setOverlay("quests");
     }
   };

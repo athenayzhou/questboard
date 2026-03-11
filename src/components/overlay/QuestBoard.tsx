@@ -83,6 +83,7 @@ export function QuestBoard({
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setQuestsState(prev => {
       const byId = new Map(prev.map(q => [q.id, q]));
       return filtered.map(q => {

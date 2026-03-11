@@ -4,7 +4,7 @@ import { SkillDetail } from "../secondary/SkillDetail";
 import { levelToProgress } from "../../utils/skill/analysis/experience";
 import { ProgressBar } from "../ui/ProgressBar";
 import { useSkillStore } from "../../store/skill";
-import { DECAY, DEFAULT } from "../../utils/constants";
+import { DECAY, MS } from "../../utils/constants";
 
 type SortKey = "name" | "level" | "lastSeen";
 
@@ -18,8 +18,9 @@ export function SkillLedger() {
   const skillsRecord = useSkillStore((s) => s.skills);
 
   const ledgerEntries = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
-    const DORMANT_AFTER = DECAY.DORMANT_THRESHOLD_DAYS * DEFAULT.DAY;
+    const DORMANT_AFTER = DECAY.DORMANT_THRESHOLD_DAYS * MS.DAY;
     const skills = Object.values(skillsRecord);
     return skills.map((skill) => ({
       id: skill.id,
