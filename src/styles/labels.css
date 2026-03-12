@@ -7,7 +7,13 @@
   justify-content: center;
   transform: translateY(-8px);
   transform-origin: center bottom;
+  animation: labelFloat 5s ease-in-out infinite;
 }
+
+/* @keyframes labelFloat {
+  0%, 100% { transform: translateY(-8px) scale(1); }
+  50% { transform: translateY(-10px) scale(1.008); }
+} */
 
 .label {
   position: relative;
@@ -23,11 +29,6 @@
   border: 2px solid var(--path);
   box-shadow: var(--shadow-soft), inset 0 0 20px var(--sunbeam);
 }
-/* @keyframes labelFloat {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
-  100% { transform: translateY(0); }
-} */
 
 
 
@@ -112,6 +113,13 @@
   color: var(--text-path);
   white-space: nowrap;
   box-shadow: var(--shadow-soft), inset 0 0 30px var(--sunbeam);
+}
+
+.skill-activity-empty {
+  margin: 0;
+  font-style: italic;
+  color: var(--text-path);
+  opacity: 0.85;
 }
 .skill-progress-bar{
   margin-bottom: 0.75rem;

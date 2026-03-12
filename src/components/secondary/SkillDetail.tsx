@@ -6,9 +6,10 @@ import { getSkillCooccurence } from "../../utils/skill/analysis/cooccurence";
 type Props = {
   skill: SkillLedgerEntry;
   onClose: () => void;
+  onRename?: () => void;
 }
 
-export function SkillDetail({ skill, onClose }: Props) {
+export function SkillDetail({ skill, onClose, onRename }: Props) {
   const skillId = skill.id;
   const events = useXPEventStore((s) => s.events);
 
@@ -34,6 +35,9 @@ export function SkillDetail({ skill, onClose }: Props) {
   return (
     <div className="skill-detail">
       <button className="close-btn" onClick={onClose}>x</button>
+      {onRename && (
+        <button className="rename-btn" onClick={onRename}>rename</button>
+      )}
       <h2>{skill.name}</h2>
       <div className="skill-summary">
         <p>total xp: {totalXP}</p>

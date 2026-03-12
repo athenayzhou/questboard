@@ -26,17 +26,21 @@ export function SkillActivity({
     >
     <div className="skill-activity-wrapper">
       <div className="skill-activity-container">
-        {skills.map(skill => {
-          const { progress } = levelToProgress(skill.xp, 1);
-          return(
-          <div key={skill.id} className="skill-progress-bar">
-            <div className="bar-text">
-              <span className="skill-name">{skill.name}</span>
-            </div>
-            <ProgressBar level={skill.level} progress={progress} />
-          </div>
-          )
-        })}
+        {skills.length === 0 ? (
+          <p className="skill-activity-empty">no recent skill activity</p>
+        ) : (
+          skills.map(skill => {
+            const { progress } = levelToProgress(skill.xp, 1);
+            return (
+              <div key={skill.id} className="skill-progress-bar">
+                <div className="bar-text">
+                  <span className="skill-name">{skill.name}</span>
+                </div>
+                <ProgressBar level={skill.level} progress={progress} />
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
     </Html>

@@ -1,5 +1,6 @@
 import type { Quest } from "../../types/quest";
 
+/** Dev seed: one completion per quest, no duplicate titles. Used by devSetup to populate skills/candidates. */
 export const TEST_SKILL: Quest[] = [
   {
     id: "q-001",
@@ -15,8 +16,8 @@ export const TEST_SKILL: Quest[] = [
     completedAt: Date.now() - 1000 * 60 * 60 * 2,
     subquests: [
       { id: "q-001-1", title: "Clear surface", completed: true },
-      { id: "q-001-2", title: "Organize cables", completed: true }
-    ]
+      { id: "q-001-2", title: "Organize cables", completed: true },
+    ],
   },
   {
     id: "q-002",
@@ -33,8 +34,8 @@ export const TEST_SKILL: Quest[] = [
     subquests: [
       { id: "q-002-1", title: "Choose recipe", completed: true },
       { id: "q-002-2", title: "Cook meal", completed: true },
-      { id: "q-002-3", title: "Clean dishes", completed: true }
-    ]
+      { id: "q-002-3", title: "Clean dishes", completed: true },
+    ],
   },
   {
     id: "q-003",
@@ -49,8 +50,8 @@ export const TEST_SKILL: Quest[] = [
     completedAt: Date.now() - 1000 * 60 * 60 * 2,
     subquests: [
       { id: "q-003-1", title: "Delete spam", completed: true },
-      { id: "q-003-2", title: "Reply to 2 emails", completed: true }
-    ]
+      { id: "q-003-2", title: "Reply to 2 emails", completed: true },
+    ],
   },
   {
     id: "q-004",
@@ -65,28 +66,11 @@ export const TEST_SKILL: Quest[] = [
     completedAt: Date.now() - 1000 * 60 * 60 * 2,
     subquests: [
       { id: "q-004-1", title: "Neck stretch", completed: true },
-      { id: "q-004-2", title: "Back stretch", completed: true }
-    ]
+      { id: "q-004-2", title: "Back stretch", completed: true },
+    ],
   },
   {
     id: "q-005",
-    title: "Laundry of Holding",
-    description: "Wash, dry, and reclaim wearable inventory.",
-    category: ["cleaning", "maintenance"],
-    difficulty: "hard",
-    frequency: "weekly",
-    duration: 90,
-    createdAt: Date.now() - 1000 * 60 * 60 * 48,
-    status: "failed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 12,
-    subquests: [
-      { id: "q-005-1", title: "Wash", completed: true },
-      { id: "q-005-2", title: "Dry", completed: true },
-      { id: "q-005-3", title: "Fold", completed: true }
-    ]
-  },
-  {
-    id: "q-006",
     title: "Step Outside Briefly",
     description: "Change scenery, even if just for a moment.",
     category: ["wellbeing", "exploration"],
@@ -98,7 +82,7 @@ export const TEST_SKILL: Quest[] = [
     completedAt: Date.now() - 1000 * 60 * 60 * 2,
   },
   {
-    id: "q-007",
+    id: "q-006",
     title: "Reflect on the Day",
     description: "Write one sentence about how today felt.",
     category: ["reflection", "journaling"],
@@ -109,12 +93,12 @@ export const TEST_SKILL: Quest[] = [
     status: "completed",
     completedAt: Date.now() - 1000 * 60 * 60,
     subquests: [
-      { id: "q-007-1", title: "Name the mood", completed: true },
-      { id: "q-007-2", title: "Write one sentence", completed: true }
-    ]
+      { id: "q-006-1", title: "Name the mood", completed: true },
+      { id: "q-006-2", title: "Write one sentence", completed: true },
+    ],
   },
   {
-    id: "q-008",
+    id: "q-007",
     title: "Digital Declutter",
     description: "Remove unused files or apps.",
     category: ["digital", "maintenance"],
@@ -125,12 +109,12 @@ export const TEST_SKILL: Quest[] = [
     status: "completed",
     completedAt: Date.now() - 1000 * 60 * 60 * 2,
     subquests: [
-      { id: "q-008-1", title: "Delete unused files", completed: true },
-      { id: "q-008-2", title: "Remove one app", completed: true }
-    ]
+      { id: "q-007-1", title: "Delete unused files", completed: true },
+      { id: "q-007-2", title: "Remove one app", completed: true },
+    ],
   },
   {
-    id: "q-009",
+    id: "q-008",
     title: "Morning System Check",
     description: "Get yourself online for the day.",
     category: ["meta", "routine"],
@@ -141,45 +125,13 @@ export const TEST_SKILL: Quest[] = [
     status: "completed",
     completedAt: Date.now() - 1000 * 60 * 60 * 2,
     subquests: [
-      { id: "q-009-1", title: "Drink water", completed: true },
-      { id: "q-009-2", title: "Open blinds", completed: true },
-      { id: "q-009-3", title: "Review quests", completed: true }
-    ]
+      { id: "q-008-1", title: "Drink water", completed: true },
+      { id: "q-008-2", title: "Open blinds", completed: true },
+      { id: "q-008-3", title: "Review quests", completed: true },
+    ],
   },
   {
-    id: "q-010",
-    title: "Unfinished Quest Review",
-    description: "Decide the fate of lingering quests.",
-    category: ["meta", "planning"],
-    difficulty: "medium",
-    frequency: "weekly",
-    duration: 20,
-    createdAt: Date.now() - 1000 * 60 * 60 * 36,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-    subquests: [
-      { id: "q-010-1", title: "Complete 1 quest", completed: true },
-      { id: "q-010-2", title: "Archive 1 quest", completed: true }
-    ]
-  },
-  {
-    id: "q-011",
-    title: "Hydration Checkpoint",
-    description: "Drink a full glass of water.",
-    category: ["health"],
-    difficulty: "easy",
-    frequency: "daily",
-    duration: 2,
-    createdAt: Date.now() - 1000 * 60 * 15,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-    subquests: [
-      { id: "q-011-1", title: "Fill glass", completed: true },
-      { id: "q-011-2", title: "Drink water", completed: true }
-    ]
-  },
-  {
-    id: "q-012",
+    id: "q-009",
     title: "Creative Spark",
     description: "Make something small with no outcome in mind.",
     category: ["creative", "play"],
@@ -190,12 +142,12 @@ export const TEST_SKILL: Quest[] = [
     status: "completed",
     completedAt: Date.now() - 1000 * 60 * 60 * 2,
     subquests: [
-      { id: "q-012-1", title: "Pick medium", completed: true },
-      { id: "q-012-2", title: "Create", completed: true }
-    ]
+      { id: "q-009-1", title: "Pick medium", completed: true },
+      { id: "q-009-2", title: "Create", completed: true },
+    ],
   },
   {
-    id: "q-013",
+    id: "q-010",
     title: "Evening Wind Down",
     description: "Start disconnecting from screens and relax.",
     category: ["self-care", "wellbeing"],
@@ -206,111 +158,12 @@ export const TEST_SKILL: Quest[] = [
     status: "completed",
     completedAt: Date.now() - 1000 * 60 * 30,
     subquests: [
-      { id: "q-013-1", title: "Turn off notifications", completed: true },
-      { id: "q-013-2", title: "Read a book", completed: true }
-    ]
+      { id: "q-010-1", title: "Turn off notifications", completed: true },
+      { id: "q-010-2", title: "Read a book", completed: true },
+    ],
   },
   {
-    id: "q-014",
-    title: "Weekly Reflection",
-    description: "Summarize your wins and lessons from the week.",
-    category: ["reflection", "journaling"],
-    difficulty: "medium",
-    frequency: "weekly",
-    duration: 30,
-    createdAt: Date.now() - 1000 * 60 * 60 * 48,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-    subquests: [
-      { id: "q-014-1", title: "List 3 wins", completed: true },
-      { id: "q-014-2", title: "List 3 lessons", completed: true }
-    ]
-  },
-  {
-    id: "q-015",
-    title: "Organize Digital Notes",
-    description: "Sort, rename, and archive old notes.",
-    category: ["digital", "maintenance"],
-    difficulty: "medium",
-    frequency: "monthly",
-    duration: 40,
-    createdAt: Date.now() - 1000 * 60 * 60 * 36,
-    status: "failed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 12,
-    subquests: [
-      { id: "q-015-1", title: "Archive old notes", completed: true },
-      { id: "q-015-2", title: "Rename important notes", completed: true },
-      { id: "q-015-3", title: "Tag notes", completed: true }
-    ]
-  },
-  {
-    id: "q-016",
-    title: "Morning Stretch Routine",
-    description: "Wake your body up with light stretches.",
-    category: ["health", "movement"],
-    difficulty: "easy",
-    frequency: "daily",
-    duration: 10,
-    createdAt: Date.now() - 1000 * 60 * 60 * 2,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-    subquests: [
-      { id: "q-016-1", title: "Neck & shoulders", completed: true },
-      { id: "q-016-2", title: "Back & spine", completed: true },
-      { id: "q-016-3", title: "Legs & calves", completed: true }
-    ]
-  },
-  {
-    id: "q-017",
-    title: "Plan Tomorrow",
-    description: "Set up your schedule for the next day.",
-    category: ["planning", "meta"],
-    difficulty: "medium",
-    frequency: "daily",
-    duration: 20,
-    createdAt: Date.now() - 1000 * 60 * 60 * 3,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60,
-    subquests: [
-      { id: "q-017-1", title: "Review tasks", completed: true },
-      { id: "q-017-2", title: "Add new priorities", completed: true }
-    ]
-  },
-  {
-    id: "q-018",
-    title: "Cook a New Recipe",
-    description: "Try cooking something you’ve never made before.",
-    category: ["cooking", "creative"],
-    difficulty: "hard",
-    frequency: "once",
-    duration: 60,
-    createdAt: Date.now() - 1000 * 60 * 60 * 10,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-    subquests: [
-      { id: "q-018-1", title: "Choose recipe", completed: true },
-      { id: "q-018-2", title: "Buy ingredients", completed: true },
-      { id: "q-018-3", title: "Cook & plate", completed: true }
-    ]
-  },
-  {
-    id: "q-019",
-    title: "Declutter Workspace",
-    description: "Remove items you don’t use and organize drawers.",
-    category: ["cleaning", "environment"],
-    difficulty: "medium",
-    frequency: "weekly",
-    duration: 35,
-    createdAt: Date.now() - 1000 * 60 * 60 * 20,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-    subquests: [
-      { id: "q-019-1", title: "Clear desk surface", completed: true },
-      { id: "q-019-2", title: "Sort drawers", completed: true }
-    ]
-  },
-  {
-    id: "q-020",
+    id: "q-011",
     title: "Read for 30 Minutes",
     description: "Immerse yourself in a book or article.",
     category: ["learning", "self-care"],
@@ -322,474 +175,19 @@ export const TEST_SKILL: Quest[] = [
     completedAt: Date.now() - 1000 * 60 * 60 * 2,
   },
   {
-    id: "q-021",
-    title: "Tidy the Desk Realm",
-    description: "Clear visual clutter from your workspace to restore focus.",
-    category: ["cleaning", "environment"],
-    difficulty: "easy",
-    priority: "low",
-    frequency: "once",
-    duration: 15,
-    createdAt: Date.now() - 1000 * 60 * 60 * 5,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-    subquests: [
-      { id: "q-001-1", title: "Clear surface", completed: true },
-      { id: "q-001-2", title: "Organize cables", completed: true }
-    ]
-  },
-  {
-    id: "q-022",
-    title: "Prepare a Nourishing Meal",
-    description: "Cook something warm and sustaining.",
-    category: ["cooking", "self-care"],
+    id: "q-012",
+    title: "Plan Tomorrow",
+    description: "Set up your schedule for the next day.",
+    category: ["planning", "meta"],
     difficulty: "medium",
-    priority: "high",
     frequency: "daily",
-    duration: 45,
-    createdAt: Date.now() - 1000 * 60 * 60 * 8,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-    subquests: [
-      { id: "q-002-1", title: "Choose recipe", completed: true },
-      { id: "q-002-2", title: "Cook meal", completed: true },
-      { id: "q-002-3", title: "Clean dishes", completed: true }
-    ]
-  },
-  {
-    id: "q-023",
-    title: "Inbox Zero (Lite)",
-    description: "Reduce inbox anxiety without aiming for perfection.",
-    category: ["admin", "mental-load"],
-    difficulty: "medium",
-    frequency: "weekly",
-    duration: 30,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-    subquests: [
-      { id: "q-003-1", title: "Delete spam", completed: true },
-      { id: "q-003-2", title: "Reply to 2 emails", completed: true }
-    ]
-  },
-  {
-    id: "q-024",
-    title: "Stretch Between Worlds",
-    description: "Reconnect with your body after long screen time.",
-    category: ["health", "movement"],
-    difficulty: "easy",
-    frequency: "daily",
-    duration: 10,
-    createdAt: Date.now() - 1000 * 60 * 30,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-    subquests: [
-      { id: "q-004-1", title: "Neck stretch", completed: true },
-      { id: "q-004-2", title: "Back stretch", completed: true }
-    ]
-  },
-  {
-    id: "q-025",
-    title: "Laundry of Holding",
-    description: "Wash, dry, and reclaim wearable inventory.",
-    category: ["cleaning", "maintenance"],
-    difficulty: "hard",
-    frequency: "weekly",
-    duration: 90,
-    createdAt: Date.now() - 1000 * 60 * 60 * 48,
-    status: "failed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 12,
-    subquests: [
-      { id: "q-005-1", title: "Wash", completed: true },
-      { id: "q-005-2", title: "Dry", completed: true },
-      { id: "q-005-3", title: "Fold", completed: true }
-    ]
-  },
-  {
-    id: "q-026",
-    title: "Step Outside Briefly",
-    description: "Change scenery, even if just for a moment.",
-    category: ["wellbeing", "exploration"],
-    difficulty: "easy",
-    frequency: "daily",
-    duration: 5,
-    createdAt: Date.now() - 1000 * 60 * 10,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-  },
-  {
-    id: "q-027",
-    title: "Reflect on the Day",
-    description: "Write one sentence about how today felt.",
-    category: ["reflection", "journaling"],
-    difficulty: "easy",
-    frequency: "daily",
-    duration: 5,
+    duration: 20,
     createdAt: Date.now() - 1000 * 60 * 60 * 3,
     status: "completed",
     completedAt: Date.now() - 1000 * 60 * 60,
     subquests: [
-      { id: "q-007-1", title: "Name the mood", completed: true },
-      { id: "q-007-2", title: "Write one sentence", completed: true }
-    ]
-  },
-  {
-    id: "q-028",
-    title: "Digital Declutter",
-    description: "Remove unused files or apps.",
-    category: ["digital", "maintenance"],
-    difficulty: "medium",
-    frequency: "monthly",
-    duration: 30,
-    createdAt: Date.now() - 1000 * 60 * 60 * 72,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-    subquests: [
-      { id: "q-008-1", title: "Delete unused files", completed: true },
-      { id: "q-008-2", title: "Remove one app", completed: true }
-    ]
-  },
-  {
-    id: "q-029",
-    title: "Morning System Check",
-    description: "Get yourself online for the day.",
-    category: ["meta", "routine"],
-    difficulty: "easy",
-    frequency: "daily",
-    duration: 10,
-    createdAt: Date.now() - 1000 * 60 * 60 * 6,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-    subquests: [
-      { id: "q-009-1", title: "Drink water", completed: true },
-      { id: "q-009-2", title: "Open blinds", completed: true },
-      { id: "q-009-3", title: "Review quests", completed: true }
-    ]
-  },
-  {
-    id: "q-030",
-    title: "Unfinished Quest Review",
-    description: "Decide the fate of lingering quests.",
-    category: ["meta", "planning"],
-    difficulty: "medium",
-    frequency: "weekly",
-    duration: 20,
-    createdAt: Date.now() - 1000 * 60 * 60 * 36,
-    status: "completed",
-    completedAt: Date.now() - 1000 * 60 * 60 * 2,
-    subquests: [
-      { id: "q-010-1", title: "Complete 1 quest", completed: true },
-      { id: "q-010-2", title: "Archive 1 quest", completed: true }
-    ]
-  },
-  {
-    id: "q1",
-    title: "Clean kitchen counters",
-    difficulty: "easy",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 60,
-    category: ["chores"],
-    duration: 20,
-  },
-  {
-    id: "q2",
-    title: "Cook breakfast",
-    difficulty: "easy",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 120,
-    category: ["cooking"],
-    duration: 30,
-  },
-  {
-    id: "q3",
-    title: "Write daily journal",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 180,
-    category: ["writing"],
-    duration: 15,
-  },
-  {
-    id: "q4",
-    title: "Organize digital files",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 240,
-    category: ["organization"],
-    duration: 45,
-  },
-  {
-    id: "q5",
-    title: "Wash car",
-    difficulty: "hard",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 300,
-    category: ["chores"],
-    duration: 60,
-  },
-  {
-    id: "q6",
-    title: "Review project notes",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 360,
-    category: ["work"],
-    duration: 25,
-  },
-  {
-    id: "q7",
-    title: "Plan weekly meals",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 400,
-    category: ["planning", "cooking"],
-    duration: 40,
-  },
-  {
-    id: "q8",
-    title: "Build reading habit",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 420,
-    category: ["personal development"],
-    duration: 30,
-  },
-  {
-    id: "q9",
-    title: "Organize desk",
-    difficulty: "easy",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 450,
-    category: ["organization"],
-    duration: 20,
-  },
-  {
-    id: "q10",
-    title: "Cook dinner",
-    difficulty: "hard",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 500,
-    category: ["cooking"],
-    duration: 60,
-  },
-  {
-    id: "q11",
-    title: "Clean windows",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 550,
-    category: ["chores"],
-    duration: 35,
-  },
-  {
-    id: "q12",
-    title: "Write project report",
-    difficulty: "hard",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 600,
-    category: ["work", "writing"],
-    duration: 50,
-  },
-  {
-    id: "q13",
-    title: "Plan birthday party",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 650,
-    category: ["planning", "personal"],
-    duration: 40,
-  },
-  {
-    id: "q14",
-    title: "Wash laundry",
-    difficulty: "easy",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 700,
-    category: ["chores"],
-    duration: 30,
-  },
-  {
-    id: "q15",
-    title: "Organize bookshelf",
-    difficulty: "easy",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 750,
-    category: ["organization"],
-    duration: 25,
-  },
-  {
-    id: "q16",
-    title: "Cook lunch",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 800,
-    category: ["cooking"],
-    duration: 45,
-  },
-  {
-    id: "q17",
-    title: "Review design mockups",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 850,
-    category: ["work", "design"],
-    duration: 30,
-  },
-  {
-    id: "q18",
-    title: "Build habit tracker",
-    difficulty: "hard",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 900,
-    category: ["personal development"],
-    duration: 50,
-  },
-  {
-    id: "q19",
-    title: "Clean bathroom",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 950,
-    category: ["chores"],
-    duration: 40,
-  },
-  {
-    id: "q20",
-    title: "Write blog post",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 1000,
-    category: ["writing"],
-    duration: 35,
-  },
-  {
-    id: "q101",
-    title: "Cook dinner",
-    difficulty: "hard",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 500,
-    category: ["cooking"],
-    duration: 60,
-  },
-  {
-    id: "q111",
-    title: "Clean windows",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 550,
-    category: ["chores"],
-    duration: 35,
-  },
-  {
-    id: "q121",
-    title: "Write project report",
-    difficulty: "hard",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 600,
-    category: ["work", "writing"],
-    duration: 50,
-  },
-  {
-    id: "q131",
-    title: "Plan birthday party",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 650,
-    category: ["planning", "personal"],
-    duration: 40,
-  },
-  {
-    id: "q141",
-    title: "Wash laundry",
-    difficulty: "easy",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 700,
-    category: ["chores"],
-    duration: 30,
-  },
-  {
-    id: "q151",
-    title: "Organize bookshelf",
-    difficulty: "easy",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 750,
-    category: ["organization"],
-    duration: 25,
-  },
-  {
-    id: "q161",
-    title: "Cook lunch",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 800,
-    category: ["cooking"],
-    duration: 45,
-  },
-  {
-    id: "q171",
-    title: "Review design mockups",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 850,
-    category: ["work", "design"],
-    duration: 30,
-  },
-  {
-    id: "q181",
-    title: "Build habit tracker",
-    difficulty: "hard",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 900,
-    category: ["personal development"],
-    duration: 50,
-  },
-  {
-    id: "q191",
-    title: "Clean bathroom",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 950,
-    category: ["chores"],
-    duration: 40,
-  },
-  {
-    id: "q201",
-    title: "Write blog post",
-    difficulty: "medium",
-    status: "completed",
-    completedAt: Date.now(),
-    createdAt: Date.now() - 1000 * 60 * 1000,
-    category: ["writing"],
-    duration: 35,
+      { id: "q-012-1", title: "Review tasks", completed: true },
+      { id: "q-012-2", title: "Add new priorities", completed: true },
+    ],
   },
 ];

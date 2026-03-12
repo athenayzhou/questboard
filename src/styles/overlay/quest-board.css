@@ -211,6 +211,24 @@
   position: absolute;
   pointer-events: auto;
   border: 3px solid var(--path-shadow);
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.quest-page.entering {
+  opacity: 0;
+  transform: scale(0.9) translateY(20px);
+}
+
+.quest-page.entered {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.quest-page.exiting {
+  opacity: 0;
+  transform: scale(0.95) translateY(-10px);
 }
 
 .quest-page-header {
@@ -566,4 +584,168 @@
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+
+
+.skill-naming-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  pointer-events: auto;
+}
+
+.skill-naming-dialog {
+  background: var(--bg-panel);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  border: 3px solid var(--path);
+  box-shadow: var(--shadow-path);
+}
+
+.skill-naming-form {
+  margin: 0;
+}
+
+.skill-naming-dialog h3 {
+  margin: 0 0 8px 0;
+  color: var(--grass-dark);
+  font-size: 1.2rem;
+}
+
+.skill-naming-dialog p {
+  margin: 0 0 20px 0;
+  color: var(--text-path);
+  font-size: 0.9rem;
+}
+
+.suggested-names {
+  margin-bottom: 20px;
+}
+
+.suggested-names h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  color: var(--text-path);
+}
+
+.name-option {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  margin: 4px 0;
+  border: 2px solid var(--path-light);
+  background: var(--sand-bright);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  color: var(--text-path);
+}
+
+.name-option:hover {
+  border-color: var(--grass-light);
+  background: var(--sand-sun);
+}
+
+.name-option.selected {
+  border-color: var(--grass-dark);
+  background: var(--bg-field);
+  color: var(--sand-bright);
+}
+
+.custom-name {
+  margin-bottom: 24px;
+}
+
+.custom-name h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  color: var(--text-path);
+}
+
+.custom-name input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--path);
+  border-radius: 8px;
+  background: var(--sand-bright);
+  color: var(--text-path);
+  font-size: 1rem;
+}
+
+.custom-name input:focus {
+  outline: none;
+  border-color: var(--grass-dark);
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.dialog-actions button {
+  padding: 8px 16px;
+  border: 2px solid var(--path);
+  border-radius: 8px;
+  background: var(--sand-bright);
+  color: var(--text-path);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.dialog-actions button:hover {
+  border-color: var(--grass-light);
+  background: var(--sand-sun);
+}
+
+.dialog-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dialog-actions button:last-child {
+  border-color: var(--grass-dark);
+  background: var(--grass-light);
+  color: var(--sand-bright);
+}
+
+.setting-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  cursor: pointer;
+  color: var(--text-path);
+  font-size: 0.9rem;
+}
+
+.setting-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+.skill-naming-dialog h3 {
+  margin: 0 0 8px 0;
+  color: var(--grass-dark);
+  font-size: 1.2rem;
+}
+
+.skill-context {
+  margin: 0 0 20px 0;
+  color: var(--text-path);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  font-style: italic;
+  padding: 12px;
+  background: var(--sand-bright);
+  border-radius: 8px;
+  border: 1px solid var(--path-light);
 }

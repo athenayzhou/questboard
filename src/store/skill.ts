@@ -13,6 +13,7 @@ type SkillState = {
   decayXP: (id: string, amount: number) => void;
   processDecay: () => void;
   awakenDormantSkill: (id: string) => void;
+  updateName: (id: string, newName: string) => void;
 
   getAll: () => Skill[];
   getById: (id: string) => Skill | undefined;
@@ -167,6 +168,18 @@ export const useSkillStore = create<SkillState>((set, get) => ({
         skills: { ...state.skills, [id]: awakened }
       };
     });
+  },
+
+  updateName: (id, newName) => {
+    set(state => {
+      const skill = state.skills[id];
+      if(!skill) return state;
+
+      const updated = { ...skill, name: newName };
+      const next = { ...state.skills, [id]: updated };
+      localStorage.setItem("skills", JSON.stringify(next));
+      return { skills: next };
+    })
   },
 
   getAll: () => Object.values(get().skills),

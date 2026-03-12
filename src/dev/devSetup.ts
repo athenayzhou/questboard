@@ -1,5 +1,6 @@
 import { playerStore } from '../store/player';
 import { questStore } from '../store/quest';
+// import { skillStore } from '../store/skill';
 import { friendsStore } from '../store/friends';
 import { clusterStore, candidateStore, evidenceStore } from '../store/bundledStores';
 import { TEST_BOARD } from './data/TEST_BOARD';

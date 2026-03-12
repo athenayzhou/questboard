@@ -1,5 +1,5 @@
 import type { Quest } from "../../types/quest";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Detail } from "../ui/Detail";
 import { useQuestStore } from "../../store/quest";
@@ -32,7 +32,18 @@ export function QuestPage({
   const toggleSubquest = useQuestStore((s) => s.toggleSubquest);
 
   const [isEditing, setIsEditing] = useState(false);
+  const [animationState, setAnimationState] = useState<"entering" | "entered" | "exiting">("entering");
   const canEdit = quest.status === "available";
+
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setAnimationState("entered"));
+    return () => cancelAnimationFrame(t);
+  }, []);
+
+  const handleClose = () => {
+    setAnimationState("exiting");
+    setTimeout(onClose, 300);
+  };
 
   const handleEditSave = (updates: Partial<Quest>) => {
     editQuest(quest.id, updates);
@@ -41,15 +52,15 @@ export function QuestPage({
 
   function handleAccept() {
     accept(quest.id);
-    onClose()
+    handleClose();
   }
   function handleComplete() {
     complete(quest.id);
-    onClose()
+    handleClose();
   }
   function handleFail() {
     fail(quest.id);
-    onClose()
+    handleClose();
   }
 
   const dragOffset = useRef<{ x: number; y: number } | null>(null);
@@ -76,9 +87,9 @@ export function QuestPage({
     window.removeEventListener("mouseup", onMouseUp);
   }
 
-  return createPortal (
-    <div 
-      className="quest-page"
+  return createPortal(
+    <div
+      className={`quest-page ${animationState}`}
       style={{
         position: "absolute",
         left: x,
@@ -93,7 +104,7 @@ export function QuestPage({
           {canEdit && !isEditing && (
             <button type="button" onClick={() => setIsEditing(true)}>edit</button>
           )}
-          <button type="button" className="quest-page-close" onClick={onClose} aria-label="Close">×</button>
+          <button type="button" className="quest-page-close" onClick={handleClose} aria-label="Close">×</button>
         </div>
       </header>
 

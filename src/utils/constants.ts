@@ -50,45 +50,20 @@ export const EVIDENCE = {
   MIN_WEIGHT: 0.01,
 }
 
-export const CLUSTERING = {
-  MIN_SIZE: 3,
-  THRESHOLD: 0.2,
-}
-
-/** Cluster discovery and confidence (used by discover + confidence utils). */
 export const CLUSTER = {
   MIN_SIZE: 3,
-  THRESHOLD: 0.2,
-  /** Divisor for totalTime in confidence volume factor (minutes). */
+  THRESHOLD: 0.7,
   CONFIDENCE_EFFORTDIVISOR: 30,
   CONFIDENCE_MAX: 1,
 }
 
-/** Candidate readiness thresholds (used by confidence utils). */
 export const CANDIDATE = {
   MIN_SIZE: 3,
   EMERGENT_THRESHOLD: 0.3,
   LATENT_THRESHOLD: 0.15,
 }
 
-export const CONFIDENCE = {
-  EMERGENT_THRESHOLD: 0.3,
-  READY_THRESHOLD: 0.6,
-  GROWING_THRESHOLD: 0.75,
-  STRONG_THRESHOLD: 0.85,
-  MASTERY_THRESHOLD: 1.2,
-  CURVE_RATE: 0.12,
-}
-
-export const PROFICIENCY = {
-  BASELINE: 0.15,
-  MAX: 1,
-  EFFORT_DIVISOR: 20,
-}
-
-/** Number of levels (1..MAX_LEVEL). Level 1 at 0 XP, each level requires more cumulative XP. */
 export const MAX_LEVEL = 50;
-
 function buildLevelCurve(count: number): number[] {
   const arr: number[] = [0];
   for (let i = 1; i < count; i++) {
@@ -96,8 +71,6 @@ function buildLevelCurve(count: number): number[] {
   }
   return arr;
 }
-
-/** Cumulative XP thresholds: LEVELS[i] = min XP for level i+1. Scales so leveling gets harder. */
 export const LEVELS = buildLevelCurve(MAX_LEVEL);
 
 export const DIFFICULTY_EFFORT = {
@@ -107,19 +80,21 @@ export const DIFFICULTY_EFFORT = {
 }
 
 export const DECAY = {
+  CLUSTER_DECAY_IDLE_DAYS: 7,
   CLUSTER_DECAY_RATE: 0.02,
   CLUSTER_REMOVAL_THRESHOLD: 0.01,
 
+  CANDIDATE_DECAY_IDLE_DAYS: 3,
   CANDIDATE_DECAY_RATE: 0.01,
   CANDIDATE_REMOVAL_THRESHOLD: 0.05,
   CANDIDATE_REMOVAL_DAYS: 30,
 
   DORMANT_THRESHOLD_DAYS: 14,
-  /** Days idle before any skill XP decay (longer = more forgiving). */
   SKILL_DECAY_IDLE_DAYS: 21,
   DECAY_RATE_ACTIVE: 0.0003,
   DECAY_RATE_DORMANT: 0.0015,
   MIN_XP_BEFORE_DECAY: 10,
+
   DECAY_CHECK_INTERVAL: MS.DAY,
 }
 

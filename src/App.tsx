@@ -7,6 +7,8 @@ import { Canvas } from '@react-three/fiber';
 import { ActiveQuest } from './components/secondary/ActiveQuests';
 
 import { useSkillDecay } from './hooks/useSkillDecay';
+import { NamePrompt } from './hooks/onQuestComplete';
+
 import { ToastProvider } from './store/ToastProvider';
 import { ConfirmProvider } from './store/ConfirmProvider';
 import { ToastContainer } from './components/ui/Toast';
@@ -32,6 +34,7 @@ function App() {
       <ActiveQuest />
       <OverlayManager />
       <div id="windows" />
+      <NamePrompt />
     </div>
     </ToastProvider>
     </ConfirmProvider>

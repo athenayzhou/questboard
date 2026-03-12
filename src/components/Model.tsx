@@ -66,8 +66,8 @@ export function Model({
     >
       <primitive scale={scale} object={clonedScene} />
       {label && htmlPortal && (
-        <Html 
-          position={[0, 1.5, 0]} 
+        <Html
+          position={[0, 2, 0]}
           portal={{ current: htmlPortal }}
           transform
           center
