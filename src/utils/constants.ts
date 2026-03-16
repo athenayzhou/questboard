@@ -1,3 +1,8 @@
+export const APP = {
+  VERSION: "0.0.0",
+  DEV_NAME: "Athena",
+} as const;
+
 export const MS = {
   SECOND: 1000,
   MINUTE: 60_000,
@@ -72,6 +77,16 @@ function buildLevelCurve(count: number): number[] {
   return arr;
 }
 export const LEVELS = buildLevelCurve(MAX_LEVEL);
+
+
+export const MASTERY = {
+  DEPTH_XP: 1000,
+  MIN_OBJECTS: 5,
+  CONSISTENCY_WEEKS: 12,
+  CONSISTENCY_ACTIVE_WEEKS: 6,
+}
+
+
 
 export const DIFFICULTY_EFFORT = {
   easy: 5,

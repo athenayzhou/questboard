@@ -9,9 +9,10 @@ import { DECAY, MS } from "../../utils/constants";
 import { NameSkill } from "../secondary/NameSkill";
 import type { Skill } from "../../types/skills";
 import type { PendingSkill } from "../../store/name";
+import { useMasteryStore } from "../../store/mastery";
 
 type SortKey = "name" | "level" | "lastSeen";
-type LedgerTab = "skills" | "pending";
+type LedgerTab = "skills" | "pending" | "masteries";
 
 export function SkillLedger() {
   const closeOverlay = useOverlay((s) => s.closeOverlay);
@@ -22,9 +23,11 @@ export function SkillLedger() {
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
   const [renamingSkill, setRenamingSkill] = useState<Skill | null>(null);
   const [namingPendingSkill, setNamingPendingSkill] = useState<PendingSkill | null>(null);
+  const [selectedMasteryId, setSelectedMasteryId] = useState<string|null>(null);
 
   const skillsRecord = useSkillStore((s) => s.skills);
   const pendingSkills = useNameStore((s) => s.pendingSkills);
+  const masteries = useMasteryStore((s) => s.masteries);
 
   const ledgerEntries = useMemo(() => {
     // eslint-disable-next-line react-hooks/purity
@@ -63,6 +66,15 @@ export function SkillLedger() {
       });
   }, [ledgerEntries, search, sortKey, showDormantOnly]);
 
+  const contributingSkills = useMemo(() => {
+    if(!selectedMasteryId) return [];
+    const mastery = masteries.find((m) => m.id === selectedMasteryId);
+    if(!mastery) return [];
+    return mastery.skillIds
+      .map((id) => useSkillStore.getState().getById(id))
+      .filter(Boolean) as Skill[];
+  }, [selectedMasteryId, masteries, skillsRecord])
+
   return (
     <div className="overlay skill-overlay">
       <div className="header skill-header">
@@ -85,6 +97,13 @@ export function SkillLedger() {
               {pendingSkills.length > 0 && (
                 <span className="ledger-tab-badge">{pendingSkills.length}</span>
               )}
+            </button>
+            <button
+              type="button"
+              className={activeTab === "masteries" ? "active" : ""}
+              onClick={() => setActiveTab("masteries")}
+            >
+              masteries
             </button>
           </div>
           <button className="close skill-btn" onClick={closeOverlay}>close</button>
@@ -226,6 +245,62 @@ export function SkillLedger() {
               </div>
             </>
           )}
+        </div>
+      )}
+
+      {activeTab === "masteries" && (
+        <div className="ledger-content">
+          <div className="ledger-list-column">
+            <div className="ledger-list">
+              {masteries.length === 0 ? (
+                <div className="ledger-empty-state">
+                  no masteries yet
+                </div>
+              ) : (
+                masteries.map((mastery) => (
+                  <div
+                    key={mastery.id}
+                    className={`ledger-item ${selectedMasteryId === mastery.id ? "selected" : ""}`}
+                    onClick={() => setSelectedMasteryId(mastery.id)}
+                  >
+                    <div className="ledger-header">
+                      <div className="ledger-name">{mastery.name}</div>
+                      <div className="ledger-subtitle">{mastery.title}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          <div className="ledger-detail-column">
+              {selectedMasteryId ? (
+                <div className="mastery-detail">
+                  <h2>{masteries.find((m) => m.id === selectedMasteryId)?.name}</h2>
+                  <p>title: {masteries.find((m)=> m.id === selectedMasteryId)?.title}</p>
+                  <p>earned: {new Date(masteries.find((m) => m.id === selectedMasteryId)?.earnedAt || 0).toLocaleDateString()}</p>
+                  <h3>contributing skills</h3>
+                  <ul>
+                    {contributingSkills.map((skill) => {
+                      const { level } = levelToProgress(skill.xp);
+                      return (
+                        <li
+                          key={skill.id}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            setActiveTab("skills");
+                            setSelectedSkillId(skill.id);
+                          }}
+                        >
+                          <span>{skill.name}</span> (level {level})
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ) : (
+                <div className="no-selection">select a mastery to see details</div>
+              )}
+          </div>
         </div>
       )}
 

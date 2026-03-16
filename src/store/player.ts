@@ -18,6 +18,7 @@ function savePlayer(player: PlayerData) {
 type PlayerStore = {
     player: PlayerData;
     setPlayer: (p: PlayerData) => void;
+    unlockTitle: (title: string) => void;
 };
 
 export const usePlayerStore = create<PlayerStore>((set) => ({
@@ -43,6 +44,25 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
         savePlayer(player);
         set({ player });
     },
+
+    unlockTitle: (title) => {
+        set((state: PlayerStore): Partial<PlayerStore> => {
+            const list = state.player.achievements.unlockedTitles ?? [];
+            if (list.includes(title)) {
+                return {};
+            }
+            const nextPlayer: PlayerData = {
+                ...state.player,
+                achievements: {
+                    ...state.player.achievements,
+                    unlockedTitles: [...list, title],
+                },
+            };
+            savePlayer(nextPlayer);
+            return { player: nextPlayer };
+        });
+    },
+
 }));
 
 export const playerStore = usePlayerStore;

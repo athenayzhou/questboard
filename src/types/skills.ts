@@ -78,3 +78,12 @@ export type Progress = {
   xpMax: number;
   progress: number;
 }
+
+export type Mastery = {
+  id: string;
+  verb: string;
+  name: string;
+  title: string;
+  earnedAt: number;
+  skillIds: string[];
+}

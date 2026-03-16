@@ -4,6 +4,8 @@ import { useXPEventStore } from "./xpEvent";
 import { DECAY } from "../utils/constants";
 import { calculateSkillDecay, checkDormancy, shouldDecaySkill } from "../utils/skill/analysis/decay";
 import { devLog } from "../dev/devLogs";
+import { useMasteryStore } from "./mastery";
+import { showToast } from "../utils/toastAPI";
 
 type SkillState = {
   skills: Record<string, Skill>;
@@ -63,6 +65,11 @@ export const useSkillStore = create<SkillState>((set, get) => ({
       name: skill.name,
       timestamp: Date.now(),
     };
+
+    const granted = useMasteryStore.getState().grantMastery();
+    for(const mastery of granted){
+      showToast("success", `mastery earned: ${mastery.name}`);
+    }
 
     set((state) => { 
       const next = { ...state.skills, [id]: updated };

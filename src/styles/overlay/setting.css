@@ -9,3 +9,13 @@
 .settings-overlay .header {
   margin-bottom: 1.5rem;
 }
+
+.settings-meta {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.1));
+  font-size: 0.85rem;
+  color: var(--text-muted, #666);
+  display: flex;
+  gap: 1rem;
+}

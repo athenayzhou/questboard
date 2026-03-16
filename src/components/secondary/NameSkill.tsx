@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
-import { generateNames } from "../../utils/skill/generation/name";
+import { generateSkillNames } from "../../utils/skill/generation/name";
 import type { Candidate, Skill } from "../../types/skills";
 
 type NameSkillProps = {
@@ -81,7 +81,7 @@ export function NameSkill({
         lastSeenAt: skill!.lastSeenAt,
         state: "ready" as const,
       };
-      const suggestions = generateNames(target);
+      const suggestions = generateSkillNames(target);
       setSuggestedNames(suggestions);
       setCustomName(currentName || "");
       if (justOpened) {

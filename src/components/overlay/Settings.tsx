@@ -4,6 +4,7 @@ import { useQuestStore } from "../../store/quest";
 import { useSkillStore } from "../../store/skill";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { showToast } from "../../utils/toastAPI";
+import { APP } from "../../utils/constants";
 
 export function Settings() {
   const closeOverlay = useOverlay((s) => s.closeOverlay);
@@ -69,6 +70,11 @@ export function Settings() {
         >
           reset quest & skill data
         </button>
+
+        <div className="settings-meta">
+          <span>version {APP.VERSION}</span>
+          <span>dev by {APP.DEV_NAME}</span>
+        </div>
       </div>
       <ConfirmDialog
         isOpen={showResetConfirm}

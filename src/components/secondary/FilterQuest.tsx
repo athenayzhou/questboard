@@ -1,15 +1,29 @@
+import { useMemo, useState, useEffect } from "react";
 import { useOverlay } from "../../store/overlay";
+import { useQuestStore } from "../../store/quest";
 import { useDebounce } from "../../hooks/useDebounce";
-import { useState, useEffect } from "react";
 
-export function FilterQuest(){
+export function FilterQuest() {
   const {
     questSearch,
     setQuestSearch,
     questFilters,
     setQuestFilters,
     clearQuestFilters,
+    boardTab,
   } = useOverlay();
+
+  const quests = useQuestStore((s) => s.quests);
+  const categories = useMemo(() => {
+    const byTab = quests.filter((q) => q.status === boardTab);
+    const set = new Set<string>();
+    for (const q of byTab) {
+      for (const cat of q.category ?? []) {
+        if (cat?.trim()) set.add(cat.trim());
+      }
+    }
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [quests, boardTab]);
 
   const [localSearch, setLocalSearch] = useState(questSearch);
   const debouncedSearch = useDebounce(localSearch, 300);
@@ -17,10 +31,6 @@ export function FilterQuest(){
   useEffect(() => {
     setQuestSearch(debouncedSearch);
   }, [debouncedSearch, setQuestSearch]);
-
-  const categories = [
-    "cleaning", "cooking", "exercise", "work", "social", "learning", "creative", "maintenance", "shopping", "personal"
-  ];
 
   return (
     <div className="quest-search-filter">
@@ -51,9 +61,9 @@ export function FilterQuest(){
           className="filter-select"
         >
           <option value="">all categories</option>
-          {categories.map(cat => (
+          {categories.map((cat) => (
             <option key={cat} value={cat}>
-              {cat.charAt(0) + cat.slice(1)}
+              {cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase()}
             </option>
           ))}
         </select>

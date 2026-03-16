@@ -9,7 +9,7 @@ import { aggregate } from "../utils/skill/generation/aggregate";
 import { discover } from "../utils/skill/generation/discover";
 import { calculateXP } from "../utils/skill/analysis/experience";
 
-import { name } from "../utils/skill/generation/name";
+import { autoNameSkill } from "../utils/skill/generation/name";
 import { useNameStore } from "../store/name";
 import { NameSkill } from "../components/secondary/NameSkill";
 
@@ -48,7 +48,7 @@ export function onQuestComplete(
 
       if(ready.length > 0){
         if(autoNameEnabled) {
-          name(ready, candidateStore);
+          autoNameSkill(ready, candidateStore);
           devLog("pipeline", "naming auto applied", { readyCount: ready.length });
         } else {
           const candidatesToName = ready.map(candidate => ({
@@ -76,7 +76,7 @@ export function onQuestComplete(
       if(!useNameStore.getState().isNaming){
         showToast('success', `quest "${quest.title}" completed`);
       }
-      
+
     } catch (error) {
       devError("pipeline", "onQuestComplete failed", error);
       showToast("error", "something went wrong with processing quest. your quest was still completed.")
