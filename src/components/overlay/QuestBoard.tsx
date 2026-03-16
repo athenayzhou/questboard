@@ -86,12 +86,17 @@ export function QuestBoard({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setQuestsState(prev => {
       const byId = new Map(prev.map(q => [q.id, q]));
+      const safeX = (v: number) => Math.max(0, Math.min(v, UI.SPAWN_X_MAX));
+      const safeY = (v: number) => Math.max(UI.SPAWN_Y_MIN, Math.min(v, UI.SPAWN_Y_MAX));
       return filtered.map(q => {
         const existing = byId.get(q.id);
-        const safeX = (v: number) => Math.max(0, Math.min(v, UI.SPAWN_X_MAX));
-        const safeY = (v: number) => Math.max(UI.SPAWN_Y_MIN, Math.min(v, UI.SPAWN_Y_MAX));
         if (existing) {
-          return { ...existing, x: safeX(existing.x), y: safeY(existing.y) };
+          return {
+            ...q,
+            x: safeX(existing.x),
+            y: safeY(existing.y),
+            zIndex: existing.zIndex ?? 1,
+          };
         }
         return {
           ...q,

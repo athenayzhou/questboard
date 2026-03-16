@@ -5,6 +5,8 @@ import { evidenceStore, candidateStore, clusterStore } from './bundledStores';
 import { showToast } from "../utils/toastAPI";
 
 import { devLog, devError } from "../dev/devLogs";
+import { RecurringQuests } from "../utils/recurrence";
+import { isQuestOverdue } from "../utils/recurrence";
 
 type QuestState = {
   quests: Quest[];
@@ -26,8 +28,14 @@ type QuestState = {
 
   togglePin: (id: string) => void;
   reorderPinned: (questId: string, newIndex: number) => void;
-
   toggleSubquest: (questId: string, subquestId: string) => void;
+
+  processRecurrence: () => void;
+  createRecurrence: (quest: Omit<Quest, 'id'|'status'|'createdAt'>) => Quest;
+  updateRecurrence: (templateId: string, updates: Partial<Quest>) => void;
+  pauseRecurrence: (templateId: string) => void;
+  resumeRecurrence: (templateId: string) => void;
+  processAutoFail: () => void;
 
   getAvailable: () => Quest[];
   getAccepted: () => Quest[];
@@ -127,18 +135,31 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     const quest = get().quests.find(q => q.id === id);
     if (!quest || quest.status !== "accepted") return;
     get().setOperationLoading(`complete-${id}`, true);
+
+    const now = Date.now();
+
     try {
       set(state => {
-      const next: Quest[] = state.quests.map(q => 
-        q.id === id
-          ? {
-              ...q, 
-              status: "completed" as Quest["status"], 
-              completedAt: Date.now()}
-          : q
-      );
-      syncToStorage(next);
-      return { quests: next };
+        const q = state.quests.find(x => x.id === id);
+        if (!q) return state;
+        const completed: Quest = {
+          ...q,
+          status: "completed" as Quest["status"],
+          completedAt: now,
+        };
+        if (q.frequency && q.frequency !== "once") {
+          completed.isTemplate = true;
+          completed.nextDueAt = RecurringQuests.getNextDueDate(
+            q.frequency,
+            q.createdAt,
+            q.customFrequency
+          );
+        }
+        const next: Quest[] = state.quests.map(x =>
+          x.id === id ? completed : x
+        );
+        syncToStorage(next);
+        return { quests: next };
       });
       showToast('success', `quest "${quest.title}" completed`);
       devLog('quest', 'quest completed', { id, title: quest.title });
@@ -153,7 +174,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     } finally {
       get().setOperationLoading(`complete-${id}`, false);
     }
-},
+  },
 
   failQuest: (id) => 
     set(state => {
@@ -250,6 +271,110 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       syncToStorage(next);
       return { quests: next };
     });
+  },
+
+  processRecurrence: () => {
+    const state = get();
+    const dueQuests = state.quests.filter(q =>
+      RecurringQuests.shouldGenerateNext(q)
+    );
+    if (dueQuests.length === 0) return;
+    const newQuests = dueQuests.map(template =>
+      RecurringQuests.generateNextInstance(template)
+    );
+    const updatedCompletedQuests = dueQuests.map(quest => ({
+      ...quest,
+      nextDueAt: Number.POSITIVE_INFINITY,
+    }));
+    const allQuests = [
+      ...state.quests.filter(q => !dueQuests.some(cq => cq.id === q.id)),
+      ...updatedCompletedQuests,
+      ...newQuests,
+    ];
+    get().setQuest(allQuests);
+  },
+
+  createRecurrence: (input) => {
+    const now = Date.now();
+    const template: Quest = {
+      ...input,
+      id: crypto.randomUUID(),
+      status: 'available',
+      createdAt: now,
+      isTemplate: true,
+      nextDueAt: RecurringQuests.getNextDueDate(
+        input.frequency!,
+        now,
+        input.customFrequency
+      ),
+    };
+
+    set((state) => {
+      const next = [...state.quests, template];
+      syncToStorage(next);
+      return { quests: next };
+    });
+
+    return template;
+  },
+
+  updateRecurrence: (templateId: string, updates: Partial<Quest>) => {
+    set(state => {
+      const template = state.quests.find(q => q.id === templateId);
+      if(!template || !template.isTemplate) return state;
+      const updatedTemplate = {...template, ... updates};
+      const updatedQuests = state.quests.map(q => {
+        if(q.parentQuestId === templateId && q.status === 'available') {
+          return {...q, ...updates };
+        }
+        return q.id === templateId ? updatedTemplate : q;
+      });
+      syncToStorage(updatedQuests);
+      return { quests: updatedQuests }
+    });
+  },
+
+  pauseRecurrence: (templateId: string) => {
+    set(state => {
+      const quest = state.quests.find(q => q.id === templateId);
+      if (!quest) return state;
+      const next = state.quests.map(q =>
+        q.id === templateId ? { ...q, paused: true } : q
+      );
+      syncToStorage(next);
+      return { quests: next };
+    });
+  },
+  resumeRecurrence: (templateId: string) => {
+    set(state => {
+      const quest = state.quests.find(q => q.id === templateId);
+      if (!quest) return state;
+      const next = state.quests.map(q =>
+        q.id === templateId ? { ...q, paused: false } : q
+      );
+      syncToStorage(next);
+      return { quests: next };
+    });
+  },
+
+  processAutoFail: () => {
+    if (localStorage.getItem("autoFailOverdueQuests") !== "true") return;
+    const state = get();
+    const now = Date.now();
+    const overdueAccepted = state.quests.filter(
+      q => (q.status === "accepted" || q.status === "available") && isQuestOverdue(q)
+    );
+    if (overdueAccepted.length === 0) return;
+    const next = state.quests.map(q => {
+      if (!overdueAccepted.some(o => o.id === q.id)) return q;
+      return {
+        ...q,
+        status: "failed" as Quest["status"],
+        completedAt: now,
+        failedAt: now,
+      };
+    });
+    get().setQuest(next);
   },
   
   getAvailable: () =>

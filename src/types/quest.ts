@@ -24,7 +24,6 @@ export type Quest = {
   category?: string[];
   difficulty: "easy"|"medium"|"hard";
   priority?: "high"|"low";
-  frequency?: "once"|"daily"|"weekly"|"monthly"|"custom";
   duration?: number;
   deadline?: string|null;
   subquests?: QuestAction[]
@@ -41,6 +40,14 @@ export type Quest = {
   x?: number;
   y?: number;
   zIndex?: number;
+
+  frequency?: "once"|"daily"|"weekly"|"monthly"|"custom";
+  customFrequency?: number;
+  isTemplate?: boolean;
+  parentQuestId?: string;
+  nextDueAt?: number;
+  recurrenceCount?: number;
+  paused?: boolean;
 }
 
 export type CompletedQuest = Quest & {

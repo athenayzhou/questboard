@@ -15,7 +15,8 @@ export function AddQuestOverlay() {
   const [currentCategory, setCurrentCategory] = useState("");
   const [difficulty, setDifficulty] = useState<"easy"|"medium"|"hard">("easy");
   const [priority, setPriority] = useState<"high"|"low">("low");
-  const [frequency, setFrequency] = useState<"once"|"daily"|"weekly"|"monthly">("once");
+  const [frequency, setFrequency] = useState<"once"|"daily"|"weekly"|"monthly"|"custom">("once");
+  const [customFrequency, setCustomFrequency] = useState<number | undefined>(undefined);
   const [deadline, setDeadline] = useState<string | null>(null);
 
   const { errors, setError, hasErrors } = useValidation();
@@ -67,6 +68,7 @@ export function AddQuestOverlay() {
         difficulty,
         priority,
         frequency,
+        customFrequency: frequency === "custom" ? customFrequency : undefined,
         deadline,
       });
       setTitle("");
@@ -163,7 +165,21 @@ export function AddQuestOverlay() {
               <option value="daily">daily</option>
               <option value="weekly">weekly</option>
               <option value="monthly">monthly</option>
-            </select>
+              <option value="custom">custom</option>
+          </select>
+          {frequency === 'custom' && (
+            <div className="form-group">
+              <label>custom frequency (days)</label>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                value={customFrequency || ''}
+                onChange={e => setCustomFrequency(Number(e.target.value) || undefined)}
+                placeholder="e.g. 3"
+              />
+            </div>
+          )}
         </div>
 
         <div className="row">

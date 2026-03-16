@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Quest } from "../../types/quest";
+import { useQuestStore } from "../../store/quest";
 
 type EditQuestProps = {
   quest: Quest;
@@ -14,11 +15,15 @@ type FormData = {
   difficulty: "easy" | "medium" | "hard";
   priority: "high" | "low" | "";
   frequency: "once" | "daily" | "weekly" | "monthly" | "custom" | "";
+  customFrequency?: number;
   duration: number | "";
   deadline: string;
 }
 
 export function EditQuest({ quest, onSave, onCancel }: EditQuestProps) {
+  const pauseRecurrence = useQuestStore((s) => s.pauseRecurrence);
+  const resumeRecurrence = useQuestStore((s) => s.resumeRecurrence);
+
   const [formData, setFormData] = useState<FormData>({
     title: quest.title,
     description: quest.description || "",
@@ -26,6 +31,7 @@ export function EditQuest({ quest, onSave, onCancel }: EditQuestProps) {
     difficulty: quest.difficulty,
     priority: quest.priority || "",
     frequency: quest.frequency || "",
+    customFrequency: quest.customFrequency,
     duration: quest.duration || "",
     deadline: quest.deadline || "",
   });
@@ -40,9 +46,10 @@ export function EditQuest({ quest, onSave, onCancel }: EditQuestProps) {
       difficulty: formData.difficulty,
       priority: formData.priority || undefined,
       frequency: formData.frequency || undefined,
+      customFrequency: formData.customFrequency,
       duration: formData.duration === "" ? undefined : Number(formData.duration),
       deadline: formData.deadline || null,
-    }
+    };
     onSave(updates);
   };
 
@@ -123,7 +130,7 @@ export function EditQuest({ quest, onSave, onCancel }: EditQuestProps) {
             <label>priority</label>
             <select
               value={formData.priority || ""}
-              onChange={e => setFormData(prev => ({...prev, priorty: e.target.value as "high" | "low" | ""}))}
+              onChange={e => setFormData(prev => ({...prev, priority: e.target.value as "high" | "low" | ""}))}
             >
               <option value="">none</option>
               <option value="high">high</option>
@@ -136,13 +143,44 @@ export function EditQuest({ quest, onSave, onCancel }: EditQuestProps) {
           value={formData.frequency}
           onChange={e => setFormData(prev => ({...prev, frequency: e.target.value as FormData['frequency']}))}
         >
-          <option value="">None</option>
-          <option value="once">Once</option>
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-          <option value="custom">Custom</option>
+          <option value="once">once</option>
+          <option value="daily">daily</option>
+          <option value="weekly">weekly</option>
+          <option value="monthly">monthly</option>
+          <option value="custom">custom</option>
         </select>
+        {formData.frequency === "custom" && (
+          <div className="form-group">
+            <label>custom frequency (days)</label>
+            <input
+              type="number"
+              min={1}
+              max={365}
+              value={formData.customFrequency ?? ""}
+              onChange={e =>
+                setFormData(prev => ({
+                  ...prev,
+                  customFrequency: e.target.value === "" ? undefined : Number(e.target.value) || undefined,
+                }))
+              }
+              placeholder="e.g. 3"
+            />
+          </div>
+        )}
+
+        {quest.isTemplate && (
+          <div className="template-controls">
+            <button
+              type="button"
+              onClick={() => (quest.paused ? resumeRecurrence(quest.id) : pauseRecurrence(quest.id))}
+            >
+              {quest.paused ? "Resume" : "Pause"} recurrence
+            </button>
+            <p className="template-note">
+              Changes to this template apply to future instances.
+            </p>
+          </div>
+        )}
           
         <div className="form-row">
           <div className="form-group">

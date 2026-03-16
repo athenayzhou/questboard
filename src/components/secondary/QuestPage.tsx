@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { Detail } from "../ui/Detail";
 import { useQuestStore } from "../../store/quest";
 import { EditQuest } from "./EditQuest";
+import { isQuestOverdue, getQuestDueBy } from "../../utils/recurrence";
 
 type QuestPageProps = {
   quest: Quest;
@@ -25,6 +26,9 @@ export function QuestPage({
   onMove,
 } : QuestPageProps) {
   const editQuest = useQuestStore((s) => s.editQuest);
+  const updateRecurrence = useQuestStore((s) => s.updateRecurrence);
+  const pauseRecurrence = useQuestStore((s) => s.pauseRecurrence);
+  const resumeRecurrence = useQuestStore((s) => s.resumeRecurrence);
   const accept = useQuestStore((s) => s.acceptQuest);
   const complete = useQuestStore((s) => s.completeQuest);
   const fail = useQuestStore((s) => s.failQuest);
@@ -33,7 +37,7 @@ export function QuestPage({
 
   const [isEditing, setIsEditing] = useState(false);
   const [animationState, setAnimationState] = useState<"entering" | "entered" | "exiting">("entering");
-  const canEdit = quest.status === "available";
+  const canEdit = quest.status === "available" || quest.isTemplate === true;
 
   useEffect(() => {
     const t = requestAnimationFrame(() => setAnimationState("entered"));
@@ -46,9 +50,13 @@ export function QuestPage({
   };
 
   const handleEditSave = (updates: Partial<Quest>) => {
-    editQuest(quest.id, updates);
+    if (quest.isTemplate) {
+      updateRecurrence(quest.id, updates);
+    } else {
+      editQuest(quest.id, updates);
+    }
     setIsEditing(false);
-  }
+  };
 
   function handleAccept() {
     accept(quest.id);
@@ -106,6 +114,21 @@ export function QuestPage({
           )}
           <button type="button" className="quest-page-close" onClick={handleClose} aria-label="Close">×</button>
         </div>
+        {quest.frequency && quest.frequency !== 'once' && (
+          <span className="recurring-indicator" title={`Recurring ${quest.frequency}`}>
+            🔄
+          </span>
+        )}
+        {quest.isTemplate && (
+          <span className="template-indicator" title="Recurring quest template">
+            📋
+          </span>
+        )}
+        {quest.parentQuestId && (
+          <span className="instance-indicator" title={`Instance ${quest.recurrenceCount || 1} of recurring quest`}>
+            #{quest.recurrenceCount || 1}
+          </span>
+        )}
       </header>
 
       {isEditing ? (
@@ -132,12 +155,46 @@ export function QuestPage({
       )}
 
       <section className="quest-details">
+        {isQuestOverdue(quest) && (quest.status === "available" || quest.status === "accepted") && (() => {
+          const dueBy = getQuestDueBy(quest);
+          const daysAgo = dueBy != null ? Math.floor((Date.now() - dueBy) / (1000 * 60 * 60 * 24)) : 0;
+          return (
+            <div className="quest-late-indicator">
+              <span className="quest-late-badge">Overdue</span>
+              {dueBy != null && daysAgo > 0 && (
+                <span className="quest-late-days">due {daysAgo} {daysAgo === 1 ? "day" : "days"} ago</span>
+              )}
+            </div>
+          );
+        })()}
+        {quest.frequency && quest.frequency !== "once" && (
+          <div className="quest-recurring-badge" title={quest.paused ? "Recurrence paused" : `Recurring ${quest.frequency}`}>
+            <span className="recurring-icon" aria-hidden>🔄</span>
+            <span>{quest.frequency === "custom" && quest.customFrequency ? `every ${quest.customFrequency} days` : quest.frequency}</span>
+            {quest.paused && <span className="paused-label"> (paused)</span>}
+            {quest.recurrenceCount != null && quest.recurrenceCount > 0 && (
+              <span className="instance-count"> #{quest.recurrenceCount}</span>
+            )}
+          </div>
+        )}
         <Detail label="difficulty" value={quest.difficulty} />
         {quest.priority && <Detail label="priority" value={quest.priority} />}
         {quest.frequency && <Detail label="frequency" value={quest.frequency} />}
         {quest.duration && <Detail label="duration" value={`${quest.duration} min`} />}
         {quest.deadline && <Detail label="deadline" value={new Date(quest.deadline).toLocaleDateString()} />}
       </section>
+
+      {quest.isTemplate && quest.status === "completed" && !isEditing && (
+        <section className="quest-template-actions">
+          <button
+            type="button"
+            className="template-toggle"
+            onClick={() => (quest.paused ? resumeRecurrence(quest.id) : pauseRecurrence(quest.id))}
+          >
+            {quest.paused ? "resume recurrence" : "pause recurrence"}
+          </button>
+        </section>
+      )}
 
       {quest.subquests && quest.subquests.length > 0 && (
         <section className="quest-subquests">

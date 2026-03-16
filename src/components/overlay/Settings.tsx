@@ -10,11 +10,19 @@ export function Settings() {
   const [autoNameSkills, setAutoNameSkills] = useState(() => 
     localStorage.getItem('autoNameSkills') !== 'false'
   );
+  const [autoFailOverdue, setAutoFailOverdue] = useState(() => 
+    localStorage.getItem('autoFailOverdueQuests') === 'true'
+  );
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const handleAutoNameToggle = (enabled: boolean) => {
     setAutoNameSkills(enabled);
     localStorage.setItem('autoNameSkills', enabled.toString());
+  };
+
+  const handleAutoFailToggle = (enabled: boolean) => {
+    setAutoFailOverdue(enabled);
+    localStorage.setItem('autoFailOverdueQuests', enabled.toString());
   }
 
   const handleResetData = () => {
@@ -43,6 +51,15 @@ export function Settings() {
           onChange={(e) => handleAutoNameToggle(e.target.checked)}
         />
         auto-name new skills
+      </label>
+
+      <label className="setting-toggle">
+        <input
+          type="checkbox"
+          checked={autoFailOverdue}
+          onChange={(e) => handleAutoFailToggle(e.target.checked)}
+        />
+        auto-fail overdue quests
       </label>
 
         <button

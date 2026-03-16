@@ -12,6 +12,7 @@ import { NamePrompt } from './hooks/onQuestComplete';
 import { ToastProvider } from './store/ToastProvider';
 import { ConfirmProvider } from './store/ConfirmProvider';
 import { ToastContainer } from './components/ui/Toast';
+import { useRecurringQuests } from './hooks/useRecurringQuests';
 
 function App() {
   const [orbitUser, setOrbitUser] = useState(true);
@@ -20,6 +21,7 @@ function App() {
   const orbitEnabled = orbitUser && !overlayOpen;
 
   useSkillDecay();
+  useRecurringQuests();
 
   return (
     <ConfirmProvider>

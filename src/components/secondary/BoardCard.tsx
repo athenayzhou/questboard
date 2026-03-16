@@ -1,5 +1,6 @@
 import type { Quest } from "../../types/quest"
 import { DifficultyBadge } from "../ui/DifficultyBadge"
+import { isQuestOverdue } from "../../utils/recurrence"
 import { memo } from "react"
 
 type BoardCardProps = {
@@ -20,11 +21,20 @@ export const BoardCard = memo(function BoardCard({
       </div>
 
       <div className="quest-card-meta">
+        {isQuestOverdue(quest) && (quest.status === "available" || quest.status === "accepted") && (
+          <span className="quest-late-badge" title="Past due">Late</span>
+        )}
+        {quest.frequency && quest.frequency !== "once" && (
+          <span className="quest-recurring-meta" title={quest.paused ? "recurrence paused" : `recurring ${quest.frequency}`}>
+            🔄 {quest.frequency === "custom" && quest.customFrequency ? `${quest.customFrequency}d` : quest.frequency}
+            {quest.paused && " ⏸"}
+          </span>
+        )}
         {quest.duration && (
           <span className="quest-duration">⏱ {quest.duration} min</span>
         )}
         {quest.deadline && (
-          <span className="quest-deadline">⚠ {quest.deadline} deadline</span>
+          <span className={`quest-deadline${isQuestOverdue(quest) ? " overdue" : ""}`}>⚠ {quest.deadline} deadline</span>
         )}
       </div>
 
