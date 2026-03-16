@@ -1,4 +1,4 @@
-import type { SystemItem, SystemTitle, SystemBadge } from "../../types/profile";
+import type { SystemItem, SystemTitle, SystemBadge } from "../../types/system";
 
 export const TEST_SYSTEM_ITEMS: Record<string, SystemItem> = {
     soup_ladle: {

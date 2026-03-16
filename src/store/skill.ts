@@ -1,11 +1,9 @@
 import { create } from "zustand";
 import type { Skill } from "../types/skills";
 import { useXPEventStore } from "./xpEvent";
-import { DECAY } from "../utils/constants";
+import { DECAY, MS } from "../utils/constants";
 import { calculateSkillDecay, checkDormancy, shouldDecaySkill } from "../utils/skill/analysis/decay";
 import { devLog } from "../dev/devLogs";
-import { useMasteryStore } from "./mastery";
-import { showToast } from "../utils/toastAPI";
 
 type SkillState = {
   skills: Record<string, Skill>;
@@ -47,6 +45,8 @@ export const useSkillStore = create<SkillState>((set, get) => ({
     const skill = get().skills[id];
     if(!skill) return;
 
+    devLog("player", `xp awarded: ${amount} xp`);
+
     const updated: Skill = {
       ...skill,
       xp: skill.xp + amount,
@@ -66,11 +66,6 @@ export const useSkillStore = create<SkillState>((set, get) => ({
       timestamp: Date.now(),
     };
 
-    const granted = useMasteryStore.getState().grantMastery();
-    for(const mastery of granted){
-      showToast("success", `mastery earned: ${mastery.name}`);
-    }
-
     set((state) => { 
       const next = { ...state.skills, [id]: updated };
       try {
@@ -82,13 +77,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
 
      useXPEventStore.getState().recordXP(xpEvent);
 
-     devLog("skill", "gainXP", {
-       skillId: id,
-       amount,
-       source: "quest",
-       questId,
-       xpAfter: updated.xp,
-     });
+     devLog("skill-gen", `XPEvent recorded from ${xpEvent.source}: "${xpEvent.sourceId}" (+${amount} xp)`);
   },
 
   _applyXP: (id, amount) => {
@@ -135,9 +124,12 @@ export const useSkillStore = create<SkillState>((set, get) => ({
         if(shouldDecaySkill(skill, now)) {
           const decayAmount = calculateSkillDecay(skill, now);
           if(decayAmount > 0){
+            const daysIdle = (now - skill.lastSeenAt) / MS.DAY;
+            const daysUntilDormant = Math.max(0, DECAY.DORMANT_THRESHOLD_DAYS - daysIdle);
             skill.xp = Math.max(0, skill.xp-decayAmount);
             skill.lastDecayAt = now;
             skill.isDormant = checkDormancy(skill, now);
+            devLog("decay", `skill "${skill.name}" decayed ⇒ -${decayAmount} xp, total xp: ${skill.xp}, days idle: ${Math.floor(daysIdle)}, days until dormant: ${Math.floor(daysUntilDormant)}`);
             hasChanges = true;
             changedCount += 1;
           }
@@ -148,12 +140,6 @@ export const useSkillStore = create<SkillState>((set, get) => ({
           localStorage.setItem("skills", JSON.stringify(updatedSkills));
           // eslint-disable-next-line no-empty
         } catch {}
-      }
-      if (hasChanges) {
-        devLog("decay", "skill decay applied", {
-          changedCount,
-          now,
-        });
       }
       return hasChanges ? { skills: updatedSkills } : state;
     });

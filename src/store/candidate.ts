@@ -1,6 +1,7 @@
 import type { Cluster, Candidate } from "../types/skills";
 import { DECAY, MS } from "../utils/constants";
 import { clamp } from "three/src/math/MathUtils.js";
+import { devLog } from "../dev/devLogs";
 
 export class CandidateStore {
   private candidates: Map<string, Candidate> = (() => {
@@ -30,9 +31,12 @@ export class CandidateStore {
     const toRemove: string[] = [];
     this.candidates.forEach(candidate => {
       const daysIdle = (now - candidate.lastSeenAt) / MS.DAY;
-      if(daysIdle > 3) {
-        const decay = daysIdle * DECAY.CANDIDATE_DECAY_RATE;
-        candidate.readiness = clamp(candidate.readiness - decay, 0, 1);
+      if(daysIdle > DECAY.CANDIDATE_DECAY_IDLE_DAYS) {
+        const decayAmount = daysIdle * DECAY.CANDIDATE_DECAY_RATE;
+        const prevReadiness = candidate.readiness;
+        candidate.readiness = clamp(prevReadiness - decayAmount, 0, 1);
+        const daysUntilRemoval = Math.max(0, DECAY.CANDIDATE_REMOVAL_DAYS - daysIdle);
+        devLog("decay", `candidate "${candidate.key}" decayed ⇒ -${decayAmount.toFixed(4)} decrease in readiness, readiness: ${candidate.readiness.toFixed(4)}, days idle: ${Math.floor(daysIdle)}, removal threshold: ${DECAY.CANDIDATE_REMOVAL_THRESHOLD}, days below threshold until removed: ${Math.floor(daysUntilRemoval)}`);
         if(candidate.readiness < DECAY.CANDIDATE_REMOVAL_THRESHOLD){
           candidate.state = "decayed";
           if(daysIdle > DECAY.CANDIDATE_REMOVAL_DAYS){

@@ -8,7 +8,6 @@ export type ValidationResult = {
 export type ValidationErrors = Record<string, string>;
 
 
-
 /* TOAST NOTIFICATION */
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';

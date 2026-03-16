@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import type { Toast } from "../../types/UI";
+import type { Toast } from "../../types/ui";
 import { cn } from "../../utils/cn";
 import { useToast } from "../../store/ToastProvider";
 

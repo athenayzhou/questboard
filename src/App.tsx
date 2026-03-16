@@ -6,8 +6,11 @@ import { useOverlay } from './store/overlay';
 import { Canvas } from '@react-three/fiber';
 import { ActiveQuest } from './components/secondary/ActiveQuests';
 
+import { useEffect } from 'react';
 import { useSkillDecay } from './hooks/useSkillDecay';
 import { NamePrompt } from './hooks/onQuestComplete';
+import { useShopStore } from './store/shop';
+import { DEFAULT_SHOP_ITEMS } from './data/systemItems';
 
 import { ToastProvider } from './store/ToastProvider';
 import { ConfirmProvider } from './store/ConfirmProvider';
@@ -22,6 +25,10 @@ function App() {
 
   useSkillDecay();
   useRecurringQuests();
+
+  useEffect(() => {
+    useShopStore.getState().setItems(DEFAULT_SHOP_ITEMS);
+  }, []);
 
   return (
     <ConfirmProvider>

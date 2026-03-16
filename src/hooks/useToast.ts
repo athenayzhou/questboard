@@ -1,5 +1,5 @@
 import { useToast } from "../store/ToastProvider";
-import type { ToastOptions } from "../types/UI";
+import type { ToastOptions } from "../types/ui";
 
 export function useToastActions() {
   const { show } = useToast();

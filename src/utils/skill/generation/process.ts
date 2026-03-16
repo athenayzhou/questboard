@@ -2,6 +2,7 @@ import type { Quest } from "../../../types/quest";
 import type { Evidence } from "../../../types/skills";
 import { EvidenceStore } from "../../../store/evidence";
 import { extractPair } from "../../format/text";
+import { devLog } from "../../../dev/devLogs";
 
 export type ProcessResult ={
   evidence: Evidence[];
@@ -16,6 +17,7 @@ export function process(
   const keys = new Set<string>();
 
   const pairs = extractPair(quest.title);
+  devLog('skill-gen', `extractPair("${quest.title}") → ${pairs.length} VO pair(s): [${pairs.map(p => `${p.verb}:${p.object}`).join(", ")}]`);
   const now = Date.now();
   for (const {verb, object} of pairs){
     const evidence: Evidence = {

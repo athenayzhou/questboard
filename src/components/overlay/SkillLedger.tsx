@@ -30,7 +30,7 @@ export function SkillLedger() {
   const masteries = useMasteryStore((s) => s.masteries);
 
   const ledgerEntries = useMemo(() => {
-    // eslint-disable-next-line react-hooks/purity
+    // eslint-disable-next-line react-hooks/purity -- now used only for dormant threshold
     const now = Date.now();
     const DORMANT_AFTER = DECAY.DORMANT_THRESHOLD_DAYS * MS.DAY;
     const skills = Object.values(skillsRecord);
@@ -39,7 +39,7 @@ export function SkillLedger() {
       skillId: skill.id,
       name: skill.name,
       xp: skill.xp,
-      level: levelToProgress(skill.xp, 1).level,
+      level: levelToProgress(skill.xp).level,
       lastSeenAt: skill.lastSeenAt ?? 0,
       isDormant: skill.lastSeenAt ? now - skill.lastSeenAt > DORMANT_AFTER : true,
     }));
@@ -71,7 +71,7 @@ export function SkillLedger() {
     const mastery = masteries.find((m) => m.id === selectedMasteryId);
     if(!mastery) return [];
     return mastery.skillIds
-      .map((id) => useSkillStore.getState().getById(id))
+      .map((id) => skillsRecord[id])
       .filter(Boolean) as Skill[];
   }, [selectedMasteryId, masteries, skillsRecord])
 
@@ -168,7 +168,7 @@ export function SkillLedger() {
                   skill={selectedSkill}
                   onClose={() => setSelectedSkillId(null)}
                   onRename={() => {
-                    const skill = useSkillStore((s) => s.getById(selectedSkill.id));
+                    const skill = useSkillStore.getState().getById(selectedSkill.id);
                     if (skill) setRenamingSkill(skill);
                   }}
                 />

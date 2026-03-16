@@ -1,6 +1,6 @@
 const isDev = import.meta.env.DEV;
 
-type logCategory = "quest" | "storage" | "pipeline" | "decay" | "evidence" | "skill";
+type logCategory = "quest" | "storage" | "pipeline" | "decay" | "evidence" | "skill" | "skill-gen" | "mastery" | "player" | "streak";
 
 function formatMessage(category: logCategory, message: string, data?: unknown): string {
   const prefix = `[${category}]`;

@@ -2,9 +2,12 @@ import { useState } from "react";
 import { useOverlay } from "../../store/overlay";
 import { useQuestStore } from "../../store/quest";
 import { useSkillStore } from "../../store/skill";
+import { useNameStore } from "../../store/name";
+import { candidateStore } from "../../store/bundledStores";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { showToast } from "../../utils/toastAPI";
-import { APP } from "../../utils/constants";
+import { APP, CANDIDATE } from "../../utils/constants";
+import { autoNameSkill, generateSkillNames } from "../../utils/skill/generation/name";
 
 export function Settings() {
   const closeOverlay = useOverlay((s) => s.closeOverlay);
@@ -19,12 +22,36 @@ export function Settings() {
   const handleAutoNameToggle = (enabled: boolean) => {
     setAutoNameSkills(enabled);
     localStorage.setItem('autoNameSkills', enabled.toString());
+    if (enabled) {
+      const maxClusterCount = (c: { clusters: { count: number }[] }) =>
+        c.clusters.length ? Math.max(...c.clusters.map((cl) => cl.count)) : 0;
+      const ready = candidateStore
+        .getAll()
+        .filter(
+          (c) => c.state === "ready" && maxClusterCount(c) >= CANDIDATE.MIN_SIZE
+        );
+      if (ready.length > 0) {
+        autoNameSkill(ready, candidateStore);
+      }
+      const pending = useNameStore.getState().pendingSkills;
+      for (const p of pending) {
+        const name = generateSkillNames(p.candidate)[0];
+        if (name) useNameStore.getState().promotePendingSkill(p.id, name);
+      }
+      const named = ready.length + pending.length;
+      if (named > 0) {
+        showToast("success", `Named ${named} skill${named === 1 ? "" : "s"}.`);
+      }
+    }
   };
 
   const handleAutoFailToggle = (enabled: boolean) => {
     setAutoFailOverdue(enabled);
     localStorage.setItem('autoFailOverdueQuests', enabled.toString());
-  }
+    if (enabled) {
+      useQuestStore.getState().processAutoFail();
+    }
+  };
 
   const handleResetData = () => {
     useQuestStore.getState().setQuest([]);

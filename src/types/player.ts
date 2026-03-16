@@ -1,26 +1,5 @@
-export type EquipSlot = "head" | "body" | "accessory" | "weapon";
-export type Rarity = "common" | "rare" | "ultra" | "legendary";
-
-
-export type SystemItem = {
-    id: string;
-    name: string;
-    slot: EquipSlot;
-    rarity: Rarity;
-    icon?: string;
-    description?: string;
-}
-export type SystemTitle = {
-    id: string;
-    display: string;
-    description?: string;
-}
-export type SystemBadge = {
-    id: string;
-    display: string;
-    icon?: string;
-}
-
+import type { EquipSlot } from "./system";
+import type { CurrencyId } from "./system";
 
 export type PlayerProfile = {
     name: string;
@@ -41,6 +20,9 @@ export type PlayerItem = {
 export type PlayerInventory = {
     items: Record<string, PlayerItem>
 }
+export type PlayerCurrencies = {
+    [currency in CurrencyId]: number;
+}
 
 
 export type PlayerData = {
@@ -48,4 +30,5 @@ export type PlayerData = {
     achievements: PlayerAchievements;
     equipment: PlayerEquipment;
     inventory: PlayerInventory;
+    currencies: PlayerCurrencies;
 }

@@ -1,4 +1,4 @@
-import type { PlayerData } from "../../types/profile";
+import type { PlayerData } from "../../types/player";
 
 export const TEST_PLAYER_DATA: PlayerData = {
     profile: {
@@ -20,11 +20,15 @@ export const TEST_PLAYER_DATA: PlayerData = {
     },
     inventory: {
         items: {
-                soup_ladle: {quantity: 1, acquiredAt:"2026-02-07"},
-                yellow_apron: {quantity: 1, acquiredAt:"2026-02-07"},
-                pink_bandana: {quantity: 1, acquiredAt:"2026-02-07"},
-                salt_shaker: {quantity: 1, acquiredAt:"2026-02-07"},
-                thin_frame_glasses: {quantity: 1, acquiredAt:"2026-02-08"},
-            },
-    }
+            soup_ladle:       { quantity: 1, acquiredAt: "2026-02-07" },
+            yellow_apron:     { quantity: 1, acquiredAt: "2026-02-07" },
+            pink_bandana:     { quantity: 1, acquiredAt: "2026-02-07" },
+            salt_shaker:      { quantity: 1, acquiredAt: "2026-02-07" },
+            thin_frame_glasses: { quantity: 1, acquiredAt: "2026-02-08" },
+        },
+    },
+    currencies: {
+        coins: 0,
+        gems: 0,
+    },
 }

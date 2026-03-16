@@ -1,5 +1,6 @@
 import type { Candidate } from "../../../types/skills";
 import type { CandidateStore } from "../../../store/candidate";
+import { useSkillStore } from "../../../store/skill";
 import { DEFAULT, NAME } from "../../constants";
 import { promote } from "./promote";
 
@@ -23,11 +24,20 @@ export function generateSkillNames(candidate: Candidate): string[] {
   );
   return unique(base).slice(0,3);
 }
-export function autoNameSkill(candidates: Candidate[], candidateStore: CandidateStore){
-  for (const candidate of candidates){
+/** Promotes ready candidates to skills. Returns keys of skills that were newly created (not existing). */
+export function autoNameSkill(
+  candidates: Candidate[],
+  candidateStore: CandidateStore
+): string[] {
+  const getByKey = useSkillStore.getState().getByKey;
+  const createdKeys: string[] = [];
+  for (const candidate of candidates) {
+    const existed = !!getByKey(candidate.key);
     const suggestions = generateSkillNames(candidate);
-    promote(candidate, suggestions[0], candidateStore)
+    promote(candidate, suggestions[0], candidateStore);
+    if (!existed) createdKeys.push(candidate.key);
   }
+  return createdKeys;
 }
 
 export function generateMasteryName(verb: string): string {

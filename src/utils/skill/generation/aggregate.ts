@@ -1,13 +1,15 @@
-import type { Cluster } from "../../../types/skills";
-import { EvidenceStore } from "../../../store/evidence";
+import type { Cluster, Evidence } from "../../../types/skills";
 import { ClusterStore } from "../../../store/cluster";
 
+/**
+ * Add the given evidence to clusters (only these items are processed; no full-store scan).
+ * Use the evidence from the current quest so we don't re-process and re-log all historical evidence.
+ */
 export function aggregate(
   xp: number,
-  evidenceStore: EvidenceStore,
+  evidence: Evidence[],
   clusterStore: ClusterStore,
 ): Cluster[] {
-  const evidence = evidenceStore.getAll();
   for (const e of evidence) {
     clusterStore.add(e, xp);
   }

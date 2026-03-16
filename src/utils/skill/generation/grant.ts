@@ -1,5 +1,6 @@
 import type { Skill, XPEvent, Mastery } from "../../../types/skills";
 import { MS, MASTERY } from "../../constants";
+import { devLog } from "../../../dev/devLogs";
 
 export function getSkillsByVerb(skills: Skill[]): Map<string, Skill[]> {
   const byVerb = new Map<string, Skill[]>();
@@ -63,15 +64,29 @@ export function getEligibleSkills(
   const existingVerbs = new Set(existingMasteries.map((m) => m.verb.toLowerCase().trim()));
   const result: { verb: string; skills: Skill[] }[] = [];
 
-  for(const [verb, verbSkills] of byVerb){
+  for (const [verb, verbSkills] of byVerb) {
     const verbNorm = verb.toLowerCase().trim();
-    if(existingVerbs.has(verbNorm)) continue;
+    if (existingVerbs.has(verbNorm)) continue;
 
-    if(verbSkills.length === 0) continue;
+    if (verbSkills.length === 0) continue;
 
+    const firstSkill = verbSkills[0];
+    devLog("mastery", `checking for mastery of skill, "${firstSkill.name}" (verb: ${firstSkill.verb})`);
+
+    const totalXp = getTotalXPForVerb(verbSkills);
     const depthOk = meetsDepthRequirement(verbSkills, MASTERY.DEPTH_XP);
+    devLog("mastery", `depth check: total xp for skill exceeds requirement (${totalXp} >= ${MASTERY.DEPTH_XP})`);
+
+    const distinctObjects = getDistinctObjectCount(verbSkills);
     const breadthOk = meetsBreadthRequirement(verbSkills, MASTERY.MIN_OBJECTS);
+    devLog("mastery", `breadth check: number of distinct objects exceeds requirement, ${distinctObjects} (${distinctObjects} >= ${MASTERY.MIN_OBJECTS})`);
+
     const skillIds = verbSkills.map((s) => s.id);
+    const activeWeeks = getWeeksWithActivity(
+      allEvents.filter((e) => e.skillId && skillIds.includes(e.skillId)),
+      now,
+      MASTERY.CONSISTENCY_WEEKS
+    );
     const consistencyOk = meetsConsistencyRequirement(
       skillIds,
       allEvents,
@@ -79,8 +94,10 @@ export function getEligibleSkills(
       MASTERY.CONSISTENCY_ACTIVE_WEEKS,
       now
     );
+    devLog("mastery", `consistency check: active weeks within window (${MASTERY.CONSISTENCY_WEEKS}) exceeds requirement, (${activeWeeks} >= ${MASTERY.CONSISTENCY_ACTIVE_WEEKS})`);
 
-    if(depthOk && breadthOk && consistencyOk){
+    if (depthOk && breadthOk && consistencyOk) {
+      devLog("mastery", `skill, "${firstSkill.name}", eligible, granting mastery`);
       result.push({ verb, skills: verbSkills });
     }
   }

@@ -1,4 +1,4 @@
-import { VERB } from "../constants";
+import { VERB, DEFAULT } from "../constants";
 
 const TIMEWORDS = new Set([
   "minute", "minutes", "min", "mins",
@@ -21,6 +21,7 @@ export const KNOWN_VERBS: Set<string> = new Set([
 export function normalize(text: string): string {
   return text
     .toLowerCase()
+    .replace(/-/g, " ")
     .replace(/[^\w\s]/g, "")
     .replace(/\b(the|a|an|to|and|of)\b/g, "")
     .trim();
@@ -59,9 +60,9 @@ export function trackVerb(verb: string) {
 
 export function extractVerb(tokens: string[]): string {
   for (const t of tokens){
-    if(tokenize.length >=3 && !TIMEWORDS.has(t) && !MEASUREWORDS.has(t)) continue;
+    if (t.length < 3 || TIMEWORDS.has(t) || MEASUREWORDS.has(t)) continue;
     trackVerb(t);
-    if(KNOWN_VERBS.has(t)) return t;
+    if (KNOWN_VERBS.has(t)) return t;
   }
   return "";
 }
@@ -99,16 +100,28 @@ export type VOPair = {
 };
 export function extractPair(questTitle: string): VOPair[] {
   const tokens = filter(tokenize(questTitle));
-  
-  const verbs = extractVerbs(tokens, { allowMultiple: true });
-  if (!verbs.length) return [];
+  if (tokens.length === 0) return [];
 
-  const objects = extractObjects(tokens);
-  if (!objects.length) return [];
+  let verbs = extractVerbs(tokens, { allowMultiple: true });
+  let objects = extractObjects(tokens);
 
-  return verbs.flatMap(verb => 
+  // Single token: treat as verb with default object so we can still match existing skills and award XP
+  if (tokens.length === 1) {
+    trackVerb(tokens[0]);
+    verbs = [tokens[0]];
+    objects = [DEFAULT.OBJECT_NAME];
+  } else if (!verbs.length) {
+    const [first, ...rest] = tokens;
+    trackVerb(first);
+    verbs = [first];
+    objects = rest;
+  } else if (!objects.length) {
+    objects = [DEFAULT.OBJECT_NAME];
+  }
+
+  return verbs.flatMap(verb =>
     objects.map(object => ({ verb, object }))
-  )
+  );
 }
 
 

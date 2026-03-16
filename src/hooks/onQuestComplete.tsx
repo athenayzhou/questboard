@@ -8,6 +8,7 @@ import { process } from "../utils/skill/generation/process";
 import { aggregate } from "../utils/skill/generation/aggregate";
 import { discover } from "../utils/skill/generation/discover";
 import { calculateXP } from "../utils/skill/analysis/experience";
+import { CANDIDATE } from "../utils/constants";
 
 import { autoNameSkill } from "../utils/skill/generation/name";
 import { useNameStore } from "../store/name";
@@ -29,27 +30,28 @@ export function onQuestComplete(
     }
   ){
     try{
-      devLog('pipeline', 'onQuestComplete started', { questId: quest.id, title: quest.title });
-
       const xp = calculateXP(quest);
-      devLog('pipeline', 'xp calculated', { xp });
+      devLog('skill-gen', `quest "${quest.title}" complete, xp to be gained: ${xp}`);
 
-      const { keys } = process(quest, evidenceStore);
-      devLog('pipeline', 'evidence recorded', { keys });
+      const { keys, evidence: newEvidence } = process(quest, evidenceStore);
 
-      const clusters = aggregate(xp, evidenceStore, clusterStore);
-      devLog('pipeline', 'evidence aggregated into clusters', { count: clusters?.length ?? 0 });
-
+      const clusters = aggregate(xp, newEvidence, clusterStore);
       discover(clusters, candidateStore);
-      devLog('pipeline', 'candidates discovered from clusters');
 
       const autoNameEnabled = localStorage.getItem('autoNameSkills') !== 'false';
-      const ready = candidateStore.getAll().filter(c => c.state === "ready");
+      const readyCandidates = candidateStore.getAll().filter(c => c.state === "ready");
 
+      const maxClusterCount = (c: { clusters: { count: number }[] }) =>
+        c.clusters.length ? Math.max(...c.clusters.map((cl) => cl.count)) : 0;
+      const ready = readyCandidates.filter(
+        (c) => maxClusterCount(c) >= CANDIDATE.MIN_SIZE
+      );
+
+      const promotedThisRun = new Set<string>();
       if(ready.length > 0){
         if(autoNameEnabled) {
-          autoNameSkill(ready, candidateStore);
-          devLog("pipeline", "naming auto applied", { readyCount: ready.length });
+          const created = autoNameSkill(ready, candidateStore);
+          created.forEach((k) => promotedThisRun.add(k));
         } else {
           const candidatesToName = ready.map(candidate => ({
             candidate,
@@ -58,21 +60,25 @@ export function onQuestComplete(
           }));
           if(candidatesToName.length > 0){
             useNameStore.getState().showPrompt(candidatesToName);
-            // showToast('success', `quest "${quest.title}" completed. new skill discovered`);
             return;
           }
         }
       }
 
-      for(const key of keys) {
-        const skill = useSkillStore.getState().getByKey(key);
-        if(skill) {
+      const { getByKey, getAll } = useSkillStore.getState();
+      for (const key of keys) {
+        if (promotedThisRun.has(key)) continue;
+        let skill = getByKey(key);
+        if (!skill) {
+          const verb = key.includes(":") ? key.slice(0, key.indexOf(":")) : key;
+          const byVerb = getAll().filter((s) => s.verb === verb);
+          skill = byVerb[0];
+        }
+        if (skill) {
           useSkillStore.getState().gainXP(skill.id, xp, quest.id);
-          devLog("pipeline", "xp applied to existing skill", { skillId: skill.id, xp: xp });
+          devLog('skill-gen', `existing skill for VO pair "${key}" found. skill name: ${skill.name}, xp: ${skill.xp}, proficiency: ${skill.proficiency}`);
         }
       }
-
-      devLog("pipeline", "onQuestComplete finished");
       if(!useNameStore.getState().isNaming){
         showToast('success', `quest "${quest.title}" completed`);
       }

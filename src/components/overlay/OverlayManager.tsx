@@ -10,6 +10,7 @@ import { QuestPage } from "../secondary/QuestPage";
 import { useQuestStore } from "../../store/quest";
 import { useMemo } from "react";
 import { AddQuestOverlay } from "../secondary/AddQuest";
+import { Shop } from "../secondary/Shop";
 
 export function OverlayManager(){
   const activeOverlay = useOverlay((s)=>s.activeOverlay);
@@ -35,6 +36,8 @@ export function OverlayManager(){
   switch (activeOverlay) {
     case "profile":
       return <Profile />
+    case "shop":
+      return <Shop />
     case "quests":
       return (
         <>

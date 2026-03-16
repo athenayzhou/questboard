@@ -30,7 +30,7 @@ export function SkillActivity({
           <p className="skill-activity-empty">no recent skill activity</p>
         ) : (
           skills.map(skill => {
-            const { progress } = levelToProgress(skill.xp, 1);
+            const { progress } = levelToProgress(skill.xp);
             return (
               <div key={skill.id} className="skill-progress-bar">
                 <div className="bar-text">

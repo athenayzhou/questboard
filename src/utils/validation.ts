@@ -1,5 +1,5 @@
 import { VALIDATION_RULES } from "./constants";
-import type { ValidationResult } from "../types/UI";
+import type { ValidationResult } from "../types/ui";
 
 export type ValidationErrors = Record<string, string>;
 

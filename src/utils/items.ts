@@ -1,4 +1,4 @@
-import type { SystemItem, SystemTitle, SystemBadge } from "../types/profile";
+import type { SystemItem, SystemTitle, SystemBadge } from "../types/system";
 
 export const RARITY_COLORS: Record<string, string> = {
     common: "#777",

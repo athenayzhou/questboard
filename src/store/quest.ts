@@ -31,11 +31,11 @@ type QuestState = {
   toggleSubquest: (questId: string, subquestId: string) => void;
 
   processRecurrence: () => void;
+  processAutoFail: () => void;
   createRecurrence: (quest: Omit<Quest, 'id'|'status'|'createdAt'>) => Quest;
   updateRecurrence: (templateId: string, updates: Partial<Quest>) => void;
   pauseRecurrence: (templateId: string) => void;
   resumeRecurrence: (templateId: string) => void;
-  processAutoFail: () => void;
 
   getAvailable: () => Quest[];
   getAccepted: () => Quest[];
@@ -163,6 +163,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       });
       showToast('success', `quest "${quest.title}" completed`);
       devLog('quest', 'quest completed', { id, title: quest.title });
+      devLog('player', `quest completed: "${quest.title}"`);
       onQuestComplete(quest, {
         evidenceStore,
         clusterStore,
@@ -176,14 +177,15 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     }
   },
 
-  failQuest: (id) => 
-    set(state => {
+  failQuest: (id) => {
+    const quest = get().quests.find((q) => q.id === id);
+    set((state) => {
       const now = Date.now();
-      const next: Quest[] = state.quests.map(q =>
+      const next: Quest[] = state.quests.map((q) =>
         q.id === id
-          ? { 
-              ...q, 
-              status: "failed" as Quest["status"], 
+          ? {
+              ...q,
+              status: "failed" as Quest["status"],
               completedAt: now,
               failedAt: now,
             }
@@ -191,7 +193,9 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       );
       syncToStorage(next);
       return { quests: next };
-    }),
+    });
+    if (quest) devLog("player", `quest failed: "${quest.title}"`);
+  },
 
     duplicateQuest: (id) => {
       const originalQuest = get().quests.find(q => q.id === id);
@@ -362,7 +366,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     const state = get();
     const now = Date.now();
     const overdueAccepted = state.quests.filter(
-      q => (q.status === "accepted" || q.status === "available") && isQuestOverdue(q)
+      (q) => q.status === "accepted" && isQuestOverdue(q)
     );
     if (overdueAccepted.length === 0) return;
     const next = state.quests.map(q => {

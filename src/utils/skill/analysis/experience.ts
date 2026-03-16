@@ -1,6 +1,6 @@
 import type { Quest } from "../../../types/quest";
-import type { Cluster, Skill, Progress } from "../../../types/skills";
-import { LEVELS } from "../../constants";
+import type { Cluster, Skill, Progress, XPEvent, Mastery } from "../../../types/skills";
+import { LEVELS,CURRENCY } from "../../constants";
 
 export function calculateXP(quest: Quest): number {
   const base = 10;
@@ -39,4 +39,20 @@ export function levelToProgress(xp: number, startLevel = 0): Progress {
     xpMax,
     progress: xpMax === Infinity ? 1 :Math.max(0.05, xpLevel / xpMax) ,
   }
+}
+
+export function getCurrencyRewards(
+  _skill: Skill,
+  oldXP: number,
+  newXP: number,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for future use
+  _events: XPEvent[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for future use
+  _masteries: Mastery[],
+): number {
+  const oldLevel = xpToLevel(oldXP);
+  const newLevel = xpToLevel(newXP);
+  if (newLevel <= oldLevel) return 0;
+  const levelUps = newLevel - oldLevel;
+  return levelUps * CURRENCY.LEVELUP_REWARD;
 }

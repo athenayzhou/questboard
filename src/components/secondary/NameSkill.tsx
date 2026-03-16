@@ -82,6 +82,7 @@ export function NameSkill({
         state: "ready" as const,
       };
       const suggestions = generateSkillNames(target);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local dialog state to latest props when opened
       setSuggestedNames(suggestions);
       setCustomName(currentName || "");
       if (justOpened) {

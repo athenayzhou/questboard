@@ -5,6 +5,7 @@ import { useXPEventStore } from "./xpEvent";
 import { getEligibleSkills } from "../utils/skill/generation/grant";
 import { generateMasteryName, generateMasteryTitle } from "../utils/skill/generation/name";
 import { usePlayerStore } from "./player";
+import { devLog } from "../dev/devLogs";
 
 type MasteryState = {
   masteries: Mastery[];
@@ -38,6 +39,7 @@ export const useMasteryStore = create<MasteryState>((set, get) => ({
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       } catch {
+        // ignore storage errors
       }
       return { masteries: next };
     });
@@ -65,6 +67,9 @@ export const useMasteryStore = create<MasteryState>((set, get) => ({
 
       get().addMastery(mastery);
       usePlayerStore.getState().unlockTitle(mastery.title);
+      devLog("player", `mastery granted: "${mastery.name}"`);
+      devLog("mastery", `new mastery: "${mastery.name}" for verb: "${mastery.verb}" from skills, ${mastery.skillIds.join(", ")}`);
+      devLog("mastery", `new title gained from mastery (${mastery.name}), "${mastery.title}"`);
       granted.push(mastery);
     }
     return granted;

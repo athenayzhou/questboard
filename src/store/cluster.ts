@@ -2,6 +2,7 @@ import type { Evidence, Cluster } from "../types/skills";
 import { calculateConfidence } from "../utils/skill/analysis/threshold";
 import { applyXP } from "../utils/skill/analysis/experience";
 import { DECAY, MS } from "../utils/constants";
+import { devLog } from "../dev/devLogs";
 
 export class ClusterStore {
   private clusters: Map<string, Cluster> =(() => {
@@ -20,21 +21,19 @@ export class ClusterStore {
   add(e: Evidence, xp: number): Cluster {
     const key = `${e.verb}:${e.object}`;
     const existing = this.clusters.get(key);
-    if(existing) {
-      return this.update(existing, e, xp);
-    } else {
-      return this.create(e, xp);
-    }
+    const cluster = existing ? this.update(existing, e, xp) : this.create(e, xp);
+    devLog('skill-gen', `clustering VO pair {${cluster.verb}:${cluster.object}} with count: ${cluster.count}, confidence: ${cluster.confidence}, and total xp: ${cluster.xp}`);
+    return cluster;
   }
 
   decay(now: number){
     const toRemove: string[] = [];
     this.clusters.forEach(cluster => {
       const daysIdle = (now - cluster.lastSeenAt) / MS.DAY;
-      if(daysIdle > 7){
-        const decay = daysIdle * DECAY.CLUSTER_DECAY_RATE;
-        cluster.confidence = Math.max(0, cluster.confidence - decay);
-      
+      if(daysIdle > DECAY.CLUSTER_DECAY_IDLE_DAYS){
+        const decayAmount = daysIdle * DECAY.CLUSTER_DECAY_RATE;
+        cluster.confidence = Math.max(0, cluster.confidence - decayAmount);
+        devLog("decay", `cluster "${cluster.key}" decayed ⇒ -${decayAmount.toFixed(4)} decrease in confidence, confidence: ${cluster.confidence.toFixed(4)}, days idle: ${Math.floor(daysIdle)}, removal threshold: ${DECAY.CLUSTER_REMOVAL_THRESHOLD}`);
         if(cluster.confidence < DECAY.CLUSTER_REMOVAL_THRESHOLD){
           toRemove.push(cluster.key);
         }

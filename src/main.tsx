@@ -13,6 +13,7 @@ import './styles/overlay/skill-ledger.css';
 import './styles/overlay/quest-board.css';
 import './styles/overlay/quest-log.css';
 import './styles/overlay/setting.css';
+import './styles/overlay/shop.css';
 import './styles/ui/badges.css';
 import './styles/ui/buttons.css';
 import './styles/ui/progress-bar.css';

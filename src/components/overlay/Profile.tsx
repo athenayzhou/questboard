@@ -1,15 +1,16 @@
 import { useOverlay } from "../../store/overlay";
-import { useMemo, useReducer, useState } from "react";
-import type { PlayerData, EquipSlot, SystemItem } from "../../types/profile";
+import { useMemo, useReducer, useState, useEffect } from "react";
+import type { PlayerData } from "../../types/player";
+import type { EquipSlot, SystemItem } from "../../types/system";
 import { TEST_SYSTEM_ITEMS as SystemItems, TEST_SYSTEM_TITLES as SystemTitles, TEST_SYSTEM_BADGES as SystemBadges } from "../../dev/data/TEST_SYSTEM";
 import { RARITY_COLORS } from "../../utils/items";
 import { usePlayerStore } from "../../store/player";
-
 type Action =
   | { type: "EQUIP_ITEM"; slot: EquipSlot; itemId: string }
   | { type: "UNEQUIP_ITEM"; slot: EquipSlot }
   | { type: "SET_ACTIVE_TITLE"; titleId: string }
-  | { type: "SET_ACTIVE_BADGE"; badgeId: string };
+  | { type: "SET_ACTIVE_BADGE"; badgeId: string }
+  | { type: "UPDATE_PLAYER"; player: PlayerData };
 
 function playerReducer(state: PlayerData, action: Action): PlayerData {
   switch (action.type) {
@@ -63,6 +64,8 @@ function playerReducer(state: PlayerData, action: Action): PlayerData {
           activeBadge: action.badgeId
         }
       };
+    case "UPDATE_PLAYER":
+      return structuredClone(action.player);
     default:
       return state;
   }
@@ -72,6 +75,7 @@ const EQUIP_SLOTS: EquipSlot[] = ["head", "body", "accessory", "weapon"];
 
 export function Profile(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);
+  const openOverlay = useOverlay((s) => s.openOverlay);
   const loadedPlayer = usePlayerStore(s => s.player);
   const setPlayerGlobal = usePlayerStore(s => s.setPlayer);
   const [player, dispatch] = useReducer(
@@ -79,6 +83,10 @@ export function Profile(){
     loadedPlayer,
     p => structuredClone(p));
   const [hoveredSlot, setHoveredSlot] = useState<EquipSlot | null>(null);
+
+  useEffect(() => {
+    dispatch({ type: "UPDATE_PLAYER", player: loadedPlayer });
+  }, [loadedPlayer]);
 
   const equippedItems = useMemo(() => {
     const result: Partial<Record<EquipSlot, SystemItem>> = {};
@@ -206,6 +214,10 @@ export function Profile(){
             </div>
           </div>
         </div>
+        <div className="player-currency">
+          <span>coins: {player.currencies.coins}</span>
+          <span>gems: {player.currencies.gems}</span>
+        </div>
       </div>
 
       <div className="item-panel">
@@ -268,7 +280,12 @@ export function Profile(){
             </div>
           </div>
         </section>
-        <button id="save-profile" onClick={saveProfile}>save changes</button>
+
+        
+        <div className="profile-actions">
+          <button className="shop-btn" onClick={() => openOverlay('shop')}>shop</button>
+          <button id="save-profile" onClick={saveProfile}>save changes</button>
+        </div>
       </div>
       </div>
     </div>

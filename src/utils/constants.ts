@@ -124,3 +124,7 @@ export const VALIDATION_RULES = {
   CATEGORY_MAX: 50,
   CATEGORY_MIN: 1
 }
+
+export const CURRENCY = {
+  LEVELUP_REWARD: 10,
+}

@@ -54,7 +54,7 @@ describe("skill confidence utils", () => {
         clusters: [],
         xp: 100,
         readiness: 0,
-        origin: [],
+        origin: ["q1", "q2", "q3"], // MIN_SIZE >= 3 so readiness is not capped
         firstSeenAt: Date.now(),
         lastSeenAt: Date.now(),
         state: "latent",

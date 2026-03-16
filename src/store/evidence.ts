@@ -78,12 +78,7 @@ export class EvidenceStore {
     }
 
     this.evidence.push(item);
-    devLog('evidence', 'added evidence', {
-      verb: item.verb,
-      object: item.object,
-      origin: item.origin,
-      timespent: item.timespent,
-    });
+    devLog('skill-gen', `evidence recorded {${item.verb}:${item.object}} from "${item.origin}"`);
     this.persist();
   }
 

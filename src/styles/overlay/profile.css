@@ -37,6 +37,37 @@
   text-overflow: ellipsis;
   max-width: 100%;
 }
+
+.player-currency {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.player-currency span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 4px 10px;
+  background: var(--bg-field);
+  color: var(--sand-bright);
+  border: 1px solid var(--grass-dark);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-grass);
+}
+.player-currency span:first-child {
+  background: linear-gradient(135deg, #b8860b 0%, #daa520 50%, #b8860b 100%);
+  border-color: #8b6914;
+  color: var(--sand-bright);
+}
+.player-currency span:last-child {
+  background: linear-gradient(135deg, #4a90a4 0%, #6bb5c9 50%, #4a90a4 100%);
+  border-color: #2d6b7a;
+  color: var(--sand-bright);
+}
+
 .player-achievements {
   display: flex;
   flex-direction: row;
@@ -283,8 +314,16 @@
   letter-spacing: 0.04em;
 }
 
-#save-profile {
+.profile-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 0.5rem;
+}
+
+.profile-actions .shop-btn,
+.profile-actions #save-profile {
   padding: 0.5rem 0.75rem;
   font-size: 0.9rem;
   background: var(--bg-field);
@@ -295,7 +334,8 @@
   cursor: pointer;
   transition: 0.2s;
 }
-#save-profile:hover {
+.profile-actions .shop-btn:hover,
+.profile-actions #save-profile:hover {
   background: var(--grass-light);
 }
 

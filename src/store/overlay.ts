@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type OverlayType = "profile"|"quests"|"logs"|"friends"|"skills"|"settings"|"addQuest" | null
+type OverlayType = "profile"|"quests"|"logs"|"friends"|"skills"|"settings"|"addQuest"|"shop"| null
 
 type QuestPage = {
   id: string;

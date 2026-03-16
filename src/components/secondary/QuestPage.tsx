@@ -25,6 +25,14 @@ export function QuestPage({
   onFocus,
   onMove,
 } : QuestPageProps) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    // Intentionally sync "now" for overdue display; interval keeps it updated
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
   const editQuest = useQuestStore((s) => s.editQuest);
   const updateRecurrence = useQuestStore((s) => s.updateRecurrence);
   const pauseRecurrence = useQuestStore((s) => s.pauseRecurrence);
@@ -157,7 +165,7 @@ export function QuestPage({
       <section className="quest-details">
         {isQuestOverdue(quest) && (quest.status === "available" || quest.status === "accepted") && (() => {
           const dueBy = getQuestDueBy(quest);
-          const daysAgo = dueBy != null ? Math.floor((Date.now() - dueBy) / (1000 * 60 * 60 * 24)) : 0;
+          const daysAgo = dueBy != null ? Math.floor((now - dueBy) / (1000 * 60 * 60 * 24)) : 0;
           return (
             <div className="quest-late-indicator">
               <span className="quest-late-badge">Overdue</span>

@@ -1,4 +1,4 @@
-import type { ToastType, ToastOptions } from "../types/UI";
+import type { ToastType, ToastOptions } from "../types/ui";
 
 type ToastShow = (type: ToastType, message: string, options?: ToastOptions) => string;
 

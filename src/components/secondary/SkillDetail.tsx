@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { SkillLedgerEntry } from "../../types/skills";
 import { useXPEventStore } from "../../store/xpEvent";
 import { getSkillCooccurence } from "../../utils/skill/analysis/cooccurence";
+import { useStreakStore } from "../../store/streak";
 
 type Props = {
   skill: SkillLedgerEntry;
@@ -12,6 +13,8 @@ type Props = {
 export function SkillDetail({ skill, onClose, onRename }: Props) {
   const skillId = skill.id;
   const events = useXPEventStore((s) => s.events);
+  const streakDays = useStreakStore((s) => s.currentDays);
+  const streakLastDate = useStreakStore((s) => s.lastCompletion);
 
   const xpEvents = useMemo(
     () => events.filter((e) => e.skillId === skillId),
@@ -42,6 +45,11 @@ export function SkillDetail({ skill, onClose, onRename }: Props) {
       <div className="skill-summary">
         <p>total xp: {totalXP}</p>
         <p>sessions: {xpEvents.length}</p>
+      </div>
+
+      <div className="streak-display">
+        <h3>daily quest streak</h3>
+        <p>{streakDays} days (last: {streakLastDate || "none"})</p>
       </div>
 
       {sortedXP.length > 0 && (

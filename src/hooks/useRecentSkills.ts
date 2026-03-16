@@ -13,7 +13,7 @@ export function useRecentSkills(){
     .map(skill => {
       const event = events.find(e => e.skillId === skill.id);
       const lastSeenAt = event?.timestamp ?? 0;
-      const { level } = levelToProgress(skill.xp, 1);
+      const { level } = levelToProgress(skill.xp);
 
       return {
         id: skill.id,
