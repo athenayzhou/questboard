@@ -1,5 +1,5 @@
 import { LoadingSpinner } from './LoadingSpinner';
-import { cn } from '../../utils/cn';
+import { cn } from '../../utils/format/cn';
 
 type LoadingButtonProps = {
   loading?: boolean;

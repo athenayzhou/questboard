@@ -48,6 +48,18 @@ export type Quest = {
   nextDueAt?: number;
   recurrenceCount?: number;
   paused?: boolean;
+
+  isSystemGenerated?: boolean;
+  systemType?: "seasonal" | "skill_guide" | "event" | "tutorial";
+  generationCriteria?: {
+    season?: string;
+    skillTarget?: string;
+    playerLevel?: number;
+    requiredMasteries?: string[];
+    dateRange?: { start: { month: number; day: number }; end: { month: number; day: number }}
+  };
+  expiresAfterDays?: number;
+  expiresAt?: number;
 }
 
 export type CompletedQuest = Quest & {

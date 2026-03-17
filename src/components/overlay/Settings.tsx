@@ -5,7 +5,7 @@ import { useSkillStore } from "../../store/skill";
 import { useNameStore } from "../../store/name";
 import { candidateStore } from "../../store/bundledStores";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
-import { showToast } from "../../utils/toastAPI";
+import { showToast } from "../../utils/toast";
 import { APP, CANDIDATE } from "../../utils/constants";
 import { autoNameSkill, generateSkillNames } from "../../utils/skill/generation/name";
 
@@ -57,6 +57,7 @@ export function Settings() {
     useQuestStore.getState().setQuest([]);
     useSkillStore.setState({ skills: {} });
     localStorage.setItem("skills", "{}");
+    useOverlay.getState().closeAllQuests();
     showToast("success", "Quest and skill data reset.");
     setShowResetConfirm(false);
     closeOverlay();

@@ -12,23 +12,23 @@ export const TEST_PLAYER_DATA: PlayerData = {
     },
     equipment: {
         equipped: {
-            head: "pink_bandana",
-            body: "yellow_apron",
-            accessory: null,
-            weapon: "soup_ladle",
+            head: "pink-bandana",
+            body: "yellow-apron",
+            accessory: "salt-shaker",
+            weapon: "soup-ladle",
         },
     },
     inventory: {
         items: {
-            soup_ladle:       { quantity: 1, acquiredAt: "2026-02-07" },
-            yellow_apron:     { quantity: 1, acquiredAt: "2026-02-07" },
-            pink_bandana:     { quantity: 1, acquiredAt: "2026-02-07" },
-            salt_shaker:      { quantity: 1, acquiredAt: "2026-02-07" },
-            thin_frame_glasses: { quantity: 1, acquiredAt: "2026-02-08" },
+            "pink-bandana": { quantity: 1, acquiredAt: "2026-02-07" },
+            "yellow-apron": { quantity: 1, acquiredAt: "2026-02-07" },
+            "sturdy-sponge": { quantity: 1, acquiredAt: "2026-02-07" },
+            "soup-ladle": { quantity: 1, acquiredAt: "2026-02-07" },
+            "salt-shaker": { quantity: 2, acquiredAt: "2026-02-08" },
         },
     },
     currencies: {
-        coins: 0,
-        gems: 0,
+        coins: 250,
+        gems: 50,
     },
 }

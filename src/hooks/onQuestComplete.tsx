@@ -14,7 +14,7 @@ import { autoNameSkill } from "../utils/skill/generation/name";
 import { useNameStore } from "../store/name";
 import { NameSkill } from "../components/secondary/NameSkill";
 
-import { showToast } from "../utils/toastAPI";
+import { showToast } from "../utils/toast";
 import { devLog, devError } from "../dev/devLogs";
 
 export function onQuestComplete(

@@ -12,10 +12,11 @@ import { NamePrompt } from './hooks/onQuestComplete';
 import { useShopStore } from './store/shop';
 import { DEFAULT_SHOP_ITEMS } from './data/systemItems';
 
-import { ToastProvider } from './store/ToastProvider';
-import { ConfirmProvider } from './store/ConfirmProvider';
+import { ToastProvider } from './store/toast';
+import { ConfirmProvider } from './store/confirmation';
 import { ToastContainer } from './components/ui/Toast';
 import { useRecurringQuests } from './hooks/useRecurringQuests';
+import { useSystemQuests } from './hooks/useSystemQuests';
 
 function App() {
   const [orbitUser, setOrbitUser] = useState(true);
@@ -25,6 +26,7 @@ function App() {
 
   useSkillDecay();
   useRecurringQuests();
+  useSystemQuests();
 
   useEffect(() => {
     useShopStore.getState().setItems(DEFAULT_SHOP_ITEMS);

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { Toast, ToastType, ToastOptions } from '../types/ui';
-import { setToastHandler } from '../utils/toastAPI';
+import { setToastHandler } from '../utils/toast';
 
 type ToastContextValue = {
   toasts: Toast[];

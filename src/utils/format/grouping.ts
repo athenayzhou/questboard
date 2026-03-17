@@ -1,7 +1,7 @@
 // QUEST LOG // 
 
-import type { Quest } from "../types/quest";
-import { tokenize, normalize } from "./format/text";
+import type { Quest } from "../../types/quest";
+import { tokenize, normalize } from "./text";
 
 export type CompletedQuest = Quest & {
   status: "completed" | "failed";

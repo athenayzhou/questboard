@@ -1,5 +1,5 @@
 import { useOverlay } from "../../store/overlay";
-import { questProgress } from "../../utils/progress";
+import { questProgress } from "../../utils/skill/analysis/experience";
 import { useState, useEffect, useMemo } from "react";
 import { useQuestStore } from "../../store/quest";
 

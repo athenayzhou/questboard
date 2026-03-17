@@ -2,7 +2,12 @@ import { create } from "zustand";
 import type { Quest } from "../types/quest";
 import { onQuestComplete } from "../hooks/onQuestComplete";
 import { evidenceStore, candidateStore, clusterStore } from './bundledStores';
-import { showToast } from "../utils/toastAPI";
+import { showToast } from "../utils/toast";
+import { useStreakStore } from "./streak";
+import { usePlayerStore } from "./player";
+import { useXPEventStore } from "./xpEvent";
+import { SYSTEM_BADGES } from "../data/systemBadges";
+import { getBadges } from "../utils/badges";
 
 import { devLog, devError } from "../dev/devLogs";
 import { RecurringQuests } from "../utils/recurrence";
@@ -161,6 +166,15 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         syncToStorage(next);
         return { quests: next };
       });
+      useStreakStore.getState().registerCompletion(new Date());
+      const quests = get().quests;
+      const newlyEarned = getBadges(SYSTEM_BADGES, {
+        currentStreakDays: useStreakStore.getState().currentDays,
+        quests,
+        unlockedBadges: usePlayerStore.getState().player.achievements.unlockedBadges,
+        xpEvents: useXPEventStore.getState().getAll(),
+      });
+      newlyEarned.forEach((badgeId) => usePlayerStore.getState().unlockBadge(badgeId));
       showToast('success', `quest "${quest.title}" completed`);
       devLog('quest', 'quest completed', { id, title: quest.title });
       devLog('player', `quest completed: "${quest.title}"`);

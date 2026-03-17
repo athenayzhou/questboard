@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { PlayerData } from "../types/player";
-import type { EquipSlot, CurrencyId } from "../types/system";
+import type { CurrencyId } from "../types/system";
 import { getSystemItemById } from "../data/systemItems";
 import { devLog } from "../dev/devLogs";
 
@@ -31,8 +31,6 @@ type PlayerStore = {
     unlockBadge: (badge: string) => void;
 
     acquireItem: (itemId: string, quantity?: number) => void;
-    equipItem: (itemId: string) => void;
-    unequipSlot: (slot: EquipSlot) => void;
     addCurrency: (currency: CurrencyId, amount: number) => void;
     spendCurrency: (currency: CurrencyId, amount: number) => boolean;
 };
@@ -56,8 +54,8 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
         },
         inventory: { items: {} },
         currencies: {
-            coins: 500,
-            gems: 100,
+            coins: 0,
+            gems: 0,
         },
     },
     setPlayer: (player) => {
@@ -124,42 +122,6 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
                 inventory: { items: nextItems },
             };
 
-            savePlayer(nextPlayer);
-            return { player: nextPlayer };
-        });
-    },
-
-    equipItem: (itemId) => {
-        const item = getSystemItemById(itemId);
-        if (!item) return;
-        set((state) => {
-            const items = state.player.inventory.items ?? {};
-            const owned = items[itemId]?.quantity ?? 0;
-            if (owned <= 0) return state;
-            const slot = item.slot;
-            const nextEquipped = {
-                ...state.player.equipment.equipped,
-                [slot]: itemId,
-            };
-            const nextPlayer: PlayerData = {
-                ...state.player,
-                equipment: { equipped: nextEquipped },
-            };
-            savePlayer(nextPlayer);
-            return { player: nextPlayer };
-        });
-    },
-
-    unequipSlot: (slot) => {
-        set((state) => {
-            const nextEquipped = {
-                ...state.player.equipment.equipped,
-                [slot]: null,
-            };
-            const nextPlayer: PlayerData = {
-                ...state.player,
-                equipment: { equipped: nextEquipped },
-            };
             savePlayer(nextPlayer);
             return { player: nextPlayer };
         });

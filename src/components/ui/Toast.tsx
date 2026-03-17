@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import type { Toast } from "../../types/ui";
-import { cn } from "../../utils/cn";
-import { useToast } from "../../store/ToastProvider";
+import { cn } from "../../utils/format/cn";
+import { useToast } from "../../store/toast";
 
 type ToastItemProps = {
   toast: Toast;

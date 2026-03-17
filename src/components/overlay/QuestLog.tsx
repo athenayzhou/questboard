@@ -3,7 +3,7 @@ import { LogCard } from "../secondary/LogCard";
 import type { CompletedQuest } from "../../types/quest";
 import { useQuestStore } from "../../store/quest";
 
-import { group } from "../../utils/grouping";
+import { group } from "../../utils/format/grouping";
 
 export function QuestLog(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);

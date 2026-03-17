@@ -2,11 +2,11 @@ import { useOverlay } from "../../store/overlay";
 import { useState, useEffect } from "react";
 import { usePlayerStore } from "../../store/player";
 import { useShopStore } from "../../store/shop";
-import { getSystemItemById } from "../../data/systemItems";
-import { showToast } from "../../utils/toastAPI";
+import { getSystemItemById, getItemIconUrl } from "../../data/systemItems";
+import { showToast } from "../../utils/toast";
 
 export function Shop() {
-  const closeOverlay = useOverlay((s) => s.closeOverlay);
+  const openOverlay = useOverlay((s) => s.openOverlay);
   const loadedPlayer = usePlayerStore((s) => s.player);
   const shopItems = useShopStore((s) => s.getAll());
   const purchase = useShopStore((s) => s.purchase);
@@ -36,7 +36,7 @@ export function Shop() {
       <div className="header shop-header">
         <h1>shop</h1>
         <div className="header-actions">
-          <button className="close shop-btn" onClick={closeOverlay}>x</button>
+          <button className="close shop-btn" onClick={() => openOverlay("profile")}>x</button>
         </div>
       </div>
       <div className="shop-content">
@@ -55,6 +55,11 @@ export function Shop() {
               const canAfford = balance >= shopItem.price;
               return (
                 <div key={shopItem.id} className="shop-item">
+                  {systemItem && (
+                    <div className="shop-item-image">
+                      <img src={getItemIconUrl(systemItem.id)} alt={itemName} />
+                    </div>
+                  )}
                   <div className="shop-item-name">{itemName}</div>
                   <div className="shop-item-price">{shopItem.price} {shopItem.currency} </div>
                 {shopItem.requiredMasteryVerb && (

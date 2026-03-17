@@ -83,8 +83,8 @@ export function Model({
   )
 }
 
-useGLTF.preload("./mirror.glb");
-useGLTF.preload("./bulletin.glb");
-useGLTF.preload("./phone.glb");
-useGLTF.preload("./tree.glb");
-useGLTF.preload("./toolbox.glb");
+useGLTF.preload("./model/mirror.glb");
+useGLTF.preload("./model/bulletin.glb");
+useGLTF.preload("./model/phone.glb");
+useGLTF.preload("./model/tree.glb");
+useGLTF.preload("./model/toolbox.glb");

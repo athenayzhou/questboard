@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { QuestGroup, CompletedQuest } from "../../utils/grouping";
+import type { QuestGroup, CompletedQuest } from "../../utils/format/grouping";
 import { formatDate } from "../../utils/format/date";
-import { getGroupSummary, getLatest } from "../../utils/grouping";
+import { getGroupSummary, getLatest } from "../../utils/format/grouping";
 import { StatusBadge } from "../ui/StatusBadge";
 import { useQuestStore } from "../../store/quest";
 import { useOverlay } from "../../store/overlay";

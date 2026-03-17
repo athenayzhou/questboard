@@ -2,8 +2,9 @@ import { useOverlay } from "../../store/overlay";
 import { useMemo, useReducer, useState, useEffect } from "react";
 import type { PlayerData } from "../../types/player";
 import type { EquipSlot, SystemItem } from "../../types/system";
-import { TEST_SYSTEM_ITEMS as SystemItems, TEST_SYSTEM_TITLES as SystemTitles, TEST_SYSTEM_BADGES as SystemBadges } from "../../dev/data/TEST_SYSTEM";
-import { RARITY_COLORS } from "../../utils/items";
+import { SYSTEM_ITEMS_BY_ID, RARITY_COLORS, getItemIconUrl } from "../../data/systemItems";
+import { SYSTEM_TITLES } from "../../data/systemTitles";
+import { SYSTEM_BADGES } from "../../data/systemBadges";
 import { usePlayerStore } from "../../store/player";
 type Action =
   | { type: "EQUIP_ITEM"; slot: EquipSlot; itemId: string }
@@ -92,8 +93,8 @@ export function Profile(){
     const result: Partial<Record<EquipSlot, SystemItem>> = {};
     EQUIP_SLOTS.forEach(slot => {
       const itemId = player.equipment.equipped[slot];
-      if(itemId && SystemItems[itemId]) {
-        result[slot] = SystemItems[itemId];
+      if(itemId && SYSTEM_ITEMS_BY_ID[itemId]) {
+        result[slot] = SYSTEM_ITEMS_BY_ID[itemId];
       }
     });
     return result;
@@ -102,7 +103,7 @@ export function Profile(){
   const inventoryItems = useMemo(() => {
     return Object.keys(player.inventory.items)
       .map(id => {
-        const systemItem = SystemItems[id];
+        const systemItem = SYSTEM_ITEMS_BY_ID[id];
         if(!systemItem) return null;
         return {
           ...systemItem,
@@ -111,16 +112,16 @@ export function Profile(){
       })
       .filter((item): item is SystemItem & { quantity: number } => Boolean(item))
   }, [player.inventory.items]);
-  const unlockedTitles = useMemo(() => 
-    player.achievements.unlockedTitles
-      .map(id => SystemTitles[id])
-      .filter(Boolean),
+  const unlockedTitles = useMemo(
+    () =>
+      player.achievements.unlockedTitles.map((id) => SYSTEM_TITLES[id] ?? { id, display: id }),
     [player.achievements.unlockedTitles]
   );
-  const unlockedBadges = useMemo(() => 
-    player.achievements.unlockedBadges
-      .map(id => SystemBadges[id])
-      .filter(Boolean),
+  const unlockedBadges = useMemo(
+    () =>
+      player.achievements.unlockedBadges
+        .map((id) => SYSTEM_BADGES[id])
+        .filter(Boolean),
     [player.achievements.unlockedBadges]
   );
 
@@ -134,7 +135,7 @@ export function Profile(){
   );
 
   function equipItem(itemId: string) {
-    const systemItem = SystemItems[itemId];
+    const systemItem = SYSTEM_ITEMS_BY_ID[itemId];
     if(!systemItem) return;
     if(!player.inventory.items[itemId]) return;
     const slot = systemItem.slot;
@@ -198,12 +199,16 @@ export function Profile(){
                   }
                 }}
                 >
-                <div 
+                <div
                   className={`equip-slot-image ${item ? item.rarity : "empty"}`}
                   style={{
-                    backgroundColor: item ? RARITY_COLORS[item.rarity] : "#1f1f25"
+                    backgroundColor: item ? RARITY_COLORS[item.rarity] : "#1f1f25",
                   }}
-                />
+                >
+                  {item && (
+                    <img src={getItemIconUrl(item.id)} alt={item.name} className="equip-slot-img" />
+                  )}
+                </div>
                 {/* {slot}: {equippedItems[slot]?.name ?? "-"} */}
               </div>
             )})}
@@ -233,13 +238,14 @@ export function Profile(){
                 onMouseEnter={() => setHoveredSlot(item.slot)}
                 onMouseLeave={() => setHoveredSlot(null)}
               >
-                <div className="item-image"
+                <div
+                  className="item-image"
                   style={{
                     backgroundColor: RARITY_COLORS[item.rarity] ?? "#444",
-                    border: "none"
+                    border: "none",
                   }}
                 >
-                  {/* <img src={item.icon} /> */}
+                  <img src={getItemIconUrl(item.id)} alt={item.name} className="item-icon" />
                 </div>
                 <div className="item-name">{item.name}</div>
               </button>

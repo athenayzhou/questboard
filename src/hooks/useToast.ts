@@ -1,4 +1,4 @@
-import { useToast } from "../store/ToastProvider";
+import { useToast } from "../store/toast";
 import type { ToastOptions } from "../types/ui";
 
 export function useToastActions() {

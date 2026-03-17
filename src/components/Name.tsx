@@ -1,6 +1,7 @@
 import { Html } from "@react-three/drei";
 import { usePlayerStore } from "../store/player";
-import { TEST_SYSTEM_TITLES as SYSTEM_TITLES, TEST_SYSTEM_BADGES as SYSTEM_BADGES } from "../dev/data/TEST_SYSTEM";
+import { SYSTEM_TITLES } from "../data/systemTitles";
+import { SYSTEM_BADGES } from "../data/systemBadges";
 
 type NameProps = {
   position?: [number, number, number]

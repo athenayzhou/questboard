@@ -57,12 +57,19 @@ export const TEST_SYSTEM_TITLES: Record<string, SystemTitle> = {
 }
 
 export const TEST_SYSTEM_BADGES: Record<string, SystemBadge> = {
-    daily_streak: {
-        id: "daily_streak",
-        display: "daily streak"
-    },
-    productive_bursts: {
-        id: "productive_bursts",
-        display: "productive bursts"
-    }
-}
+  daily_streak: { id: "daily_streak", display: "daily streak" },
+  productive_bursts: { id: "productive_bursts", display: "productive bursts" },
+  quest_crusher: { id: "quest_crusher", display: "quest crusher" },
+  well_rounded: { id: "well_rounded", display: "well rounded" },
+  back_in_saddle: { id: "back_in_saddle", display: "back in the saddle" },
+  daredevil: { id: "daredevil", display: "daredevil" },
+  on_time: { id: "on_time", display: "on time" },
+  deep_diver: { id: "deep_diver", display: "deep diver" },
+  perfectionist: { id: "perfectionist", display: "perfectionist" },
+  steady_pace: { id: "steady_pace", display: "steady pace" },
+  jack_of_all_trades: { id: "jack_of_all_trades", display: "jack of all trades" },
+  phoenix: { id: "phoenix", display: "phoenix" },
+  early_bird: { id: "early_bird", display: "early bird" },
+  century_club: { id: "century_club", display: "century club" },
+  specialist: { id: "specialist", display: "specialist" },
+};
