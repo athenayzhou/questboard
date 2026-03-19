@@ -1,0 +1,89 @@
+.skill-activity-log {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 40;
+  width: min(260px, calc(100vw - 24px));
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(196, 165, 116, 0.35);
+  background: rgba(250, 245, 235, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 10px 26px rgba(92, 74, 50, 0.14);
+  backdrop-filter: blur(8px);
+  color: var(--text-path);
+  pointer-events: none;
+  user-select: none;
+}
+
+.skill-activity-log__title {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  color: var(--text-warm-medium);
+  margin-bottom: 6px;
+}
+
+.skill-activity-log__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skill-activity-log__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.skill-activity-log__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.skill-activity-log__name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--grass-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.skill-activity-log__meta {
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-warm-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.skill-activity-log__bar {
+  opacity: 0.9;
+}
+
+.skill-activity-log__bar .progress-wrapper {
+  gap: 6px;
+}
+
+.skill-activity-log__bar .progress-label {
+  font-size: 0.72rem;
+  min-width: 2.2rem;
+  color: var(--text-warm-medium);
+}
+
+.skill-activity-log__bar .progress-bar {
+  height: 0.38rem;
+  background: rgba(232, 212, 184, 0.7);
+}
+

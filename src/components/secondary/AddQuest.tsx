@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useQuestStore } from "../../store/quest";
 import { useOverlay } from "../../store/overlay";
 import { LoadingButton } from "../ui/LoadingButton";
 import { useValidation } from "../../hooks/useValidation";
 import { VALIDATION_RULES } from "../../utils/constants";
+import type { Quest } from "../../types/quest";
 
 export function AddQuestOverlay() {
   const setOverlay = useOverlay((s) => s.openOverlay);
@@ -18,6 +20,8 @@ export function AddQuestOverlay() {
   const [frequency, setFrequency] = useState<"once"|"daily"|"weekly"|"monthly"|"custom">("once");
   const [customFrequency, setCustomFrequency] = useState<number | undefined>(undefined);
   const [deadline, setDeadline] = useState<string | null>(null);
+  const [subquests, setSubquests] = useState<NonNullable<Quest["subquests"]>>([]);
+  const [currentSubquest, setCurrentSubquest] = useState("");
 
   const { errors, setError, hasErrors } = useValidation();
   const [isCreating, setIsCreating] = useState(false);
@@ -70,11 +74,15 @@ export function AddQuestOverlay() {
         frequency,
         customFrequency: frequency === "custom" ? customFrequency : undefined,
         deadline,
+        subquests: subquests.length > 0 ? subquests : undefined,
       });
       setTitle("");
       setDescription("");
       setCategories([]);
       setCurrentCategory("");
+      setSubquests([]);
+      setCurrentSubquest("");
+      useOverlay.getState().setBoardTab("available");
       setOverlay("quests");
     } finally {
       setIsCreating(false);
@@ -85,122 +93,281 @@ export function AddQuestOverlay() {
     setOverlay("quests")
   };
 
-  return (
-    <div className="overlay addQuest-overlay">
-      <div className="modal quest-create">
+  const portalTarget = document.body;
+  if (!portalTarget) return null;
 
+  return createPortal(
+    <>
+      <div
+        className="overlay-backdrop"
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) setOverlay("quests");
+        }}
+      />
+      <div className="modal quest-create addQuest-modal">
         <h2>new quest</h2>
-
-        <div className="form-field">
-        <input
-          placeholder="title"
-          value={title}
-          onChange={(e) => handleTitleChange(e.target.value)}
-          className={errors.title ? 'error' : ''}
-        />
-        {errors.title && <div className="error-message">{errors.title}</div>}
-        </div>
-
-        <div className="form-field">
-        <textarea
-          placeholder = "description"
-          value={description}
-          onChange={(e) => handleDescriptionChange(e.target.value)}
-          className={errors.description ? 'error' : ''}
-        />
-        {errors.description && <div className="error-message">{errors.description}</div>}
-        </div>
-
-        <div className="row">
-          <label>categories</label>
-          {categories.length > 0 && (
-            <div className="category-tags">
-              {categories.map(category => (
-                <span key={category} className="category-tag">
-                  {category}
-                  <button onClick={() => removeCategory(category)}>x</button>
-                </span>
-              ))}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleCreate();
+          }}
+          className="quest-edit-form"
+        >
+          <div className="quest-edit-intro">
+            <div className="form-group">
+              <label htmlFor="addq-title">title</label>
+              <input
+                id="addq-title"
+                type="text"
+                placeholder="title"
+                value={title}
+                onChange={(e) => handleTitleChange(e.target.value)}
+                className={errors.title ? "error" : ""}
+              />
+              {errors.title && (
+                <div className="error-message">{errors.title}</div>
+              )}
             </div>
-          )}
-          <div className="category-input">
-            <input
-              placeholder="add category"
-              value={currentCategory}
-              onChange={(e) => setCurrentCategory(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addCategory()}
-            />
-            <button type="button" onClick={addCategory}>add</button>
+
+            <div className="form-group">
+              <label htmlFor="addq-desc">description</label>
+              <textarea
+                id="addq-desc"
+                placeholder="optional details…"
+                value={description}
+                onChange={(e) => handleDescriptionChange(e.target.value)}
+                className={errors.description ? "error" : ""}
+                rows={4}
+              />
+              {errors.description && (
+                <div className="error-message">{errors.description}</div>
+              )}
+            </div>
           </div>
 
-          <label>difficulty</label>
-          <select
-            value={difficulty}
-            onChange={e => setDifficulty(e.target.value as any)}
-            >
-              <option value="easy">easy</option>
-              <option value="medium">medium</option>
-              <option value="hard">hard</option>
-            </select>
-        </div>
-
-        <div className="row">
-          <label>priority</label>
-          <select
-            value={priority}
-            onChange={e => setPriority(e.target.value as any)}
-            >
-              <option value="low">low</option>
-              <option value="high">high</option>
-            </select>
-        </div>
-
-        <div className="row">
-          <label>frequency</label>
-          <select
-            value={frequency}
-            onChange={e => setFrequency(e.target.value as any)}
-            >
-              <option value="once">once</option>
-              <option value="daily">daily</option>
-              <option value="weekly">weekly</option>
-              <option value="monthly">monthly</option>
-              <option value="custom">custom</option>
-          </select>
-          {frequency === 'custom' && (
+          <section className="quest-edit-section" aria-labelledby="addq-categories">
             <div className="form-group">
-              <label>custom frequency (days)</label>
+              <label htmlFor="addq-categories">categories</label>
+              <div className="category-input">
+                <input
+                  type="text"
+                  placeholder="type a tag, press enter or add"
+                  value={currentCategory}
+                  onChange={(e) => setCurrentCategory(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addCategory();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className="quest-edit-chip-btn"
+                  onClick={addCategory}
+                >
+                  add
+                </button>
+              </div>
+
+              {categories.length > 0 && (
+                <div className="category-tags">
+                  {categories.map((category) => (
+                    <span key={category} className="category-tag">
+                      {category}
+                      <button
+                        type="button"
+                        className="category-tag-remove"
+                        onClick={() => removeCategory(category)}
+                        aria-label={`remove ${category}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className="quest-edit-section" aria-labelledby="addq-effort">
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="addq-difficulty">difficulty</label>
+                <select
+                  id="addq-difficulty"
+                  value={difficulty}
+                  onChange={(e) => setDifficulty(e.target.value as any)}
+                >
+                  <option value="easy">easy</option>
+                  <option value="medium">medium</option>
+                  <option value="hard">hard</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="addq-priority">priority</label>
+                <select
+                  id="addq-priority"
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value as any)}
+                >
+                  <option value="low">low</option>
+                  <option value="high">high</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section className="quest-edit-section" aria-labelledby="addq-schedule">
+            <div className="form-group">
+              <label htmlFor="addq-frequency">frequency</label>
+              <select
+                id="addq-frequency"
+                value={frequency}
+                onChange={(e) => setFrequency(e.target.value as any)}
+              >
+                <option value="once">once</option>
+                <option value="daily">daily</option>
+                <option value="weekly">weekly</option>
+                <option value="monthly">monthly</option>
+                <option value="custom">custom</option>
+              </select>
+            </div>
+
+            {frequency === "custom" && (
+              <div className="form-group">
+                <label htmlFor="addq-custom-frequency">every N days</label>
+                <input
+                  id="addq-custom-frequency"
+                  type="number"
+                  min="1"
+                  max="365"
+                  value={customFrequency ?? ""}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (!raw) return setCustomFrequency(undefined);
+                    setCustomFrequency(Number(raw));
+                  }}
+                  placeholder="e.g. 3"
+                />
+              </div>
+            )}
+          </section>
+
+          <section className="quest-edit-section" aria-labelledby="addq-time">
+            <div className="form-group">
+              <label htmlFor="addq-deadline">deadline</label>
               <input
-                type="number"
-                min="1"
-                max="365"
-                value={customFrequency || ''}
-                onChange={e => setCustomFrequency(Number(e.target.value) || undefined)}
-                placeholder="e.g. 3"
+                id="addq-deadline"
+                type="date"
+                value={deadline ?? ""}
+                onChange={(e) => setDeadline(e.target.value)}
               />
             </div>
-          )}
-        </div>
+          </section>
 
-        <div className="row">
-          <label>deadline</label>
-          <input
-            type="date"
-            onChange={e => setDeadline(e.target.value)}
-            />
-        </div>
+          <section className="quest-edit-section" aria-labelledby="addq-subquests">
+            <div className="form-group">
+              <label htmlFor="addq-subquest-input">subquests</label>
+              <div className="subquest-input">
+                <input
+                  id="addq-subquest-input"
+                  type="text"
+                  placeholder="add a subquest, press enter"
+                  value={currentSubquest}
+                  onChange={(e) => setCurrentSubquest(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const t = currentSubquest.trim();
+                      if (!t) return;
+                      setSubquests((prev) => [
+                        ...prev,
+                        { id: crypto.randomUUID(), title: t, completed: false },
+                      ]);
+                      setCurrentSubquest("");
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className="quest-edit-chip-btn"
+                  onClick={() => {
+                    const t = currentSubquest.trim();
+                    if (!t) return;
+                    setSubquests((prev) => [
+                      ...prev,
+                      { id: crypto.randomUUID(), title: t, completed: false },
+                    ]);
+                    setCurrentSubquest("");
+                  }}
+                >
+                  add
+                </button>
+              </div>
 
-        <div className="form-actions">
-        <button onClick={handleCancel}>cancel</button>
-        <LoadingButton 
-          onClick={handleCreate}
-          loading={isCreating}
-          disabled={hasErrors || !title.trim()}
-          className="primary"
-        >create</LoadingButton>
-        </div>
+              {subquests.length > 0 && (
+                <div className="subquest-list" role="list">
+                  {subquests.map((sq) => (
+                    <div key={sq.id} className="subquest-row" role="listitem">
+                      <input
+                        type="checkbox"
+                        checked={sq.completed}
+                        onChange={(e) =>
+                          setSubquests((prev) =>
+                            prev.map((p) =>
+                              p.id === sq.id ? { ...p, completed: e.target.checked } : p
+                            )
+                          )
+                        }
+                      />
+                      <input
+                        className="subquest-title"
+                        type="text"
+                        value={sq.title}
+                        onChange={(e) =>
+                          setSubquests((prev) =>
+                            prev.map((p) =>
+                              p.id === sq.id ? { ...p, title: e.target.value } : p
+                            )
+                          )
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="subquest-remove"
+                        onClick={() =>
+                          setSubquests((prev) => prev.filter((p) => p.id !== sq.id))
+                        }
+                        aria-label={`remove ${sq.title}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <div className="quest-edit-actions">
+            <div className="quest-edit-actions-main">
+              <button type="button" className="quest-edit-cancel" onClick={handleCancel}>
+                cancel
+              </button>
+              <LoadingButton
+                type="submit"
+                loading={isCreating}
+                disabled={hasErrors || !title.trim()}
+                className="quest-edit-save"
+              >
+                create quest
+              </LoadingButton>
+            </div>
+          </div>
+        </form>
       </div>
-
-    </div>
-  )
+    </>,
+    portalTarget,
+  );
 }

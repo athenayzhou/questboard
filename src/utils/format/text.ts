@@ -1,5 +1,7 @@
 import { VERB, DEFAULT } from "../constants";
 
+const LEARNED_VERBS_KEY = "learnedVerbs";
+
 const TIMEWORDS = new Set([
   "minute", "minutes", "min", "mins",
   "hour", "hours", "hr", "hrs",
@@ -17,6 +19,57 @@ const IGNORE_LEMMATIZE = new Set(["morning", "afternoon", "evening"])
 export const KNOWN_VERBS: Set<string> = new Set([
   "clean", "cook", "write", "organize", "wash", "plan", "build", "review",
 ]);
+
+// Load learned verbs once per session.
+(() => {
+  try {
+    const raw = localStorage.getItem(LEARNED_VERBS_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return;
+    for (const v of parsed) {
+      if (typeof v === "string" && v.trim().length >= 3) {
+        KNOWN_VERBS.add(v.trim().toLowerCase());
+      }
+    }
+  } catch {
+    // ignore
+  }
+})();
+
+function persistLearnedVerbs() {
+  try {
+    // Only persist verbs that aren't part of the initial hardcoded list.
+    // (Keeps the stored payload small and resilient to future default changes.)
+    const baseline = new Set([
+      "clean", "cook", "write", "organize", "wash", "plan", "build", "review",
+    ]);
+    const learned = [...KNOWN_VERBS].filter((v) => !baseline.has(v));
+    localStorage.setItem(LEARNED_VERBS_KEY, JSON.stringify(learned));
+  } catch {
+    // ignore
+  }
+}
+
+const ADJECTIVE_SUFFIXES = [
+  "ful",
+  "less",
+  "ous",
+  "ive",
+  "able",
+  "ible",
+  "al",
+  "ic",
+  "ish",
+  "ary",
+  "ory",
+] as const;
+
+function looksLikeAdjective(token: string) {
+  if (!token) return false;
+  // common adjective suffixes; heuristic only
+  return ADJECTIVE_SUFFIXES.some((s) => token.endsWith(s));
+}
 
 export function normalize(text: string): string {
   return text
@@ -54,6 +107,7 @@ export function trackVerb(verb: string) {
   verbFrequency.set(verb, count)
   if (!KNOWN_VERBS.has(verb) && count > VERB.THRESHOLD) {
     KNOWN_VERBS.add(verb);
+    persistLearnedVerbs();
     // console.log(`new verb: ${verb}`);
   }
 }
@@ -105,17 +159,28 @@ export function extractPair(questTitle: string): VOPair[] {
   let verbs = extractVerbs(tokens, { allowMultiple: true });
   let objects = extractObjects(tokens);
 
+  // Fallback: if we don't recognize a verb, treat the first token as the verb.
+  // This keeps skill extraction working even for novel verbs.
+  if (!verbs.length) {
+    const [first, ...rest] = tokens;
+    // If the first token looks like an adjective (e.g. "awful"), prefer a neutral verb.
+    // This yields nicer naming suggestions like "practice {object}".
+    if (first && looksLikeAdjective(first)) {
+      verbs = ["practice"];
+      objects = rest.length ? rest : [first];
+    } else {
+      verbs = first ? [first] : [];
+      objects = rest;
+    }
+  }
+
   // Single token: treat as verb with default object so we can still match existing skills and award XP
   if (tokens.length === 1) {
-    trackVerb(tokens[0]);
     verbs = [tokens[0]];
     objects = [DEFAULT.OBJECT_NAME];
-  } else if (!verbs.length) {
-    const [first, ...rest] = tokens;
-    trackVerb(first);
-    verbs = [first];
-    objects = rest;
-  } else if (!objects.length) {
+  }
+
+  if (!objects.length) {
     objects = [DEFAULT.OBJECT_NAME];
   }
 

@@ -3,7 +3,9 @@ import { useOverlay } from "../../store/overlay";
 import { useQuestStore } from "../../store/quest";
 import { useSkillStore } from "../../store/skill";
 import { useNameStore } from "../../store/name";
-import { candidateStore } from "../../store/bundledStores";
+import { candidateStore, clusterStore, evidenceStore } from "../../store/bundledStores";
+import { useXPEventStore } from "../../store/xpEvent";
+import { useMasteryStore } from "../../store/mastery";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { showToast } from "../../utils/toast";
 import { APP, CANDIDATE } from "../../utils/constants";
@@ -56,9 +58,36 @@ export function Settings() {
   const handleResetData = () => {
     useQuestStore.getState().setQuest([]);
     useSkillStore.setState({ skills: {} });
-    localStorage.setItem("skills", "{}");
+    useXPEventStore.getState().clear();
+    useMasteryStore.setState({ masteries: [] });
+    useNameStore.setState({
+      isNaming: false,
+      pendingNaming: [],
+      currentNameIndex: 0,
+      pendingSkills: [],
+    });
+
+    // Clear non-zustand stores used by skill generation.
+    candidateStore.clear();
+    clusterStore.clear();
+    evidenceStore.clear();
+
+    // Clear persisted keys (some stores don't remove from storage on "clear").
+    try {
+      localStorage.setItem("skills", "{}");
+      localStorage.setItem("xpEvents", "[]");
+      localStorage.setItem("masteries", "[]");
+      localStorage.setItem("pendingSkills", "[]");
+      localStorage.setItem("candidates", "[]");
+      localStorage.setItem("clusters", "[]");
+      localStorage.removeItem("evidence");
+      localStorage.removeItem("learnedVerbs");
+    } catch {
+      // ignore storage errors
+    }
+
     useOverlay.getState().closeAllQuests();
-    showToast("success", "Quest and skill data reset.");
+    showToast("success", "Data reset (quests, skills, and skill history).");
     setShowResetConfirm(false);
     closeOverlay();
   };
@@ -72,43 +101,46 @@ export function Settings() {
         </div>
       </div>
       <div className="settings-content">
+        <div className="settings-main">
+          <label className="setting-toggle">
+            <input
+              type="checkbox"
+              checked={autoNameSkills}
+              onChange={(e) => handleAutoNameToggle(e.target.checked)}
+            />
+            auto-name new skills
+          </label>
 
-      <label className="setting-toggle">
-        <input
-          type="checkbox"
-          checked={autoNameSkills}
-          onChange={(e) => handleAutoNameToggle(e.target.checked)}
-        />
-        auto-name new skills
-      </label>
+          <label className="setting-toggle">
+            <input
+              type="checkbox"
+              checked={autoFailOverdue}
+              onChange={(e) => handleAutoFailToggle(e.target.checked)}
+            />
+            auto-fail overdue quests
+          </label>
+        </div>
 
-      <label className="setting-toggle">
-        <input
-          type="checkbox"
-          checked={autoFailOverdue}
-          onChange={(e) => handleAutoFailToggle(e.target.checked)}
-        />
-        auto-fail overdue quests
-      </label>
+        <div className="settings-footer">
+          <button
+            type="button"
+            className="settings-reset-btn"
+            onClick={() => setShowResetConfirm(true)}
+          >
+            reset quest & skill data
+          </button>
 
-        <button
-          type="button"
-          className="text-red-600 hover:text-red-700 font-medium"
-          onClick={() => setShowResetConfirm(true)}
-        >
-          reset quest & skill data
-        </button>
-
-        <div className="settings-meta">
-          <span>version {APP.VERSION}</span>
-          <span>dev by {APP.DEV_NAME}</span>
+          <div className="settings-meta">
+            <span>version {APP.VERSION}</span>
+            <span>dev by {APP.DEV_NAME}</span>
+          </div>
         </div>
       </div>
       <ConfirmDialog
         isOpen={showResetConfirm}
         options={{
-          title: "Reset data",
-          message: "Clear all quests and skills? This cannot be undone.",
+          title: "reset data",
+          message: "clear all quests and skills? this action cannot be undone.",
           confirmText: "reset",
           type: "danger",
         }}

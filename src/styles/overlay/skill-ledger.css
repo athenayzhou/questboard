@@ -15,28 +15,90 @@
   gap: 12px;
 }
 
+/* Tabs aligned with quest board: rounded strip + green gradient active */
 .ledger-header-tabs {
-  display: flex;
-  gap: 4px;
+  display: inline-flex;
+  padding: 3px;
+  background: var(--sand);
+  border: 2px solid var(--path-shadow);
+  border-radius: var(--radius-lg);
+  gap: 3px;
+  box-shadow: inset 0 2px 6px rgba(92, 74, 50, 0.06);
 }
 
-.ledger-header-tabs button {
+.ledger-header-tabs .ledger-tab {
+  min-height: 30px;
+  padding: 0 0.9rem;
+  border: 2px solid var(--path-light);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--text-warm-medium);
+  font-weight: 600;
+  font-size: 0.84rem;
+  cursor: pointer;
+  font-family: inherit;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  text-transform: lowercase;
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+.ledger-header-tabs .ledger-tab:hover {
+  color: var(--grass-dark);
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.ledger-header-tabs .ledger-tab:focus-visible {
+  outline: 2px solid var(--grass-dark);
+  outline-offset: 2px;
+}
+
+.ledger-header-tabs .ledger-tab.active {
+  /* Light green gradient (less saturated) */
+  background: linear-gradient(
+    145deg,
+    rgba(255, 252, 235, 0.65) 0%,
+    var(--grass-pale) 40%,
+    var(--meadow) 75%,
+    rgba(255, 252, 235, 0.92) 100%
+  );
+  color: var(--grass-dark);
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  border-color: var(--grass-light);
+}
+
+.ledger-header-tabs .ledger-tab.active:hover {
+  color: var(--grass-dark);
+  filter: brightness(1.03);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 252, 235, 0.72) 0%,
+    var(--grass-pale) 40%,
+    var(--meadow) 75%,
+    rgba(255, 252, 235, 0.96) 100%
+  );
 }
 
 .ledger-tab-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
   border-radius: 9px;
   background: var(--grass-dark);
   color: var(--sand-bright);
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 700;
 }
 
@@ -93,7 +155,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--sand-bright);
   border: 2px solid var(--path-light);
   color: var(--text-path);
@@ -127,6 +189,7 @@
   text-align: center;
   padding: 2rem;
   color: var(--text-path);
+  font-style: italic;
 }
 
 .ledger-pending-empty-title {
@@ -134,6 +197,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: var(--grass-dark);
+  font-style: italic;
 }
 
 .ledger-pending-empty-hint {
@@ -195,34 +259,49 @@
 .ledger-controls input[type="text"] {
   flex: 1;
   min-width: 0;
-  padding: 6px 8px;
-  border-radius: 6px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 10px;
   border: 2px solid var(--path);
   background: var(--sand-bright);
   color: var(--text-path);
   font-size: 0.9rem;
+  box-sizing: border-box;
 }
 
 .ledger-controls select {
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--path);
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 2px solid var(--path);
   background: var(--sand-bright);
   color: var(--text-path);
   flex-shrink: 0;
   font-size: 0.9rem;
+  box-sizing: border-box;
 }
 
 .ledger-controls label {
-  padding: 4px 6px;
-  border-radius: 6px;
-  border: 1px solid var(--path);
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 2px solid var(--path);
   background: var(--sand-bright);
   color: var(--text-path);
   flex-shrink: 0;
   white-space: nowrap;
   cursor: pointer;
   font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.ledger-controls label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
 }
 
 .ledger-list {
@@ -240,7 +319,7 @@
 
 .ledger-item {
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 14px;
   cursor: pointer;
   background: var(--sand-bright);
   border: 2px solid var(--path-light);
@@ -299,8 +378,18 @@
   background: var(--bg-panel);
   color: var(--text-path);
   padding: 16px;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow-x: hidden;
+  border: 2px solid var(--path-shadow);
+  box-shadow: inset 0 0 40px var(--sunbeam);
+}
+
+.mastery-detail {
+  height: 100%;
+  background: var(--bg-panel);
+  color: var(--text-path);
+  padding: 16px;
+  border-radius: 14px;
   border: 2px solid var(--path-shadow);
   box-shadow: inset 0 0 40px var(--sunbeam);
 }

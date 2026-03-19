@@ -12,8 +12,8 @@ export function Detail({
 ) {
   return (
     <div className="log-detail">
-      <span className="label">{label}</span>
-      <span className="value">{value}</span>
+      <span className="detail-label">{label}</span>
+      <span className="detail-value">{value}</span>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import type { Evidence } from "../../../types/skills";
 import { EvidenceStore } from "../../../store/evidence";
 import { extractPair } from "../../format/text";
 import { devLog } from "../../../dev/devLogs";
+import { DEFAULT, MS } from "../../constants";
 
 export type ProcessResult ={
   evidence: Evidence[];
@@ -20,12 +21,16 @@ export function process(
   devLog('skill-gen', `extractPair("${quest.title}") → ${pairs.length} VO pair(s): [${pairs.map(p => `${p.verb}:${p.object}`).join(", ")}]`);
   const now = Date.now();
   for (const {verb, object} of pairs){
+    const timespent =
+      quest.duration && quest.duration > 0
+        ? quest.duration * MS.MINUTE
+        : DEFAULT.EFFORT;
     const evidence: Evidence = {
       id: crypto.randomUUID(),
       verb,
       object,
       origin: `${quest.id}:${quest.title}`,
-      timespent: quest.duration ?? 0,
+      timespent,
       timestamp: now,
     };
     evidenceStore.add(evidence);

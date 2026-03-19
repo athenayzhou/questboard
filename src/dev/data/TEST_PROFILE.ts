@@ -2,7 +2,8 @@ import type { PlayerData } from "../../types/player";
 
 export const TEST_PLAYER_DATA: PlayerData = {
     profile: {
-        name: "donna"
+        name: "donna",
+        character: "/donna.png",
     },
     achievements: {
         activeTitle: "amateur_stewer",
@@ -12,7 +13,7 @@ export const TEST_PLAYER_DATA: PlayerData = {
     },
     equipment: {
         equipped: {
-            head: "pink-bandana",
+            head: "pink-headband",
             body: "yellow-apron",
             accessory: "salt-shaker",
             weapon: "soup-ladle",
@@ -20,7 +21,7 @@ export const TEST_PLAYER_DATA: PlayerData = {
     },
     inventory: {
         items: {
-            "pink-bandana": { quantity: 1, acquiredAt: "2026-02-07" },
+            "pink-headband": { quantity: 1, acquiredAt: "2026-02-07" },
             "yellow-apron": { quantity: 1, acquiredAt: "2026-02-07" },
             "sturdy-sponge": { quantity: 1, acquiredAt: "2026-02-07" },
             "soup-ladle": { quantity: 1, acquiredAt: "2026-02-07" },

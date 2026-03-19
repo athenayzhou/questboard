@@ -89,9 +89,17 @@ describe("text format utils", () => {
       expect(Array.isArray(pairs)).toBe(true);
     });
 
-    it("should return empty array for titles without known verbs", () => {
+    it("should fall back to first token when no known verb", () => {
       const pairs = extractPair("xyz abc qwe");
-      expect(pairs).toEqual([]);
+      expect(pairs).toEqual([
+        { verb: "xyz", object: "abc" },
+        { verb: "xyz", object: "qwe" },
+      ]);
+    });
+
+    it("should use neutral verb when first token looks like adjective", () => {
+      const pairs = extractPair("awful chores");
+      expect(pairs).toEqual([{ verb: "practice", object: "chore" }]);
     });
   });
 });

@@ -27,7 +27,7 @@ export function SkillActivity({
     <div className="skill-activity-wrapper">
       <div className="skill-activity-container">
         {skills.length === 0 ? (
-          <p className="skill-activity-empty">no recent skill activity</p>
+          <p className="skill-activity-empty">complete more quests to develop skills</p>
         ) : (
           skills.map(skill => {
             const { progress } = levelToProgress(skill.xp);

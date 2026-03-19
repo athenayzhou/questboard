@@ -19,6 +19,7 @@ import './styles/ui/buttons.css';
 import './styles/ui/progress-bar.css';
 import './styles/ui/toast.css';
 import './styles/ui/confirm.css';
+import './styles/ui/skill-activity-log.css';
 
 if (import.meta.env.DEV) {
   setupTestData();

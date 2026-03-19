@@ -1,10 +1,20 @@
 import { useOverlay } from "../../store/overlay";
-import { useMemo, useReducer, useState, useEffect } from "react";
+import {
+  useMemo,
+  useReducer,
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  type MouseEvent,
+  type FocusEvent,
+} from "react";
 import type { PlayerData } from "../../types/player";
 import type { EquipSlot, SystemItem } from "../../types/system";
-import { SYSTEM_ITEMS_BY_ID, RARITY_COLORS, getItemIconUrl } from "../../data/systemItems";
+import { SYSTEM_ITEMS_BY_ID, getItemIconUrl } from "../../data/systemItems";
 import { SYSTEM_TITLES } from "../../data/systemTitles";
 import { SYSTEM_BADGES } from "../../data/systemBadges";
+import { createPortal } from "react-dom";
 import { usePlayerStore } from "../../store/player";
 type Action =
   | { type: "EQUIP_ITEM"; slot: EquipSlot; itemId: string }
@@ -84,6 +94,59 @@ export function Profile(){
     loadedPlayer,
     p => structuredClone(p));
   const [hoveredSlot, setHoveredSlot] = useState<EquipSlot | null>(null);
+  const [inventoryTip, setInventoryTip] = useState<{
+    id: string;
+    x: number;
+    y: number;
+    name: string;
+    description?: string;
+  } | null>(null);
+
+  /** Small nudge so the tooltip sits just beside the cursor (not overlapping it). */
+  const INV_TIP_OFFSET_X = 4;
+  const INV_TIP_OFFSET_Y = 4;
+
+  const equipSlotsRef = useRef<HTMLElement>(null);
+  const [equipStackHeightPx, setEquipStackHeightPx] = useState(220);
+
+  useLayoutEffect(() => {
+    const el = equipSlotsRef.current;
+    if (!el) return;
+    const update = () => {
+      setEquipStackHeightPx(Math.ceil(el.getBoundingClientRect().height));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [player.equipment.equipped]);
+
+  function updateInventoryTipFromEvent(
+    itemId: string,
+    e: MouseEvent<HTMLButtonElement> | FocusEvent<HTMLButtonElement>,
+    item: { name: string; description?: string }
+  ) {
+    if ("clientX" in e.nativeEvent && e.nativeEvent instanceof globalThis.MouseEvent) {
+      const ev = e.nativeEvent;
+      setInventoryTip({
+        id: itemId,
+        x: ev.clientX + INV_TIP_OFFSET_X,
+        y: ev.clientY + INV_TIP_OFFSET_Y,
+        name: item.name,
+        description: item.description,
+      });
+    } else {
+      const el = e.currentTarget;
+      const r = el.getBoundingClientRect();
+      setInventoryTip({
+        id: itemId,
+        x: r.right + INV_TIP_OFFSET_X,
+        y: r.bottom + INV_TIP_OFFSET_Y,
+        name: item.name,
+        description: item.description,
+      });
+    }
+  }
 
   useEffect(() => {
     dispatch({ type: "UPDATE_PLAYER", player: loadedPlayer });
@@ -168,56 +231,67 @@ export function Profile(){
       </div>
       <div className="character-information">
       <div className="character-panel">
+        <div className="player-figure">
         <div className="player-identity">
           <h2 className="player-name">{player.profile.name}</h2>
           <div className="player-achievements">
           {activeTitle && (
-            <span className="active-title">{activeTitle.display}</span>
+            <span className="active-title">{activeTitle.display.toLowerCase()}</span>
           )}
           {activeBadge && (
             <div className="active-badge">
               <div className="active-badge-icon">{activeBadge.icon}</div>
-              <div className="active-badge-name">{activeBadge.display}</div>
             </div>
           )}
           </div>
         </div>
         <div className="player-preview">
-          <section className="equip-slots">
-            {EQUIP_SLOTS.map(slot => {
+          <section ref={equipSlotsRef} className="equip-slots">
+            {EQUIP_SLOTS.map((slot) => {
               const item = equippedItems[slot];
               return (
-              <div key={slot} 
-                className={`equip-slot ${
-                    item ? "filled" :
-                    hoveredSlot === slot ? "targeted" :
-                    ""
-                  }`}
-                onClick={() => {
-                  if (item) {
-                    dispatch({ type: "UNEQUIP_ITEM", slot });
-                  }
-                }}
-                >
                 <div
-                  className={`equip-slot-image ${item ? item.rarity : "empty"}`}
-                  style={{
-                    backgroundColor: item ? RARITY_COLORS[item.rarity] : "#1f1f25",
+                  key={slot}
+                  className={`equip-slot ${
+                    item ? "filled" : hoveredSlot === slot ? "targeted" : ""
+                  }`}
+                  onClick={() => {
+                    if (item) {
+                      dispatch({ type: "UNEQUIP_ITEM", slot });
+                    }
                   }}
                 >
-                  {item && (
-                    <img src={getItemIconUrl(item.id)} alt={item.name} className="equip-slot-img" />
-                  )}
+                  <div className="equip-slot-image">
+                    {item && (
+                      <img
+                        src={getItemIconUrl(item.id)}
+                        alt={item.name}
+                        className="equip-slot-img"
+                      />
+                    )}
+                  </div>
                 </div>
-                {/* {slot}: {equippedItems[slot]?.name ?? "-"} */}
-              </div>
-            )})}
+              );
+            })}
           </section>
-          <div className="character-slot">
+          <div
+            className="character-slot"
+            style={{
+              height: equipStackHeightPx,
+              maxHeight: equipStackHeightPx,
+            }}
+          >
             <div className="character-image">
-              {/* <img src={player.profile.character} alt="character"/> */}
+              {player.profile.character ? (
+                <img
+                  src={player.profile.character}
+                  alt="character"
+                  className="character-img"
+                />
+              ) : null}
             </div>
           </div>
+        </div>
         </div>
         <div className="player-currency">
           <span>coins: {player.currencies.coins}</span>
@@ -229,27 +303,53 @@ export function Profile(){
         <section>
           <h3>inventory</h3>
           <div id="inventory" className="grid">
-            {inventoryItems.map(item => (
-              <button 
-                key={item.id} 
-                className={`item ${player.equipment.equipped[item.slot] === item.id ? "equipped" : ""}`}
-                onClick={() => equipItem(item.id)}
-                disabled={player.equipment.equipped[item.slot] === item.id}
-                onMouseEnter={() => setHoveredSlot(item.slot)}
-                onMouseLeave={() => setHoveredSlot(null)}
+            {inventoryItems.map((item) => {
+              const isEquipped = player.equipment.equipped[item.slot] === item.id;
+              return (
+              <button
+                key={item.id}
+                type="button"
+                aria-pressed={isEquipped}
+                className={`item ${isEquipped ? "equipped" : ""}`}
+                onClick={() => {
+                  if (isEquipped) {
+                    dispatch({ type: "UNEQUIP_ITEM", slot: item.slot });
+                  } else {
+                    equipItem(item.id);
+                  }
+                }}
+                onMouseEnter={(e) => {
+                  setHoveredSlot(item.slot);
+                  updateInventoryTipFromEvent(item.id, e, item);
+                }}
+                onMouseMove={(e) => {
+                  setInventoryTip({
+                    id: item.id,
+                    x: e.clientX + INV_TIP_OFFSET_X,
+                    y: e.clientY + INV_TIP_OFFSET_Y,
+                    name: item.name,
+                    description: item.description,
+                  });
+                }}
+                onMouseLeave={() => {
+                  setHoveredSlot(null);
+                  setInventoryTip((t) => (t?.id === item.id ? null : t));
+                }}
+                onFocus={(e) => updateInventoryTipFromEvent(item.id, e, item)}
+                onBlur={() =>
+                  setInventoryTip((t) => (t?.id === item.id ? null : t))
+                }
               >
-                <div
-                  className="item-image"
-                  style={{
-                    backgroundColor: RARITY_COLORS[item.rarity] ?? "#444",
-                    border: "none",
-                  }}
-                >
-                  <img src={getItemIconUrl(item.id)} alt={item.name} className="item-icon" />
+                <div className="item-image">
+                  <img
+                    src={getItemIconUrl(item.id)}
+                    alt={item.name}
+                    className="item-icon"
+                  />
                 </div>
-                <div className="item-name">{item.name}</div>
               </button>
-            ))}
+            );
+            })}
           </div>
         </section>
         <section>
@@ -294,6 +394,20 @@ export function Profile(){
         </div>
       </div>
       </div>
+      {inventoryTip &&
+        createPortal(
+          <div
+            className="item-tooltip item-tooltip--cursor"
+            role="tooltip"
+            style={{ left: inventoryTip.x, top: inventoryTip.y }}
+          >
+            <div className="item-tooltip-name">{inventoryTip.name}</div>
+            {inventoryTip.description && (
+              <div className="item-tooltip-desc">{inventoryTip.description}</div>
+            )}
+          </div>,
+          document.body
+        )}
     </div>
-  )
+  );
 }

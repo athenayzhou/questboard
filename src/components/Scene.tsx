@@ -70,7 +70,7 @@ export function Scene({
       <ambientLight intensity={0.4} />
 
       <Name position={[-5, 7, 5]} />
-      <SkillActivity position={[-4.8, 4, 5]} />
+      {/* <SkillActivity position={[-4.8, 4, 5]} /> */}
 
       {/* <mesh position={[0, -0.008, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[200, 200]} />

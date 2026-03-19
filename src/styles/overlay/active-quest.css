@@ -16,7 +16,8 @@
     inset 0 0 0 1px rgba(255, 255, 255, 0.5),
     inset 0 0 60px var(--sunbeam);
   display: flex;
-  z-index: 200;
+  /* Above regular overlays + quest pages, below AddQuest/Shop backdrops */
+  z-index: 150;
   transition: transform 0.3s ease;
 }
 
@@ -62,6 +63,7 @@
   text-align: center;
   color: var(--text-path);
   font-size: 12px;
+  font-style: italic;
 }
 
 .active-quest-list {
@@ -255,18 +257,28 @@
 
 .open-full-btn {
   margin-top: 8px;
-  padding: 8px 12px;
+  padding: 5px 8px;
   border-radius: 10px;
-  border: 2px solid var(--grass);
-  background: var(--bg-field);
-  color: var(--sand-bright);
+  border: 1px solid rgba(196, 165, 116, 0.55);
+  background: rgba(255, 255, 255, 0.3);
+  color: var(--text-warm-medium);
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition),
+    transform var(--transition-fast);
 }
 
 .open-full-btn:hover {
-  background: var(--grass-light);
-  border-color: var(--grass-dark);
+  background: rgba(184, 220, 176, 0.25);
+  border-color: rgba(88, 140, 72, 0.35);
+  color: var(--grass-dark);
+}
+
+.open-full-btn:active {
+  transform: scale(0.99);
 }

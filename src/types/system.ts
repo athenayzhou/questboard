@@ -1,15 +1,11 @@
 export type CurrencyId = "coins" | "gems";
-
-
 export type EquipSlot = "head" | "body" | "accessory" | "weapon";
-export type Rarity = "common" | "rare" | "ultra" | "legendary";
 
 
 export type SystemItem = {
     id: string;
     name: string;
     slot: EquipSlot;
-    rarity: Rarity;
     icon?: string;
     description?: string;
 }

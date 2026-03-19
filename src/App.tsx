@@ -17,6 +17,7 @@ import { ConfirmProvider } from './store/confirmation';
 import { ToastContainer } from './components/ui/Toast';
 import { useRecurringQuests } from './hooks/useRecurringQuests';
 import { useSystemQuests } from './hooks/useSystemQuests';
+import { SkillActivityLog } from './components/ui/SkillActivityLog';
 
 function App() {
   const [orbitUser, setOrbitUser] = useState(true);
@@ -43,6 +44,7 @@ function App() {
       <OrbitToggle enabled={orbitUser} toggle={()=> setOrbitUser(v=> !v)} />
       <div id="html-layer" />
       <ActiveQuest />
+      <SkillActivityLog />
       <OverlayManager />
       <div id="windows" />
       <NamePrompt />

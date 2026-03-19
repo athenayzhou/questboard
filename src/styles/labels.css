@@ -85,7 +85,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #000;
+  color: var(--text-path);
   font-size: 12px;
   margin-left: 8px;
   margin-top: 2px;
@@ -144,7 +144,7 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 100;
+  z-index: 40;
   padding: 8px 12px;
   background: var(--bg-field);
   color: var(--sand-bright);

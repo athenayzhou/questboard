@@ -83,14 +83,14 @@ export function SkillLedger() {
           <div className="ledger-header-tabs">
             <button
               type="button"
-              className={activeTab === "skills" ? "active" : ""}
+              className={`ledger-tab${activeTab === "skills" ? " active" : ""}`}
               onClick={() => setActiveTab("skills")}
             >
               skills
             </button>
             <button
               type="button"
-              className={activeTab === "pending" ? "active" : ""}
+              className={`ledger-tab${activeTab === "pending" ? " active" : ""}`}
               onClick={() => setActiveTab("pending")}
             >
               pending
@@ -100,7 +100,7 @@ export function SkillLedger() {
             </button>
             <button
               type="button"
-              className={activeTab === "masteries" ? "active" : ""}
+              className={`ledger-tab${activeTab === "masteries" ? " active" : ""}`}
               onClick={() => setActiveTab("masteries")}
             >
               masteries
@@ -208,7 +208,7 @@ export function SkillLedger() {
           {pendingSkills.length === 0 ? (
             <div className="ledger-pending-empty">
               <p className="ledger-pending-empty-title">no pending skills</p>
-              <p className="ledger-pending-empty-hint">Skip naming after a quest to send new skills here. Name them anytime from this tab.</p>
+              <p className="ledger-pending-empty-hint">skip naming upon discovery to send new skills here. name them anytime from this tab.</p>
             </div>
           ) : (
             <>
@@ -254,7 +254,7 @@ export function SkillLedger() {
             <div className="ledger-list">
               {masteries.length === 0 ? (
                 <div className="ledger-empty-state">
-                  no masteries yet
+                  no masteries yet — develop skils to gain mastery
                 </div>
               ) : (
                 masteries.map((mastery) => (

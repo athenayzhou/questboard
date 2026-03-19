@@ -1,11 +1,12 @@
 .confirm-dialog-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: 10050;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(20, 15, 10, 0.55);
+  backdrop-filter: blur(2px);
   padding: 1rem;
 }
 
@@ -15,8 +16,15 @@
   padding: 1.5rem;
   max-width: 400px;
   width: 100%;
-  border: 3px solid var(--path);
+  border: 3px solid var(--path-shadow);
   box-shadow: var(--shadow-path);
+}
+
+/* Keep dialog border neutral; only buttons convey intent. */
+.confirm-dialog--danger,
+.confirm-dialog--warning,
+.confirm-dialog--info {
+  border-color: var(--path-shadow);
 }
 
 .confirm-dialog-title {
@@ -43,18 +51,60 @@
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  border: 2px solid var(--path);
-  background: var(--path-light);
+  border: 2px solid rgba(196, 165, 116, 0.65);
+  background: rgba(255, 255, 255, 0.45);
   color: var(--text-path);
-}
-
-.confirm-dialog-confirm {
-  background: var(--grass-light);
-  border-color: var(--grass);
-  color: var(--grass-dark);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition),
+    transform var(--transition-fast);
 }
 
 .confirm-dialog-cancel:hover,
 .confirm-dialog-confirm:hover {
-  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(88, 140, 72, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 10px 20px rgba(92, 74, 50, 0.12);
+}
+
+.confirm-dialog-cancel:active,
+.confirm-dialog-confirm:active {
+  transform: scale(0.99);
+}
+
+.confirm-dialog-confirm--danger {
+  background: rgba(199, 91, 122, 0.18);
+  border-color: rgba(199, 91, 122, 0.85);
+  color: var(--flower);
+}
+
+.confirm-dialog-confirm--danger:hover {
+  background: rgba(199, 91, 122, 0.26);
+  border-color: var(--flower);
+}
+
+.confirm-dialog-confirm--warning {
+  background: rgba(245, 213, 71, 0.22);
+  border-color: rgba(245, 213, 71, 0.85);
+  color: var(--text-sun);
+}
+
+.confirm-dialog-confirm--warning:hover {
+  background: rgba(245, 213, 71, 0.3);
+  border-color: rgba(245, 213, 71, 1);
+}
+
+.confirm-dialog-confirm--info {
+  background: rgba(184, 220, 176, 0.35);
+  border-color: rgba(88, 140, 72, 0.35);
+  color: var(--grass-dark);
+}
+
+.confirm-dialog-confirm--info:hover {
+  background: rgba(184, 220, 176, 0.45);
+  border-color: rgba(88, 140, 72, 0.55);
 }

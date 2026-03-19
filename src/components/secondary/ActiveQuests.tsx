@@ -1,7 +1,8 @@
 import { useOverlay } from "../../store/overlay";
 import { questProgress } from "../../utils/skill/analysis/experience";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuestStore } from "../../store/quest";
+import { formatDeadlineForDisplay } from "../../utils/recurrence";
 
 export function ActiveQuest() {
   const activeOverlay = useOverlay(s => s.activeOverlay);
@@ -26,6 +27,7 @@ export function ActiveQuest() {
   const [expandedQuestId, setExpandedQuestId] = useState<string | null>(null);
   const [draggedQuestId, setDraggedQuestId] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const isDraggingRef = useRef(false);
 
   useEffect(() => {
     if (activeOverlay) {
@@ -53,6 +55,7 @@ export function ActiveQuest() {
   };
 
   const handleDragStart = (e: React.DragEvent, questId: string) => {
+    isDraggingRef.current = true;
     setDraggedQuestId(questId);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', questId);
@@ -68,17 +71,14 @@ export function ActiveQuest() {
     if(draggedQuestId) {
       reorderPinned(draggedQuestId, dropIndex);
     }
+    isDraggingRef.current = false;
     setDraggedQuestId(null);
     setDragOverIndex(null);
   };
   const handleDragEnd = () => {
+    isDraggingRef.current = false;
     setDraggedQuestId(null);
     setDragOverIndex(null);
-  }
-  const handleDragLeave = (e: React.DragEvent) => {
-    if(!e.currentTarget.contains(e.relatedTarget as Node)){
-      setDragOverIndex(null);
-    }
   }
 
   // if(active.length === 0) return null;
@@ -110,14 +110,11 @@ export function ActiveQuest() {
               <div
                 key={q.id}
                 className={`active-quest-item ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''}`}
-                draggable={!isExpanded}
-                onDragStart={(e) => handleDragStart(e, q.id)}
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDrop={(e) => handleDrop(e, index)}
                 onDragEnd={handleDragEnd}
-                onDragLeave={handleDragLeave}
                 onClick={() =>{
-                  if(isDragging) return;
+                  if (isDraggingRef.current || draggedQuestId) return;
                   setExpandedQuestId(isExpanded ? null : q.id)
                 }}
               >
@@ -126,7 +123,16 @@ export function ActiveQuest() {
                   <div 
                     className="drag-handle"
                     onMouseDown={(e) => e.stopPropagation()}
-                  >::</div>
+                    draggable
+                    onDragStart={(e) => {
+                      e.stopPropagation();
+                      handleDragStart(e, q.id);
+                    }}
+                    onDragEnd={handleDragEnd}
+                    title="drag to reorder"
+                  >
+                    ::
+                  </div>
                 </div>
                 <div className="action-buttons">
                   <button 
@@ -186,13 +192,15 @@ export function ActiveQuest() {
                     {q.deadline && (
                       <div className="detail-row">
                         <span className="label">deadline:</span>
-                        <span className="value">{new Date(q.deadline).toLocaleDateString()}</span>
+                        <span className="value">
+                          {formatDeadlineForDisplay(q.deadline)}
+                        </span>
                       </div>
                     )}
                     </div>
                     {q.subquests && q.subquests.length > 0 && (
                       <div className="quest-subtasks">
-                        <h5>Tasks:</h5>
+                        <h5>subquests:</h5>
                         <ul>
                           {q.subquests.map(task => (
                             <li

@@ -200,19 +200,43 @@ export function QuestBoard({
     <div className="overlay quests-overlay">
       <div className="header quests-header">
         <h2>quest board</h2>
-        <div className="header-actions">
-          <div>
-            <button className={tab === "available" ? "active" : ""} onClick={() => handleTabSwitch("available")}>
+        <div className="header-actions quests-header-actions">
+          <div className="quest-board-tabs" role="tablist" aria-label="Quest list">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "available"}
+              className={`quest-board-tab${tab === "available" ? " quest-board-tab--active" : ""}`}
+              onClick={() => handleTabSwitch("available")}
+            >
               available
             </button>
-            <button className={tab === "accepted" ? "active" : ""} onClick={() => handleTabSwitch("accepted")}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "accepted"}
+              className={`quest-board-tab${tab === "accepted" ? " quest-board-tab--active" : ""}`}
+              onClick={() => handleTabSwitch("accepted")}
+            >
               accepted
             </button>
           </div>
           <FilterQuest />
-          <div>
-            <button className="add-quest-btn" onClick={() => openOverlay("addQuest")}>+ quest</button>
-            <button className="close quest-btn" onClick={closeOverlay}>close</button>
+          <div className="quest-board-trailing">
+            <button
+              type="button"
+              className="add-quest-btn"
+              onClick={() => openOverlay("addQuest")}
+            >
+              + quest
+            </button>
+            <button
+              type="button"
+              className="close quest-btn"
+              onClick={closeOverlay}
+            >
+              close
+            </button>
           </div>
         </div>
       </div>

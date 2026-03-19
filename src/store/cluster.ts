@@ -1,7 +1,7 @@
 import type { Evidence, Cluster } from "../types/skills";
 import { calculateConfidence } from "../utils/skill/analysis/threshold";
 import { applyXP } from "../utils/skill/analysis/experience";
-import { DECAY, MS } from "../utils/constants";
+import { DECAY, DEFAULT, MS } from "../utils/constants";
 import { devLog } from "../dev/devLogs";
 
 export class ClusterStore {
@@ -51,12 +51,13 @@ export class ClusterStore {
   }
 
   private create(e: Evidence, xp: number): Cluster {
+    const timespent = e.timespent > 0 ? e.timespent : DEFAULT.EFFORT;
     const cluster: Cluster = {
       key: `${e.verb}:${e.object}`,
       verb: e.verb,
       object: e.object,
       count: 1,
-      totalTime: e.timespent,
+      totalTime: timespent,
       xp,
       confidence: 0,
       firstSeenAt: e.timestamp,
@@ -69,8 +70,9 @@ export class ClusterStore {
   }
 
   private update(cluster: Cluster, e: Evidence, xp: number): Cluster {
+    const timespent = e.timespent > 0 ? e.timespent : DEFAULT.EFFORT;
     cluster.count += 1;
-    cluster.totalTime += e.timespent;
+    cluster.totalTime += timespent;
     applyXP(cluster, xp);
     cluster.lastSeenAt = Math.max(cluster.lastSeenAt, e.timestamp)
     cluster.origin.push(e.origin);

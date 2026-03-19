@@ -3,6 +3,8 @@ import type { CurrencyId } from "./system";
 
 export type PlayerProfile = {
     name: string;
+    // Optional character image path (e.g. `/donna.png` from `public/`)
+    character?: string;
 }
 export type PlayerAchievements = {
     unlockedTitles: string[];

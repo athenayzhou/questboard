@@ -4,23 +4,34 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 860px;
-  height: 640px;
+  width: min(860px, calc(100vw - 2 * var(--space-lg)));
+  height: min(640px, calc(100vh - 2 * var(--space-lg)));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 24px;
-  border-radius: 16px;
+  padding: var(--space-xl);
+  border-radius: var(--radius-xl);
   z-index: 100;
   pointer-events: auto;
   background: var(--bg-panel);
   border: 3px solid var(--path-shadow);
   box-shadow:
     var(--shadow-path),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.6),
+    var(--shadow-inset-warm),
     inset 0 0 80px var(--sunbeam);
   color: var(--text-path);
+  transition: box-shadow var(--transition-slow);
+}
+
+.overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  /* Used for portaled AddQuest + Shop */
+  z-index: 200;
+  background: rgba(20, 15, 10, 0.45);
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
 }
 
 .overlay > .header {
@@ -32,11 +43,29 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-color: var(--path-shadow) var(--sand-bright);
+  scrollbar-width: thin;
+}
+
+.overlay > *:not(.header)::-webkit-scrollbar {
+  width: 8px;
+}
+.overlay > *:not(.header)::-webkit-scrollbar-track {
+  background: var(--sand-bright);
+  border-radius: var(--radius-pill);
+}
+.overlay > *:not(.header)::-webkit-scrollbar-thumb {
+  background: var(--path);
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--sand-bright);
+}
+.overlay > *:not(.header)::-webkit-scrollbar-thumb:hover {
+  background: var(--path-shadow);
 }
 
 .profile-overlay > .character-information {
   overflow: hidden;
-  overflow-y: hidden;
+  overflow-y: auto;
 }
 
 .friends-overlay > .friends-list {
@@ -45,32 +74,56 @@
 }
 
 .addQuest-overlay {
-  height: auto;
-  min-height: auto;
-  max-height: 95vh;
+  height: min(90vh, 720px);
+  min-height: min(90vh, 720px);
+  max-height: min(90vh, 720px);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* When AddQuest is portaled, we render just the modal. */
+.addQuest-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 210;
+  /* Let `.modal.quest-create` own padding + scroll */
+  max-height: min(85vh, 720px);
+  width: min(480px, calc(100vw - 2 * var(--space-lg)));
+  max-width: 480px;
   overflow-y: auto;
+  overflow-x: hidden;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  pointer-events: auto;
 }
 .addQuest-overlay > *:not(.header) {
-  flex: none;
-  min-height: auto;
-  overflow: visible;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 4px 12px;
-  margin-bottom: 16px;
+  padding: 0 var(--space-xs) var(--space-md);
+  margin-bottom: var(--space-md);
   border-bottom: 3px solid var(--grass-light);
-  padding-bottom: 12px;
+  padding-bottom: var(--space-md);
+  flex-shrink: 0;
 }
 
 .overlay .header h1,
 .overlay .header h2 {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--grass-dark);
+  text-transform: lowercase;
 }
 .header-actions {
   display: flex;
@@ -93,7 +146,7 @@
 
 .addQuest-overlay {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: center;
   padding: 1.5rem;
 }
@@ -101,11 +154,22 @@
 .modal.quest-create {
   width: 100%;
   max-width: 480px;
+  max-height: 100%;
+  overflow-y: auto;
+  height: auto;
+  overflow-x: hidden;
   padding: 24px;
+  box-sizing: border-box;
   background: var(--sand-bright);
   border: 3px solid var(--grass);
   border-radius: 16px;
   box-shadow: var(--shadow-path), inset 0 0 40px var(--sunbeam);
+  pointer-events: auto;
+}
+
+/* Add quest: slightly tighter outer padding to show "narrower" look */
+.modal.quest-create.addQuest-modal {
+  padding: 14px;
 }
 
 .quest-create h2 {
@@ -126,6 +190,8 @@
   background: var(--sand-sun);
   color: var(--text-path);
   font-family: inherit;
+  /* Keep fields inside modal padding when width:100% */
+  box-sizing: border-box;
 }
 
 .quest-create textarea {
@@ -216,4 +282,88 @@
   background: var(--path-light);
   color: var(--text-path);
   cursor: pointer;
+}
+
+/*  NAME — floating overlay label (react-three-drei Html)  */
+.name-wrapper {
+  pointer-events: none;
+}
+
+.name-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  /* Rounded-rectangle card (not pill) */
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 252, 235, 0.95) 0%,
+    var(--path-light) 50%,
+    rgba(255, 255, 255, 0.55) 100%
+  );
+  border: 2px solid var(--path-shadow);
+  box-shadow:
+    var(--shadow-soft),
+    inset 0 0 50px var(--sunbeam);
+  max-width: 220px;
+}
+
+.name-container-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.name-text {
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: var(--grass-dark);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+}
+
+.name-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--path-light);
+  border: 2px solid var(--path);
+  color: var(--sand-bright);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 3px 10px rgba(92, 74, 50, 0.12);
+  font-weight: 900;
+  font-size: 0.95rem;
+}
+
+.name-title {
+  /* Match `.active-title` typography + styling (rounded rectangle) */
+  margin-top: 4px;
+  padding: 4px 12px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 252, 235, 0.95) 0%,
+    var(--path-light) 50%,
+    var(--path) 100%
+  );
+  border: 2px solid var(--path-shadow);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 2px 6px rgba(92, 74, 50, 0.12);
+
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  color: var(--grass-dark);
+  text-align: center;
+  opacity: 1;
+  white-space: nowrap;
 }

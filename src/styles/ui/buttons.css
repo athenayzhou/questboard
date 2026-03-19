@@ -1,41 +1,52 @@
 /*  Buttons — Green field + sandy path  */
 
 button.close {
-  font-size: 13px;
-  padding: 8px 14px;
-  border-radius: 10px;
+  font-size: 0.85rem;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
   border: 2px solid var(--path-shadow);
   cursor: pointer;
   background: var(--path-light);
   color: var(--text-path);
   white-space: nowrap;
-  font-family: inherit;
   font-weight: 600;
   box-shadow: var(--shadow-soft);
-  transition: all 0.2s ease;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition),
+    transform var(--transition-fast);
 }
 
 button.close:hover {
   background: var(--path);
-  border-color: var(--grass);
-  color: var(--text-path);
+  border-color: var(--grass-light);
+  box-shadow: var(--shadow-path);
+}
+
+button.close:active {
+  transform: scale(0.98);
 }
 
 button.accept {
   width: 100%;
-  padding: 10px 16px;
-  border-radius: 10px;
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
   border: 2px solid var(--grass-dark);
   background: var(--bg-field);
   color: var(--sand-bright);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    filter var(--transition);
 }
 
 button.accept:hover {
   background: var(--grass-light);
   border-color: var(--grass);
+  filter: brightness(1.03);
 }
 
 .header-actions button.active {
@@ -44,13 +55,13 @@ button.accept:hover {
   color: var(--sand-bright);
 }
 
-.header-actions button:not(.active) {
+.header-actions button:not(.active):not(.close):not(.quest-board-tab):not(.ledger-tab) {
   background: var(--path-light);
   border: 2px solid var(--path);
   color: var(--text-path);
 }
 
-.header-actions button:not(.active):hover {
+.header-actions button:not(.active):not(.close):not(.quest-board-tab):not(.ledger-tab):hover {
   background: var(--grass-pale);
   border-color: var(--grass-light);
 }
@@ -60,36 +71,66 @@ button.accept:hover {
 .friend-btn,
 .profile-btn,
 .skill-btn {
-  padding: 8px 14px;
-  border-radius: 10px;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
   border: 2px solid var(--path);
   background: var(--path-light);
   color: var(--text-path);
   cursor: pointer;
   font-weight: 600;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition);
 }
 
+.quest-btn:hover,
+.log-btn:hover,
+.friend-btn:hover,
+.profile-btn:hover,
+.skill-btn:hover {
+  background: var(--sand);
+  border-color: var(--path-shadow);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Matches quest-btn / close — same header control family */
 .add-quest-btn {
-  padding: 8px 16px;
-  border-radius: 10px;
-  border: 2px solid var(--grass-dark);
-  background: var(--bg-field);
-  color: var(--sand-bright);
+  padding: var(--space-sm) var(--space-md);
+  min-height: 36px;
+  box-sizing: border-box;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--path-shadow);
+  background: var(--path-light);
+  color: var(--text-path);
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  font-family: inherit;
+  white-space: nowrap;
+  box-shadow: var(--shadow-soft);
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition),
+    transform var(--transition-fast);
 }
 
 .add-quest-btn:hover {
-  background: var(--grass-light);
-  border-color: var(--grass);
+  background: var(--path);
+  border-color: var(--grass-light);
+  box-shadow: var(--shadow-path);
+}
+
+.add-quest-btn:active {
+  transform: scale(0.98);
 }
 
 .add-friend-btn {
   width: auto;
-  font-size: 13px;
-  padding: 8px 14px;
-  border-radius: 10px;
+  font-size: 0.85rem;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
   border: 2px solid var(--path-shadow);
   cursor: pointer;
   background: var(--bg-path);
@@ -97,10 +138,23 @@ button.accept:hover {
   white-space: nowrap;
   font-weight: 600;
   box-shadow: var(--shadow-soft);
-  transition: all 0.2s ease;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition);
 }
 
 .add-friend-btn:hover {
   background: var(--path-light);
   border-color: var(--grass-light);
+  box-shadow: var(--shadow-path);
+}
+
+/* Project-wide hover/active consistency (focus ring handled in base.css) */
+button:not(:disabled):not(.close):not(.accept):not(.quest-board-tab):not(.ledger-tab):hover {
+  box-shadow: var(--shadow-soft);
+}
+
+button:not(:disabled):not(.close):not(.accept):not(.quest-board-tab):not(.ledger-tab):active {
+  transform: scale(0.99);
 }

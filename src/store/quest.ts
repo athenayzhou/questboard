@@ -5,6 +5,7 @@ import { evidenceStore, candidateStore, clusterStore } from './bundledStores';
 import { showToast } from "../utils/toast";
 import { useStreakStore } from "./streak";
 import { usePlayerStore } from "./player";
+import { useNameStore } from "./name";
 import { useXPEventStore } from "./xpEvent";
 import { SYSTEM_BADGES } from "../data/systemBadges";
 import { getBadges } from "../utils/badges";
@@ -26,6 +27,7 @@ type QuestState = {
     input: Omit<Quest, "id" | "status" | "createdAt">
   ) => Quest;
   editQuest: (id: string, updates: Partial<Omit<Quest, "id"|"status"|"createdAt">>) => void;
+  deleteQuest: (id: string) => void;
   acceptQuest: (id: string) => void;
   completeQuest: (id: string) => void;
   failQuest: (id: string) => void;
@@ -116,6 +118,23 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     })
   },
 
+  deleteQuest: (id) => {
+    set((state) => {
+      const quest = state.quests.find((q) => q.id === id);
+      if (!quest) return state;
+      const next =
+        quest.isTemplate === true
+          ? state.quests.filter(
+              (q) => q.id !== id && q.parentQuestId !== id
+            )
+          : state.quests.filter((q) => q.id !== id);
+      const success = syncToStorage(next);
+      if (!success) showToast("error", "failed to save quests");
+      return { quests: next };
+    });
+    showToast("success", "quest deleted");
+  },
+
   acceptQuest: (id) => {
     const quest = get().quests.find(q => q.id === id);
     set((state) => {
@@ -175,7 +194,6 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         xpEvents: useXPEventStore.getState().getAll(),
       });
       newlyEarned.forEach((badgeId) => usePlayerStore.getState().unlockBadge(badgeId));
-      showToast('success', `quest "${quest.title}" completed`);
       devLog('quest', 'quest completed', { id, title: quest.title });
       devLog('player', `quest completed: "${quest.title}"`);
       onQuestComplete(quest, {
@@ -183,6 +201,9 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         clusterStore,
         candidateStore,
       });
+      if (useNameStore.getState().isNaming) {
+        showToast("success", `quest "${quest.title}" completed`);
+      }
     } catch (error) {
       showToast('error', `failed to complete quest`);
       devError('quest', 'quest complete failed', error);
@@ -356,9 +377,13 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     set(state => {
       const quest = state.quests.find(q => q.id === templateId);
       if (!quest) return state;
-      const next = state.quests.map(q =>
-        q.id === templateId ? { ...q, paused: true } : q
-      );
+      const next = state.quests.map(q => {
+        const isTemplate = q.id === templateId;
+        const isAvailableInstance =
+          q.parentQuestId === templateId && q.status === "available";
+        if (!isTemplate && !isAvailableInstance) return q;
+        return { ...q, paused: true };
+      });
       syncToStorage(next);
       return { quests: next };
     });
@@ -367,9 +392,13 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     set(state => {
       const quest = state.quests.find(q => q.id === templateId);
       if (!quest) return state;
-      const next = state.quests.map(q =>
-        q.id === templateId ? { ...q, paused: false } : q
-      );
+      const next = state.quests.map(q => {
+        const isTemplate = q.id === templateId;
+        const isAvailableInstance =
+          q.parentQuestId === templateId && q.status === "available";
+        if (!isTemplate && !isAvailableInstance) return q;
+        return { ...q, paused: false };
+      });
       syncToStorage(next);
       return { quests: next };
     });

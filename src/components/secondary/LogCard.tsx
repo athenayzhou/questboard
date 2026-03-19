@@ -60,9 +60,9 @@ export function LogCard({
                   ))}
                 </div>
               )}
-              {active.frequency && <p>Frequency: {active.frequency}</p>}
-              {active.duration && <p>Duration: {active.duration} min</p>}
-              <p>Difficulty: {active.difficulty}</p>
+              {active.frequency && <p>frequency: {active.frequency}</p>}
+              {active.duration && <p>duration: {active.duration} min</p>}
+              <p>difficulty: {active.difficulty}</p>
               <button onClick={handleAddAsNewQuest}>add as new quest</button>
           </div>
           <div className="log-timeline">
