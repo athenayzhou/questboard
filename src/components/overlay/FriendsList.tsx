@@ -1,5 +1,6 @@
 import { useOverlay } from "../../store/overlay";
 import { useFriendsStore } from "../../store/friends";
+import { IconUserPlus, IconX } from "../ui/icons";
 
 export function FriendsList(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);
@@ -10,8 +11,23 @@ export function FriendsList(){
       <div className="header friends-header">
         <h1>friends list</h1>
         <div className="header-actions">
-          <button className="add-friend-btn">+ friend</button>
-          <button className="close friend-btn" onClick={closeOverlay}>close</button>
+          <button
+            type="button"
+            className="add-friend-btn"
+            aria-label="Add friend"
+            title="Add friend"
+          >
+            <IconUserPlus size={16} />
+          </button>
+          <button
+            type="button"
+            className="close friend-btn"
+            onClick={closeOverlay}
+            aria-label="Close friends list"
+            title="Close"
+          >
+            <IconX size={18} />
+          </button>
         </div>
       </div>
 

@@ -1,10 +1,16 @@
-// import { Pool } from "pg";
+import { Pool } from "pg";
+import type { QueryResult, QueryResultRow } from "pg";
 
-// const pool = new Pool({
-//   connectionString: process.env.DATABASE_URL,
-// });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  }
+});
 
-// export async function query<T = any>(text: string, params: any[] = []){
-//   const res = await pool.query<T>(text, params);
-//   return res;
-// }
+export async function query<T extends QueryResultRow = QueryResultRow>(
+  text: string,
+  params: unknown[] = [],
+): Promise<QueryResult<T>> {
+  return pool.query<T>(text, params);
+}

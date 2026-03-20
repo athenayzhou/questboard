@@ -261,7 +261,7 @@
   min-width: 0;
   height: 34px;
   padding: 0 10px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   border: 2px solid var(--path);
   background: var(--sand-bright);
   color: var(--text-path);
@@ -271,20 +271,28 @@
 
 .ledger-controls select {
   height: 34px;
-  padding: 0 10px;
-  border-radius: 10px;
+  padding: 0 30px 0 10px;
+  border-radius: var(--radius-md);
   border: 2px solid var(--path);
-  background: var(--sand-bright);
+  background-color: var(--sand-bright);
   color: var(--text-path);
   flex-shrink: 0;
   font-size: 0.9rem;
   box-sizing: border-box;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234a5c3a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px 16px;
 }
 
 .ledger-controls label {
   height: 34px;
   padding: 0 10px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   border: 2px solid var(--path);
   background: var(--sand-bright);
   color: var(--text-path);
@@ -420,6 +428,29 @@
 
 .skill-detail .close-btn:hover {
   background: rgba(255, 255, 255, 0.1);
+}
+
+.skill-detail .rename-btn {
+  position: absolute;
+  top: 12px;
+  right: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--path);
+  background: var(--sand-bright);
+  color: var(--text-path);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.skill-detail .rename-btn:hover {
+  background: var(--grass-pale);
+  border-color: var(--grass-light);
 }
 
 .skill-summary {

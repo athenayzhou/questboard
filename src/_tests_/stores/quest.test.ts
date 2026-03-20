@@ -6,6 +6,11 @@ vi.mock("../../hooks/onQuestComplete", () => ({
   onQuestComplete: vi.fn(),
 }));
 
+vi.mock("../../lib/apiQuests", () => ({
+  scheduleQuestSync: vi.fn(),
+  setQuestSyncSuppressed: vi.fn(),
+}));
+
 describe('quest store', () => {
   beforeEach(() => {
     useQuestStore.getState().setQuest([])
@@ -27,17 +32,15 @@ describe('quest store', () => {
       expect(quest.title).toBe('test quest')
     })
 
-    it('should persist to locale storage', () => {
-      const { addQuest } = useQuestStore.getState()
+    it('should schedule server sync (debounced PUT)', async () => {
+      const { scheduleQuestSync } = await import("../../lib/apiQuests");
+      const { addQuest } = useQuestStore.getState();
       addQuest({
-        title: 'persistent quest',
-        description: 'should be saved',
-        difficulty: 'easy'
-      })
-
-      const stored = JSON.parse(localStorage.getItem('quests') || '[]')
-      expect(stored).toHaveLength(1)
-      expect(stored[0].title).toBe('persistent quest')
+        title: "synced quest",
+        description: "server-backed",
+        difficulty: "easy",
+      });
+      expect(vi.mocked(scheduleQuestSync)).toHaveBeenCalled();
     })
   })
 

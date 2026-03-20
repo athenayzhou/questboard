@@ -4,6 +4,7 @@ import type { CompletedQuest } from "../../types/quest";
 import { useQuestStore } from "../../store/quest";
 
 import { group } from "../../utils/format/grouping";
+import { IconX } from "../ui/icons";
 
 export function QuestLog(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);
@@ -23,7 +24,15 @@ export function QuestLog(){
       <div className="header log-header">
         <h2>quest log</h2>
         <div className="header-actions">
-          <button className="close log-btn" onClick={closeOverlay}>close</button>
+          <button
+            type="button"
+            className="close log-btn"
+            onClick={closeOverlay}
+            aria-label="Close quest log"
+            title="Close"
+          >
+            <IconX size={18} />
+          </button>
         </div>
       </div>
 

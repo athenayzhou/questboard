@@ -6,6 +6,7 @@ import { UI } from "../../utils/constants";
 import { FilterQuest } from "../secondary/FilterQuest";
 import { useQuestStore } from "../../store/quest";
 import { QuestCardSkeleton } from "../ui/SkeletonLoader";
+import { IconPlus, IconX } from "../ui/icons";
 
 type QuestBoardProps = {
   quests: Quest[];
@@ -227,15 +228,19 @@ export function QuestBoard({
               type="button"
               className="add-quest-btn"
               onClick={() => openOverlay("addQuest")}
+              aria-label="Add quest"
+              title="Add quest"
             >
-              + quest
+              <IconPlus size={16} />
             </button>
             <button
               type="button"
               className="close quest-btn"
               onClick={closeOverlay}
+              aria-label="Close quest board"
+              title="Close"
             >
-              close
+              <IconX size={18} />
             </button>
           </div>
         </div>

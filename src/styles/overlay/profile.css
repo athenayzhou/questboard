@@ -45,6 +45,16 @@
   text-align: center;
   align-self: center;
 }
+.player-name-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.5rem;
+  width: 100%;
+  min-width: 0;
+}
+
 .player-identity h2,
 .player-identity .player-name {
   margin: 0;
@@ -54,9 +64,130 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
+  max-width: min(100%, 14rem);
   color: var(--grass-dark);
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.profile-name-input {
+  flex: 1 1 10rem;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0.35rem 0.5rem;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  border: 2px solid var(--path);
+  border-radius: 8px;
+  background: var(--sand-bright);
+  color: var(--grass-dark);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.profile-name-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.profile-name-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
+  margin: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--grass-dark);
+  opacity: 0.45;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.profile-name-edit-btn:hover {
+  opacity: 0.95;
+  background: rgba(45, 90, 39, 0.08);
+}
+
+.profile-name-edit-btn:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--grass);
+  outline-offset: 2px;
+}
+
+.profile-name-edit-icon {
+  display: block;
+}
+
+.profile-name-btn {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  border: 2px solid var(--grass-dark);
+  border-radius: 8px;
+  background: var(--bg-field);
+  color: var(--sand-bright);
+  cursor: pointer;
+  box-shadow: var(--shadow-grass);
+}
+
+.profile-name-btn:hover {
+  background: var(--grass-light);
+}
+
+.profile-name-btn--primary {
+  background: var(--grass);
+  border-color: var(--grass-dark);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.profile-onboarding-hint {
+  margin: 0.2rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--text-path);
+  opacity: 0.92;
+  max-width: 19rem;
+  text-align: center;
+}
+
+.profile-onboarding-hint strong {
+  color: var(--grass-dark);
+}
+
+.profile-panel-empty {
+  grid-column: 1 / -1;
+  margin: 0.2rem 0 0.35rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--text-path);
+  opacity: 0.9;
+}
+
+.profile-panel-empty strong {
+  color: var(--grass-dark);
+}
+
+.title-section .profile-panel-empty,
+.badge-section .profile-panel-empty {
+  width: 100%;
+  flex-basis: 100%;
 }
 
 .player-currency {
@@ -516,6 +647,10 @@
 
 .profile-actions .shop-btn,
 .profile-actions #save-profile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
   padding: 0.5rem 0.75rem;
   font-size: 0.9rem;
   background: var(--bg-field);

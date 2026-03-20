@@ -1,7 +1,7 @@
 import { OrthographicCamera, OrbitControls, Environment } from "@react-three/drei"
 import { Model } from "./Model";
 import { useRef, useEffect } from "react";
-import { SkillActivity } from "./SkillActivity";
+// import { SkillActivity } from "./SkillActivity";
 import Name from "./Name"
 
 const COLORS = {
@@ -83,14 +83,14 @@ export function Scene({
       </mesh> */}
 
       <Model
-        src="./model/kitchen.glb"
+        src="/model/kitchen.glb"
         position={[2.5, 0, 2.5]}
         scale={1}
         hideMesh={["Object_129"]}
       />
 
       <Model
-        src="./model/mirror.glb"
+        src="/model/mirror.glb"
         position={[-1.25, 4, 5.5]}
         rotation={[0, Math.PI / 2, 0]}
         scale={[1, 0.7, 1]}
@@ -99,7 +99,7 @@ export function Scene({
       />
 
       <Model
-        src="./model/bulletin.glb"
+        src="/model/bulletin.glb"
         position={[-4.5, 0, 8.5]}
         rotation={[0, Math.PI / 2, 0]}
         scale={1}
@@ -108,7 +108,7 @@ export function Scene({
       />
 
       <Model
-        src="./model/notebook.glb"
+        src="/model/notebook.glb"
         position={[3.5, 1.9, 3.5]}
         rotation={[0, Math.PI / 2, 0]}
         scale={[0.05, 0.05, 0.04]}
@@ -117,7 +117,7 @@ export function Scene({
       />
 
       <Model
-        src="./model/phone.glb"
+        src="/model/phone.glb"
         position={[-0.4, 2.7, -0.4]}
         rotation={[0, 0.7, 0]}
         scale={0.5}
@@ -126,7 +126,7 @@ export function Scene({
       />
 
       <Model
-        src="./model/bonsai.glb"
+        src="/model/bonsai.glb"
         position={[3.5, 1.85, 5.8]}
         rotation={[0, Math.PI / 2, 0]}
         scale={2}
@@ -135,7 +135,7 @@ export function Scene({
       />
 
       <Model
-        src="./model/toolbox.glb"
+        src="/model/toolbox.glb"
         position={[5.1, 4.3, -0.5]}
         scale={0.75}
         overlay="settings"

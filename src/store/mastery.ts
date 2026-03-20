@@ -7,6 +7,10 @@ import { generateMasteryName, generateMasteryTitle } from "../utils/skill/genera
 import { usePlayerStore } from "./player";
 import { devLog } from "../dev/devLogs";
 
+function touchExtension() {
+  void import("@/lib/apiExtension").then((m) => m.scheduleExtensionSync());
+}
+
 type MasteryState = {
   masteries: Mastery[];
   addMastery: (mastery: Mastery) => void;
@@ -15,32 +19,19 @@ type MasteryState = {
   getByVerb: (verb: string) => Mastery | undefined;
 };
 
-const STORAGE_KEY = "masteries";
-
 export const useMasteryStore = create<MasteryState>((set, get) => ({
-  masteries: (() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as Mastery[]):[];
-    } catch {
-      return [];
-    }
-  })(),
+  masteries: [],
 
   addMastery: (mastery) => {
     set((state) => {
       const verbNorm = mastery.verb.toLowerCase().trim();
       const already = state.masteries.some(
-        (mastery) => mastery.verb.toLowerCase().trim() === verbNorm
+        (m) => m.verb.toLowerCase().trim() === verbNorm,
       );
       if (already) return state;
 
       const next = [...state.masteries, mastery];
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // ignore storage errors
-      }
+      touchExtension();
       return { masteries: next };
     });
   },
@@ -68,8 +59,14 @@ export const useMasteryStore = create<MasteryState>((set, get) => ({
       get().addMastery(mastery);
       usePlayerStore.getState().unlockTitle(mastery.title);
       devLog("player", `mastery granted: "${mastery.name}"`);
-      devLog("mastery", `new mastery: "${mastery.name}" for verb: "${mastery.verb}" from skills, ${mastery.skillIds.join(", ")}`);
-      devLog("mastery", `new title gained from mastery (${mastery.name}), "${mastery.title}"`);
+      devLog(
+        "mastery",
+        `new mastery: "${mastery.name}" for verb: "${mastery.verb}" from skills, ${mastery.skillIds.join(", ")}`,
+      );
+      devLog(
+        "mastery",
+        `new title gained from mastery (${mastery.name}), "${mastery.title}"`,
+      );
       granted.push(mastery);
     }
     return granted;
@@ -81,5 +78,4 @@ export const useMasteryStore = create<MasteryState>((set, get) => ({
     const v = verb?.toLowerCase().trim();
     return get().masteries.find((mastery) => mastery.verb.toLowerCase().trim() === v);
   },
-
-}))
+}));

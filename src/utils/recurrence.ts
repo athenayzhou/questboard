@@ -31,6 +31,24 @@ export function formatDeadlineForDisplay(
   return Number.isNaN(d.getTime()) ? raw : d.toLocaleDateString();
 }
 
+/** Compact **MM/DD/YYYY** for board cards (parses `YYYY-MM-DD` as local calendar day). */
+export function formatDeadlineMDY(
+  deadline: string | null | undefined
+): string {
+  if (deadline == null || String(deadline).trim() === "") return "";
+  const raw = String(deadline).trim();
+  const ymd = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (ymd) {
+    return `${ymd[2]}/${ymd[3]}/${ymd[1]}`;
+  }
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return raw;
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const y = String(d.getFullYear());
+  return `${m}/${day}/${y}`;
+}
+
 /** End of local calendar day for deadline string (date input / ISO date) */
 export function getQuestDueBy(quest: Quest): number | null {
   if (quest.deadline) {

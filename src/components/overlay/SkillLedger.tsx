@@ -10,6 +10,7 @@ import { NameSkill } from "../secondary/NameSkill";
 import type { Skill } from "../../types/skills";
 import type { PendingSkill } from "../../store/name";
 import { useMasteryStore } from "../../store/mastery";
+import { IconX } from "../ui/icons";
 
 type SortKey = "name" | "level" | "lastSeen";
 type LedgerTab = "skills" | "pending" | "masteries";
@@ -106,7 +107,15 @@ export function SkillLedger() {
               masteries
             </button>
           </div>
-          <button className="close skill-btn" onClick={closeOverlay}>close</button>
+          <button
+            type="button"
+            className="close skill-btn"
+            onClick={closeOverlay}
+            aria-label="Close skill ledger"
+            title="Close"
+          >
+            <IconX size={18} />
+          </button>
         </div>
       </div>
 

@@ -12,7 +12,7 @@ export function showToast(type: ToastType, message: string, options?: ToastOptio
   if (toastHandler) {
     return toastHandler(type, message, options);
   }
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV === "development") {
     console.warn("[toastAPI] no toast handler registered; toast not shown:", type, message);
   }
   return "";

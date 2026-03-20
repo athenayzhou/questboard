@@ -3,26 +3,8 @@ import type { PlayerData } from "../types/player";
 import type { CurrencyId } from "../types/system";
 import { getSystemItemById } from "../data/systemItems";
 import { devLog } from "../dev/devLogs";
-
-const STORAGE_KEY = "playerData";
-
-function loadPlayer(): PlayerData | null {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if(!raw) return null;
-        const parsed =  JSON.parse(raw);
-        parsed.currencies = {
-          coins: parsed.currencies?.coins ?? 0,
-          gems: parsed.currencies?.gems ?? 0,
-        };
-        return parsed as PlayerData;
-    } catch {
-        return null;
-    }
-}
-function savePlayer(player: PlayerData) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(player));
-}
+import { createDefaultPlayerData } from "@/lib/defaultPlayerData";
+import { schedulePlayerSync } from "@/lib/apiPlayer";
 
 type PlayerStore = {
     player: PlayerData;
@@ -36,31 +18,10 @@ type PlayerStore = {
 };
 
 export const usePlayerStore = create<PlayerStore>((set) => ({
-    player: loadPlayer() ?? {
-        profile: { name: "player" },
-        achievements: {
-            unlockedTitles: [],
-            unlockedBadges: [],
-            activeTitle: null,
-            activeBadge: null,
-        },
-        equipment: {
-            equipped: {
-                head: null,
-                body: null,
-                accessory: null,
-                weapon: null,
-            },
-        },
-        inventory: { items: {} },
-        currencies: {
-            coins: 0,
-            gems: 0,
-        },
-    },
+    player: createDefaultPlayerData(),
     setPlayer: (player) => {
-        savePlayer(player);
         set({ player });
+        schedulePlayerSync();
     },
 
     unlockTitle: (title) => {
@@ -77,7 +38,7 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
                     unlockedTitles: [...list, title],
                 },
             };
-            savePlayer(nextPlayer);
+            schedulePlayerSync();
             return { player: nextPlayer };
         });
     },
@@ -94,7 +55,7 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
                     unlockedBadges: [...list, badge],
                 },
             };
-            savePlayer(nextPlayer);
+            schedulePlayerSync();
             return { player: nextPlayer };
         });
     },
@@ -122,7 +83,7 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
                 inventory: { items: nextItems },
             };
 
-            savePlayer(nextPlayer);
+            schedulePlayerSync();
             return { player: nextPlayer };
         });
     },
@@ -140,7 +101,7 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
                 ...state.player,
                 currencies: nextCurrencies,
             };
-            savePlayer(nextPlayer);
+            schedulePlayerSync();
             return { player: nextPlayer };
         });
     },
@@ -160,7 +121,7 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
                 ...state.player,
                 currencies: nextCurrencies,
             };
-            savePlayer(nextPlayer);
+            schedulePlayerSync();
             success = true;
             return { player: nextPlayer };
         });

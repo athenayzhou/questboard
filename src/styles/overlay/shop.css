@@ -52,18 +52,7 @@
 }
 
 .shop-overlay .shop-btn {
-  padding: 6px 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  background: var(--path);
-  color: var(--text-path);
-  border: 2px solid var(--path-shadow);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.shop-overlay .shop-btn:hover {
-  background: var(--path-light);
+  flex-shrink: 0;
 }
 
 .shop-content {

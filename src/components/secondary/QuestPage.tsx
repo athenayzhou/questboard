@@ -10,6 +10,13 @@ import {
   formatDeadlineForDisplay,
 } from "../../utils/recurrence";
 import { useConfirm } from "../../store/confirmation";
+import {
+  IconBookmark,
+  IconPencil,
+  IconX,
+  IconRefreshCw,
+  IconClipboard,
+} from "../ui/icons";
 
 type QuestPageProps = {
   quest: Quest;
@@ -158,13 +165,18 @@ export function QuestPage({
                   title={quest.paused ? "Click to resume recurrence" : "Click to pause recurrence"}
                   onClick={() => (quest.paused ? resumeRecurrence(templateId) : pauseRecurrence(templateId))}
                 >
-                  🔄 {quest.frequency}{quest.paused ? " (paused)" : ""}
+                  <IconRefreshCw size={14} className="quest-page-pill-icon" />
+                  <span>
+                    {quest.frequency}
+                    {quest.paused ? " (paused)" : ""}
+                  </span>
                 </button>
               );
             })()}
             {quest.isTemplate && (
               <span className="quest-page-pill quest-page-pill--template" title="Recurring template">
-                📋 template
+                <IconClipboard size={14} className="quest-page-pill-icon" />
+                <span>template</span>
               </span>
             )}
             {quest.parentQuestId && (
@@ -175,20 +187,36 @@ export function QuestPage({
           </div>
           <div className="quest-page-actions">
             {canEdit && !isEditing && (
-              <button type="button" className="quest-page-edit-btn" onClick={() => setIsEditing(true)}>
-                edit
+              <button
+                type="button"
+                className="quest-page-tool-btn"
+                onClick={() => setIsEditing(true)}
+                aria-label="Edit quest"
+                title="Edit"
+              >
+                <IconPencil size={18} />
               </button>
             )}
             {quest.status === "accepted" && (
               <button
                 type="button"
-                className={`quest-page-pin${quest.pinned ? " quest-page-pin--active" : ""}`}
+                className={`quest-page-tool-btn${quest.pinned ? " quest-page-tool-btn--pinned" : ""}`}
                 onClick={() => pin(quest.id)}
+                aria-label={quest.pinned ? "Unpin quest" : "Pin quest"}
+                title={quest.pinned ? "Unpin" : "Pin"}
               >
-                {quest.pinned ? "pinned" : "pin"}
+                <IconBookmark marked={quest.pinned} size={18} />
               </button>
             )}
-            <button type="button" className="quest-page-close" onClick={handleClose} aria-label="Close">×</button>
+            <button
+              type="button"
+              className="quest-page-tool-btn"
+              onClick={handleClose}
+              aria-label="Close"
+              title="Close"
+            >
+              <IconX size={18} />
+            </button>
           </div>
         </div>
       </header>

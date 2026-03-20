@@ -1,8 +1,15 @@
 /*  Buttons — Green field + sandy path  */
 
 button.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
   font-size: 0.85rem;
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-sm);
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  box-sizing: border-box;
   border-radius: var(--radius-md);
   border: 2px solid var(--path-shadow);
   cursor: pointer;
@@ -71,6 +78,10 @@ button.accept:hover {
 .friend-btn,
 .profile-btn,
 .skill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-md);
   border: 2px solid var(--path);
@@ -96,7 +107,12 @@ button.accept:hover {
 
 /* Matches quest-btn / close — same header control family */
 .add-quest-btn {
-  padding: var(--space-sm) var(--space-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: var(--space-sm);
+  min-width: 36px;
   min-height: 36px;
   box-sizing: border-box;
   border-radius: var(--radius-md);
@@ -127,9 +143,16 @@ button.accept:hover {
 }
 
 .add-friend-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
   width: auto;
   font-size: 0.85rem;
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-sm);
+  min-width: 36px;
+  min-height: 36px;
+  box-sizing: border-box;
   border-radius: var(--radius-md);
   border: 2px solid var(--path-shadow);
   cursor: pointer;

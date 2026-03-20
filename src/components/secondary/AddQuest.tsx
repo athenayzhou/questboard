@@ -6,6 +6,7 @@ import { LoadingButton } from "../ui/LoadingButton";
 import { useValidation } from "../../hooks/useValidation";
 import { VALIDATION_RULES } from "../../utils/constants";
 import type { Quest } from "../../types/quest";
+import { IconPlus } from "../ui/icons";
 
 export function AddQuestOverlay() {
   const setOverlay = useOverlay((s) => s.openOverlay);
@@ -165,8 +166,10 @@ export function AddQuestOverlay() {
                   type="button"
                   className="quest-edit-chip-btn"
                   onClick={addCategory}
+                  aria-label="Add category"
+                  title="Add"
                 >
-                  add
+                  <IconPlus size={14} />
                 </button>
               </div>
 

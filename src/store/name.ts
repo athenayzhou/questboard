@@ -5,13 +5,17 @@ import { devLog } from "../dev/devLogs";
 import { candidateStore } from "./bundledStores";
 import type { Candidate } from "../types/skills";
 
+function touchExtension() {
+  void import("@/lib/apiExtension").then((m) => m.scheduleExtensionSync());
+}
+
 export type PendingSkill = {
   id: string;
   candidate: Candidate;
   xp: number;
   questId: string;
   discoveredAt: number;
-}
+};
 
 type NameState = {
   isNaming: boolean;
@@ -114,11 +118,7 @@ export const useNameStore = create<NameState>((set, get) => ({
         }
 
         if (nextPendingSkills !== prevPending) {
-          try {
-            localStorage.setItem("pendingSkills", JSON.stringify(nextPendingSkills));
-          } catch {
-            // ignore storage errors
-          }
+          touchExtension();
         }
 
         return {
@@ -137,7 +137,7 @@ export const useNameStore = create<NameState>((set, get) => ({
     set({ isNaming: false, pendingNaming: [], currentNameIndex: 0 });
   },
 
-  pendingSkills: JSON.parse(localStorage.getItem('pendingSkills') || '[]'),
+  pendingSkills: [],
 
   addPendingSkill: (skillData) => {
     const pendingSkill: PendingSkill = {
@@ -145,17 +145,17 @@ export const useNameStore = create<NameState>((set, get) => ({
       id: crypto.randomUUID(),
       discoveredAt: Date.now(),
     };
-    set(state => {
+    set((state) => {
       const next = [...state.pendingSkills, pendingSkill];
-      localStorage.setItem('pendingSkills', JSON.stringify(next));
+      touchExtension();
       return { pendingSkills: next };
-    })
+    });
   },
 
   removePendingSkill: (id) => {
-    set(state => {
-      const next = state.pendingSkills.filter(s => s.id !== id);
-      localStorage.setItem('pendingSkills', JSON.stringify(next));
+    set((state) => {
+      const next = state.pendingSkills.filter((s) => s.id !== id);
+      touchExtension();
       return { pendingSkills: next };
     });
   },

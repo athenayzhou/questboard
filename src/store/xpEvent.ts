@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { XPEvent } from "../types/skills";
+import { scheduleXPEventSync } from "@/lib/apiXPEvents";
 
 type XPEventState = {
   events: XPEvent[];
@@ -10,25 +11,16 @@ type XPEventState = {
     sourceId: string;
     name?: string;
   }) => void;
-
   getAll: () => XPEvent[];
   getBySkill: (skillId: string) => XPEvent[];
   clear: () => void;
 }
 
 export const useXPEventStore = create<XPEventState>((set, get) => ({
-  events: (() => {
-    try {
-      const raw = localStorage.getItem("xpEvents");
-      return raw ? (JSON.parse(raw) as XPEvent[]) : [];
-    } catch {
-      return [];
-    }
-  })(),
+  events: [],
 
   recordXP: ({ skillId, amount, source, sourceId, name}) => {
     const timestamp = Date.now();
-
     const newEvent: XPEvent = {
       id: crypto.randomUUID(),
       skillId,
@@ -38,19 +30,17 @@ export const useXPEventStore = create<XPEventState>((set, get) => ({
       name,
       timestamp,
     }
-
     set(state => {
       const next = [newEvent, ...state.events];
-      try {
-        localStorage.setItem("xpEvents", JSON.stringify(next));
-        // eslint-disable-next-line no-empty
-      } catch {}
+      scheduleXPEventSync();
       return { events: next };
     });
   },
 
   getAll: () => get().events,
-  getBySkill: (skillId) => 
-    get().events.filter(e => e.skillId === skillId),
-  clear: () => set({ events: [] }),
+  getBySkill: (skillId) => get().events.filter(e => e.skillId === skillId),
+  clear: () => {
+    set({ events: [] });
+    scheduleXPEventSync();
+  },
 }))

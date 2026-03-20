@@ -126,7 +126,11 @@
   line-height: 1;
   padding: 2px 4px;
   user-select: none;
-  letter-spacing: -0.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-path);
+  opacity: 0.65;
 }
 
 .active-quest-item .drag-handle:hover {
@@ -142,7 +146,12 @@
 .pin-btn,
 .complete-btn,
 .fail-btn {
-  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 30px;
+  padding: 4px 6px;
   border-radius: 8px;
   border: 2px solid var(--path);
   background: var(--path-light);
@@ -257,7 +266,11 @@
 
 .open-full-btn {
   margin-top: 8px;
-  padding: 5px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 5px 10px;
   border-radius: 10px;
   border: 1px solid rgba(196, 165, 116, 0.55);
   background: rgba(255, 255, 255, 0.3);

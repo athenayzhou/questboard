@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { useOverlay } from "../../store/overlay";
 import { useQuestStore } from "../../store/quest";
 import { useDebounce } from "../../hooks/useDebounce";
+import { IconFilter, IconEraser } from "../ui/icons";
 
 const DROPDOWN_MIN_W = 280;
 const DROPDOWN_MAX_W = 400;
@@ -135,8 +136,10 @@ export function FilterQuest() {
           }}
           className="clear-filters-btn"
           disabled={!localSearch && Object.keys(questFilters).length === 0}
+          aria-label="Clear search and filters"
+          title="Clear search and filters"
         >
-          clear
+          <IconEraser size={16} />
         </button>
       </div>
 
@@ -185,9 +188,11 @@ export function FilterQuest() {
           className="quest-filter-toggle"
           aria-expanded={open}
           aria-controls="quest-filter-panel"
+          aria-label="Filter quests"
+          title="Filter quests"
           onClick={() => setOpen((v) => !v)}
         >
-          filter
+          <IconFilter size={16} className="quest-filter-toggle-icon" />
           {activeCount > 0 && (
             <span className="quest-filter-toggle-badge">{activeCount}</span>
           )}

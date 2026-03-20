@@ -1,4 +1,4 @@
-const isDev = import.meta.env.DEV;
+const isDev = process.env.NODE_ENV === "development";
 
 type logCategory = "quest" | "storage" | "pipeline" | "decay" | "evidence" | "skill" | "skill-gen" | "mastery" | "player" | "streak";
 

@@ -11,9 +11,12 @@ type StreakState = {
   lastCompletion: string;
   registerCompletion: (now: Date) => boolean;
   getInfo: () => StreakInfo;
+  hydrate: (partial: { currentDays: number; lastCompletion: string }) => void;
 };
 
-const STORAGE_KEY = "streak";
+function touchExtension() {
+  void import("@/lib/apiExtension").then((m) => m.scheduleExtensionSync());
+}
 
 function toDateString(d: Date): string {
   return d.toISOString().split("T")[0];
@@ -24,82 +27,55 @@ function daysBetween(a: string, b: string): number {
   return Math.floor(ms / (1000 * 60 * 60 * 24));
 }
 
-export const useStreakStore = create<StreakState>((set, get) => {
-  const initial = (() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return { currentDays: 0, lastCompletion: "" };
-      const parsed = JSON.parse(raw) as {
-        currentDays: number;
-        lastCompletion: string;
-      };
-      return {
-        currentDays: parsed.currentDays ?? 0,
-        lastCompletion: parsed.lastCompletion ?? "",
-      };
-    } catch {
-      return { currentDays: 0, lastCompletion: "" };
-    }
-  })();
+export const useStreakStore = create<StreakState>((set, get) => ({
+  currentDays: 0,
+  lastCompletion: "",
 
-  const persist = (state: { currentDays: number; lastCompletion: string }) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      // ignore
-    }
-  };
-
-  return {
-    ...initial,
-
-    registerCompletion: (now: Date) => {
-      const today = toDateString(now);
-      const last = get().lastCompletion;
-      let extended = false;
-
-      if (last === today) {
-        devLog("streak", "streak: already counted today", { today });
-      } else if (last && daysBetween(last, today) === 1) {
-        set((state) => {
-          const next = {
-            currentDays: state.currentDays + 1,
-            lastCompletion: today,
-            registerCompletion: state.registerCompletion,
-            getInfo: state.getInfo,
-          };
-          persist({
-            currentDays: next.currentDays,
-            lastCompletion: next.lastCompletion,
-          });
-          devLog("streak", `streak extended: ${next.currentDays} days`, { last, today });
-          return next;
-        });
-        extended = true;
-      } else {
-        set((state) => {
-          const next = {
-            currentDays: 1,
-            lastCompletion: today,
-            registerCompletion: state.registerCompletion,
-            getInfo: state.getInfo,
-          };
-          persist({
-            currentDays: next.currentDays,
-            lastCompletion: next.lastCompletion,
-          });
-          devLog("streak", last ? "streak reset: 1 day (gap)" : "streak started: 1 day", { today });
-          return next;
-        });
-      }
-
-      return extended;
-    },
-
-    getInfo: () => ({
-      current: get().currentDays,
-      lastDate: get().lastCompletion,
+  hydrate: (partial) =>
+    set({
+      currentDays: partial.currentDays ?? 0,
+      lastCompletion: partial.lastCompletion ?? "",
     }),
-  };
-});
 
+  registerCompletion: (now: Date) => {
+    const today = toDateString(now);
+    const last = get().lastCompletion;
+    let extended = false;
+
+    if (last === today) {
+      devLog("streak", "streak: already counted today", { today });
+    } else if (last && daysBetween(last, today) === 1) {
+      set((state) => {
+        const next = {
+          currentDays: state.currentDays + 1,
+          lastCompletion: today,
+        };
+        touchExtension();
+        devLog("streak", `streak extended: ${next.currentDays} days`, { last, today });
+        return next;
+      });
+      extended = true;
+    } else {
+      set(() => {
+        const next = {
+          currentDays: 1,
+          lastCompletion: today,
+        };
+        touchExtension();
+        devLog(
+          "streak",
+          last ? "streak reset: 1 day (gap)" : "streak started: 1 day",
+          { today },
+        );
+        return next;
+      });
+    }
+
+    return extended;
+  },
+
+  getInfo: () => ({
+    current: get().currentDays,
+    lastDate: get().lastCompletion,
+  }),
+}));

@@ -1,36 +1,43 @@
 import { useState } from "react";
 import { useOverlay } from "../../store/overlay";
 import { useQuestStore } from "../../store/quest";
-import { useSkillStore } from "../../store/skill";
 import { useNameStore } from "../../store/name";
-import { candidateStore, clusterStore, evidenceStore } from "../../store/bundledStores";
-import { useXPEventStore } from "../../store/xpEvent";
-import { useMasteryStore } from "../../store/mastery";
+import { useQuestboardSettings } from "../../store/questboardSettings";
+import { candidateStore } from "../../store/bundledStores";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { showToast } from "../../utils/toast";
+import { flushAllServerSyncs } from "../../lib/syncFlush";
+import { clearLocalQuestboardState } from "../../lib/clearLocalQuestboardState";
+import { scheduleSkillSync } from "../../lib/apiSkills";
+import { signOutFromApp } from "../../lib/sessionRecovery";
 import { APP, CANDIDATE } from "../../utils/constants";
+import { IconX, IconCloudUpload, IconLogOut, IconTrash2 } from "../ui/icons";
 import { autoNameSkill, generateSkillNames } from "../../utils/skill/generation/name";
 
 export function Settings() {
   const closeOverlay = useOverlay((s) => s.closeOverlay);
-  const [autoNameSkills, setAutoNameSkills] = useState(() => 
-    localStorage.getItem('autoNameSkills') !== 'false'
+  const autoNameSkills = useQuestboardSettings((s) => s.autoNameSkills);
+  const setAutoNameSkillsStore = useQuestboardSettings(
+    (s) => s.setAutoNameSkills,
   );
-  const [autoFailOverdue, setAutoFailOverdue] = useState(() => 
-    localStorage.getItem('autoFailOverdueQuests') === 'true'
+  const autoFailOverdue = useQuestboardSettings((s) => s.autoFailOverdueQuests);
+  const setAutoFailOverdueQuests = useQuestboardSettings(
+    (s) => s.setAutoFailOverdueQuests,
   );
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const handleAutoNameToggle = (enabled: boolean) => {
-    setAutoNameSkills(enabled);
-    localStorage.setItem('autoNameSkills', enabled.toString());
+    setAutoNameSkillsStore(enabled);
     if (enabled) {
       const maxClusterCount = (c: { clusters: { count: number }[] }) =>
         c.clusters.length ? Math.max(...c.clusters.map((cl) => cl.count)) : 0;
       const ready = candidateStore
         .getAll()
         .filter(
-          (c) => c.state === "ready" && maxClusterCount(c) >= CANDIDATE.MIN_SIZE
+          (c) => c.state === "ready" && maxClusterCount(c) >= CANDIDATE.MIN_SIZE,
         );
       if (ready.length > 0) {
         autoNameSkill(ready, candidateStore);
@@ -48,48 +55,33 @@ export function Settings() {
   };
 
   const handleAutoFailToggle = (enabled: boolean) => {
-    setAutoFailOverdue(enabled);
-    localStorage.setItem('autoFailOverdueQuests', enabled.toString());
+    setAutoFailOverdueQuests(enabled);
     if (enabled) {
       useQuestStore.getState().processAutoFail();
     }
   };
 
   const handleResetData = () => {
-    useQuestStore.getState().setQuest([]);
-    useSkillStore.setState({ skills: {} });
-    useXPEventStore.getState().clear();
-    useMasteryStore.setState({ masteries: [] });
-    useNameStore.setState({
-      isNaming: false,
-      pendingNaming: [],
-      currentNameIndex: 0,
-      pendingSkills: [],
-    });
+    clearLocalQuestboardState({ closeOverlays: true });
+    scheduleSkillSync();
 
-    // Clear non-zustand stores used by skill generation.
-    candidateStore.clear();
-    clusterStore.clear();
-    evidenceStore.clear();
-
-    // Clear persisted keys (some stores don't remove from storage on "clear").
-    try {
-      localStorage.setItem("skills", "{}");
-      localStorage.setItem("xpEvents", "[]");
-      localStorage.setItem("masteries", "[]");
-      localStorage.setItem("pendingSkills", "[]");
-      localStorage.setItem("candidates", "[]");
-      localStorage.setItem("clusters", "[]");
-      localStorage.removeItem("evidence");
-      localStorage.removeItem("learnedVerbs");
-    } catch {
-      // ignore storage errors
-    }
-
-    useOverlay.getState().closeAllQuests();
-    showToast("success", "Data reset (quests, skills, and skill history).");
+    showToast(
+      "success",
+      "Data reset locally. Use “save to server now” to clear your cloud copy too.",
+    );
     setShowResetConfirm(false);
     closeOverlay();
+  };
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOutFromApp();
+      setShowSignOutConfirm(false);
+      closeOverlay();
+    } finally {
+      setSigningOut(false);
+    }
   };
 
   return (
@@ -97,7 +89,15 @@ export function Settings() {
       <div className="header settings-header">
         <h2>settings</h2>
         <div className="header-actions">
-          <button className="close" onClick={closeOverlay}>close</button>
+          <button
+            type="button"
+            className="close"
+            onClick={closeOverlay}
+            aria-label="Close settings"
+            title="Close"
+          >
+            <IconX size={18} />
+          </button>
         </div>
       </div>
       <div className="settings-content">
@@ -119,6 +119,45 @@ export function Settings() {
             />
             auto-fail overdue quests
           </label>
+
+          <div className="settings-cloud-sync">
+            <p className="settings-section-title">cloud sync</p>
+            <button
+              type="button"
+              className="settings-sync-btn"
+              disabled={syncing}
+              onClick={async () => {
+                setSyncing(true);
+                try {
+                  await flushAllServerSyncs();
+                } finally {
+                  setSyncing(false);
+                }
+              }}
+            >
+              <IconCloudUpload size={16} />
+              <span>{syncing ? "saving…" : "save to server now"}</span>
+            </button>
+            <p className="settings-cloud-sync-hint">
+              sync all changes
+            </p>
+          </div>
+
+          <div className="settings-account">
+            <p className="settings-section-title">account</p>
+            <button
+              type="button"
+              className="settings-signout-btn"
+              disabled={signingOut}
+              onClick={() => setShowSignOutConfirm(true)}
+            >
+              <IconLogOut size={16} />
+              <span>{signingOut ? "signing out…" : "sign out"}</span>
+            </button>
+            <p className="settings-cloud-sync-hint">
+              make sure to save before leaving or risk clearing unsaved changes in this session
+            </p>
+          </div>
         </div>
 
         <div className="settings-footer">
@@ -127,7 +166,8 @@ export function Settings() {
             className="settings-reset-btn"
             onClick={() => setShowResetConfirm(true)}
           >
-            reset quest & skill data
+            <IconTrash2 size={16} />
+            <span>reset quest & skill data</span>
           </button>
 
           <div className="settings-meta">
@@ -140,12 +180,25 @@ export function Settings() {
         isOpen={showResetConfirm}
         options={{
           title: "reset data",
-          message: "clear all quests and skills? this action cannot be undone.",
+          message:
+            "clear all quests and skills on this device? use “save to server now” afterward if you also want the cloud copy emptied.",
           confirmText: "reset",
           type: "danger",
         }}
         onConfirm={handleResetData}
         onCancel={() => setShowResetConfirm(false)}
+      />
+      <ConfirmDialog
+        isOpen={showSignOutConfirm}
+        options={{
+          title: "sign out",
+          message:
+            "Sign out and clear local data? You’ll need your invite code to sign back in.",
+          confirmText: "sign out",
+          type: "warning",
+        }}
+        onConfirm={handleSignOut}
+        onCancel={() => setShowSignOutConfirm(false)}
       />
     </div>
   );

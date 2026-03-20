@@ -2,7 +2,15 @@ import { useOverlay } from "../../store/overlay";
 import { questProgress } from "../../utils/skill/analysis/experience";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuestStore } from "../../store/quest";
-import { formatDeadlineForDisplay } from "../../utils/recurrence";
+import { formatDeadlineMDY } from "../../utils/recurrence";
+import {
+  IconBookmark,
+  IconCheck,
+  IconBan,
+  IconChevronLeft,
+  IconChevronRight,
+  IconGripVertical,
+} from "../ui/icons";
 
 export function ActiveQuest() {
   const activeOverlay = useOverlay(s => s.activeOverlay);
@@ -85,11 +93,13 @@ export function ActiveQuest() {
 
   return (
     <div className={`active-quest-panel ${collapsed ? "collapsed": ""}`}>
-      <button 
-        className="active-quest-handle" 
-        onClick={() => setCollapsed(v=>!v)}
+      <button
+        type="button"
+        className="active-quest-handle"
+        onClick={() => setCollapsed((v) => !v)}
+        aria-label={collapsed ? "Expand active quests" : "Collapse active quests"}
       >
-        {collapsed ? "◀" : "▶"}
+        {collapsed ? <IconChevronRight size={20} /> : <IconChevronLeft size={20} />}
       </button>
 
       <div className="active-quest">
@@ -120,7 +130,7 @@ export function ActiveQuest() {
               >
                 <div className="quest-header">
                   <span className="title">{q.title}</span>
-                  <div 
+                  <div
                     className="drag-handle"
                     onMouseDown={(e) => e.stopPropagation()}
                     draggable
@@ -129,32 +139,49 @@ export function ActiveQuest() {
                       handleDragStart(e, q.id);
                     }}
                     onDragEnd={handleDragEnd}
-                    title="drag to reorder"
+                    title="Drag to reorder"
+                    aria-hidden
                   >
-                    ::
+                    <IconGripVertical size={16} />
                   </div>
                 </div>
                 <div className="action-buttons">
-                  <button 
-                    className="pin-btn" 
+                  <button
+                    type="button"
+                    className="pin-btn"
+                    title={isPinned ? "Unpin" : "Pin"}
+                    aria-label={isPinned ? "Unpin quest" : "Pin quest"}
                     onClick={(e) => {
                       e.stopPropagation();
                       togglePin(q.id);
-                    }}>
-                      {isPinned ? "📌" : "📍"}
-                    </button>
-                    <button className="complete-btn" onClick={(e) => {
+                    }}
+                  >
+                    <IconBookmark marked={isPinned} size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    className="complete-btn"
+                    title="Complete"
+                    aria-label="Complete quest"
+                    onClick={(e) => {
                       e.stopPropagation();
-                      completeQuest(q.id)}
-                    }>
-                      ✅
-                    </button>
-                    <button className="fail-btn" onClick={(e) => { 
+                      completeQuest(q.id);
+                    }}
+                  >
+                    <IconCheck size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    className="fail-btn"
+                    title="Fail"
+                    aria-label="Fail quest"
+                    onClick={(e) => {
                       e.stopPropagation();
-                      failQuest(q.id)
-                    }}>
-                      ❌
-                    </button>
+                      failQuest(q.id);
+                    }}
+                  >
+                    <IconBan size={18} />
+                  </button>
                   </div>
                 {progress && (
                   <div className = "progress-bar">
@@ -193,7 +220,7 @@ export function ActiveQuest() {
                       <div className="detail-row">
                         <span className="label">deadline:</span>
                         <span className="value">
-                          {formatDeadlineForDisplay(q.deadline)}
+                          {formatDeadlineMDY(q.deadline)}
                         </span>
                       </div>
                     )}
@@ -220,13 +247,17 @@ export function ActiveQuest() {
                         </ul>
                       </div>
                     )}
-                    <button 
+                    <button
+                      type="button"
                       className="open-full-btn"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleOpenFullQuest(q.id);
                       }}
-                      >open full quest page</button>
+                      aria-label="Open full quest page"
+                    >
+                      open full details
+                    </button>
                   </div>
                 )}
               </div>  

@@ -3,6 +3,7 @@ import type { SkillLedgerEntry } from "../../types/skills";
 import { useXPEventStore } from "../../store/xpEvent";
 import { getSkillCooccurence } from "../../utils/skill/analysis/cooccurence";
 import { useStreakStore } from "../../store/streak";
+import { IconX, IconPencil } from "../ui/icons";
 
 type Props = {
   skill: SkillLedgerEntry;
@@ -37,9 +38,25 @@ export function SkillDetail({ skill, onClose, onRename }: Props) {
 
   return (
     <div className="skill-detail">
-      <button className="close-btn" onClick={onClose}>x</button>
+      <button
+        type="button"
+        className="close-btn"
+        onClick={onClose}
+        aria-label="Close"
+        title="Close"
+      >
+        <IconX size={18} />
+      </button>
       {onRename && (
-        <button className="rename-btn" onClick={onRename}>rename</button>
+        <button
+          type="button"
+          className="rename-btn"
+          onClick={onRename}
+          aria-label="Rename skill"
+          title="Rename skill"
+        >
+          <IconPencil size={16} />
+        </button>
       )}
       <h2>{skill.name}</h2>
       <div className="skill-summary">

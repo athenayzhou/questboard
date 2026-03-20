@@ -14,6 +14,9 @@ import { devLog, devError } from "../dev/devLogs";
 import { RecurringQuests } from "../utils/recurrence";
 import { isQuestOverdue } from "../utils/recurrence";
 
+import { scheduleQuestSync } from "@/lib/apiQuests";
+import { useQuestboardSettings } from "@/store/questboardSettings";
+
 type QuestState = {
   quests: Quest[];
 
@@ -50,25 +53,8 @@ type QuestState = {
   getQuestById: (id: string) => Quest | undefined;
 }
 
-const syncToStorage = (quests: Quest[]):boolean => {
-  try {
-    localStorage.setItem("quests", JSON.stringify(quests));
-    return true;
-  } catch (error) {
-    devError('storage', 'quest sync failed', error)
-    return false;
-  }
-};
-
 export const useQuestStore = create<QuestState>((set, get) => ({
-  quests: (() => {
-    try {
-      const raw = localStorage.getItem("quests");
-      return raw ? (JSON.parse(raw) as Quest[]) : [];
-    } catch {
-      return [];
-    }
-  })(),
+  quests: [],
 
   isLoading: false,
   operationLoading: {},
@@ -78,11 +64,8 @@ export const useQuestStore = create<QuestState>((set, get) => ({
   })),
 
   setQuest: (quests) => {
-    const success = syncToStorage(quests);
+    scheduleQuestSync();
     set({ quests });
-    if(!success){
-      showToast('error', 'failed to save quests');
-    }
   },
 
   addQuest: (input) => {
@@ -96,10 +79,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
 
     set((state) => {
       const next = [...state.quests, quest];
-      const success = syncToStorage(next);
-      if(!success){
-        showToast('error', 'failed to add quest');
-      }
+      scheduleQuestSync();
       return { quests: next };
     });
 
@@ -110,10 +90,9 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     set(state => {
       const quest = state.quests.find(q => q.id === id);
       if(!quest || quest.status !== "available") return state;
-
       const updatedQuest = {...quest, ...updates };
       const next = state.quests.map(q => q.id === id ? updatedQuest: q);
-      syncToStorage(next);
+      scheduleQuestSync();
       return { quests: next };
     })
   },
@@ -128,8 +107,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
               (q) => q.id !== id && q.parentQuestId !== id
             )
           : state.quests.filter((q) => q.id !== id);
-      const success = syncToStorage(next);
-      if (!success) showToast("error", "failed to save quests");
+      scheduleQuestSync();
       return { quests: next };
     });
     showToast("success", "quest deleted");
@@ -146,7 +124,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
               acceptedAt: Date.now() } 
           : q
       );
-      syncToStorage(next);
+      scheduleQuestSync();
       return { quests: next };
     })
     if (quest) {
@@ -159,7 +137,6 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     const quest = get().quests.find(q => q.id === id);
     if (!quest || quest.status !== "accepted") return;
     get().setOperationLoading(`complete-${id}`, true);
-
     const now = Date.now();
 
     try {
@@ -182,7 +159,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         const next: Quest[] = state.quests.map(x =>
           x.id === id ? completed : x
         );
-        syncToStorage(next);
+        scheduleQuestSync();
         return { quests: next };
       });
       useStreakStore.getState().registerCompletion(new Date());
@@ -226,7 +203,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
             }
           : q
       );
-      syncToStorage(next);
+      scheduleQuestSync();
       return { quests: next };
     });
     if (quest) devLog("player", `quest failed: "${quest.title}"`);
@@ -248,10 +225,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
 
       set(state => {
         const next = [...state.quests, duplicatedQuest];
-        const success = syncToStorage(next);
-        if(!success){
-          showToast('error', 'failed to add quest');
-        }
+        scheduleQuestSync();
         return { quests: next };
       });
 
@@ -272,7 +246,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         }
         return q;
     });
-      syncToStorage(next);
+      scheduleQuestSync();
       return { quests: next };
     }),
 
@@ -294,7 +268,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
           }
           return quest;
         });
-        syncToStorage(updatedQuests);
+        scheduleQuestSync();
         return { quests: updatedQuests }
       }),
 
@@ -307,7 +281,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       );
       const updatedQuest = { ...quest, subquests: updatedSubquests };
       const next = state.quests.map(q => q.id === questId ? updatedQuest : q);
-      syncToStorage(next);
+      scheduleQuestSync();
       return { quests: next };
     });
   },
@@ -350,7 +324,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
 
     set((state) => {
       const next = [...state.quests, template];
-      syncToStorage(next);
+      scheduleQuestSync();
       return { quests: next };
     });
 
@@ -368,7 +342,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         }
         return q.id === templateId ? updatedTemplate : q;
       });
-      syncToStorage(updatedQuests);
+      scheduleQuestSync();
       return { quests: updatedQuests }
     });
   },
@@ -384,7 +358,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         if (!isTemplate && !isAvailableInstance) return q;
         return { ...q, paused: true };
       });
-      syncToStorage(next);
+      scheduleQuestSync();
       return { quests: next };
     });
   },
@@ -399,13 +373,13 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         if (!isTemplate && !isAvailableInstance) return q;
         return { ...q, paused: false };
       });
-      syncToStorage(next);
+      scheduleQuestSync();
       return { quests: next };
     });
   },
 
   processAutoFail: () => {
-    if (localStorage.getItem("autoFailOverdueQuests") !== "true") return;
+    if (!useQuestboardSettings.getState().autoFailOverdueQuests) return;
     const state = get();
     const now = Date.now();
     const overdueAccepted = state.quests.filter(

@@ -16,11 +16,13 @@ import { SYSTEM_TITLES } from "../../data/systemTitles";
 import { SYSTEM_BADGES } from "../../data/systemBadges";
 import { createPortal } from "react-dom";
 import { usePlayerStore } from "../../store/player";
+import { IconX, IconPencil } from "../ui/icons";
 type Action =
   | { type: "EQUIP_ITEM"; slot: EquipSlot; itemId: string }
   | { type: "UNEQUIP_ITEM"; slot: EquipSlot }
   | { type: "SET_ACTIVE_TITLE"; titleId: string }
   | { type: "SET_ACTIVE_BADGE"; badgeId: string }
+  | { type: "SET_PROFILE_NAME"; name: string }
   | { type: "UPDATE_PLAYER"; player: PlayerData };
 
 function playerReducer(state: PlayerData, action: Action): PlayerData {
@@ -75,6 +77,14 @@ function playerReducer(state: PlayerData, action: Action): PlayerData {
           activeBadge: action.badgeId
         }
       };
+    case "SET_PROFILE_NAME": {
+      const next = action.name.trim();
+      if (!next || next === state.profile.name) return state;
+      return {
+        ...state,
+        profile: { ...state.profile, name: next },
+      };
+    }
     case "UPDATE_PLAYER":
       return structuredClone(action.player);
     default:
@@ -101,6 +111,8 @@ export function Profile(){
     name: string;
     description?: string;
   } | null>(null);
+  const [nameEditing, setNameEditing] = useState(false);
+  const [nameDraft, setNameDraft] = useState(loadedPlayer.profile.name);
 
   /** Small nudge so the tooltip sits just beside the cursor (not overlapping it). */
   const INV_TIP_OFFSET_X = 4;
@@ -151,6 +163,15 @@ export function Profile(){
   useEffect(() => {
     dispatch({ type: "UPDATE_PLAYER", player: loadedPlayer });
   }, [loadedPlayer]);
+
+  useEffect(() => {
+    if (!nameEditing) {
+      setNameDraft(loadedPlayer.profile.name);
+    }
+  }, [loadedPlayer.profile.name, nameEditing]);
+
+  const isDefaultDisplayName =
+    player.profile.name.trim().toLowerCase() === "player";
 
   const equippedItems = useMemo(() => {
     const result: Partial<Record<EquipSlot, SystemItem>> = {};
@@ -221,19 +242,97 @@ export function Profile(){
     setPlayerGlobal(player);
   }
 
+  function commitNameEdit() {
+    const next = nameDraft.trim();
+    if (!next) return;
+    dispatch({ type: "SET_PROFILE_NAME", name: next });
+    setNameEditing(false);
+  }
+
+  function cancelNameEdit() {
+    setNameDraft(player.profile.name);
+    setNameEditing(false);
+  }
+
   return(
     <div className="overlay profile-overlay">
       <div className="header profile-header">
         <h1>profile</h1>
         <div className="header-actions">
-          <button className="close profile-btn" onClick={closeOverlay}>close</button>
+          <button
+            type="button"
+            className="close profile-btn"
+            onClick={closeOverlay}
+            aria-label="Close profile"
+            title="Close"
+          >
+            <IconX size={18} />
+          </button>
         </div>
       </div>
       <div className="character-information">
       <div className="character-panel">
         <div className="player-figure">
         <div className="player-identity">
-          <h2 className="player-name">{player.profile.name}</h2>
+          <div className="player-name-row">
+            {nameEditing ? (
+              <>
+                <label className="visually-hidden" htmlFor="profile-display-name">
+                  display name
+                </label>
+                <input
+                  id="profile-display-name"
+                  className="profile-name-input"
+                  name="display-name"
+                  value={nameDraft}
+                  onChange={(e) => setNameDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") commitNameEdit();
+                    if (e.key === "Escape") cancelNameEdit();
+                  }}
+                  maxLength={48}
+                  autoFocus
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  enterKeyHint="done"
+                />
+                <div className="profile-name-edit-actions">
+                  <button
+                    type="button"
+                    className="profile-name-btn profile-name-btn--primary"
+                    onClick={commitNameEdit}
+                  >
+                    save
+                  </button>
+                  <button
+                    type="button"
+                    className="profile-name-btn"
+                    onClick={cancelNameEdit}
+                  >
+                    cancel
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className="player-name">{player.profile.name}</h2>
+                <button
+                  type="button"
+                  className="profile-name-edit-btn"
+                  onClick={() => {
+                    setNameDraft(player.profile.name);
+                    setNameEditing(true);
+                  }}
+                  aria-label="Edit display name"
+                  title="Edit name"
+                >
+                  <IconPencil size={18} className="profile-name-edit-icon" />
+                </button>
+              </>
+            )}
+          </div>
           <div className="player-achievements">
           {activeTitle && (
             <span className="active-title">{activeTitle.display.toLowerCase()}</span>
@@ -303,6 +402,12 @@ export function Profile(){
         <section>
           <h3>inventory</h3>
           <div id="inventory" className="grid">
+            {inventoryItems.length === 0 ? (
+              <p className="profile-panel-empty">
+                nothing here yet — visit the <strong>shop</strong> or complete
+                quests to earn equipment
+              </p>
+            ) : null}
             {inventoryItems.map((item) => {
               const isEquipped = player.equipment.equipped[item.slot] === item.id;
               return (
@@ -357,6 +462,11 @@ export function Profile(){
           <div className="subsection">
             <h4>titles</h4>
             <div className="title-section">
+              {unlockedTitles.length === 0 ? (
+                <p className="profile-panel-empty">
+                  no titles yet — earn them from masteries and milestones
+                </p>
+              ) : null}
               {unlockedTitles.map(title => (
                 <button 
                   key={title.id}
@@ -372,6 +482,11 @@ export function Profile(){
           <div className="subsection">
             <h4>badges</h4>
             <div className="badge-section">
+              {unlockedBadges.length === 0 ? (
+                <p className="profile-panel-empty">
+                  no badges yet — keep questing to unlock flair
+                </p>
+              ) : null}
               {unlockedBadges.map(badge => (
                 <button
                   key={badge.id}
@@ -389,7 +504,13 @@ export function Profile(){
 
         
         <div className="profile-actions">
-          <button className="shop-btn" onClick={() => openOverlay('shop')}>shop</button>
+          <button
+            type="button"
+            className="shop-btn"
+            onClick={() => openOverlay("shop")}
+          >
+            shop
+          </button>
           <button id="save-profile" onClick={saveProfile}>save changes</button>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { useShopStore } from "../../store/shop";
 import { getSystemItemById, getItemIconUrl } from "../../data/systemItems";
 import { showToast } from "../../utils/toast";
 import { createPortal } from "react-dom";
+import { IconX } from "../ui/icons";
 
 function descriptionForShop(text: string): string {
   return text.replace(/\.\s*$/, "").trim();
@@ -56,10 +57,13 @@ export function Shop() {
               <span>gems: {loadedPlayer.currencies.gems}</span>
             </div>
             <button
+              type="button"
               className="close shop-btn"
               onClick={() => openOverlay("profile")}
+              aria-label="Close shop"
+              title="Close"
             >
-              x
+              <IconX size={18} />
             </button>
           </div>
         </div>

@@ -1,7 +1,5 @@
 import { VERB, DEFAULT } from "../constants";
 
-const LEARNED_VERBS_KEY = "learnedVerbs";
-
 const TIMEWORDS = new Set([
   "minute", "minutes", "min", "mins",
   "hour", "hours", "hr", "hrs",
@@ -15,40 +13,33 @@ const MEASUREWORDS = new Set([
 const STOPWORDS = new Set([
   "and", "the", "a", "an", "to", "of", "for", "with", "on", "in", "at",
 ]);
-const IGNORE_LEMMATIZE = new Set(["morning", "afternoon", "evening"])
-export const KNOWN_VERBS: Set<string> = new Set([
+const IGNORE_LEMMATIZE = new Set(["morning", "afternoon", "evening"]);
+
+/** Baseline verbs shipped with the app; user-learned verbs persist per account (extension blob). */
+const VERB_BASELINE = new Set([
   "clean", "cook", "write", "organize", "wash", "plan", "build", "review",
 ]);
 
-// Load learned verbs once per session.
-(() => {
-  try {
-    const raw = localStorage.getItem(LEARNED_VERBS_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return;
-    for (const v of parsed) {
-      if (typeof v === "string" && v.trim().length >= 3) {
-        KNOWN_VERBS.add(v.trim().toLowerCase());
-      }
+export const KNOWN_VERBS: Set<string> = new Set(VERB_BASELINE);
+
+/** Replace runtime verb set from bootstrap / server snapshot (keeps baseline + stored). */
+export function hydrateLearnedVerbsFromExtension(stored: string[] | undefined) {
+  KNOWN_VERBS.clear();
+  for (const v of VERB_BASELINE) KNOWN_VERBS.add(v);
+  if (!stored?.length) return;
+  for (const v of stored) {
+    if (typeof v === "string" && v.trim().length >= 3) {
+      KNOWN_VERBS.add(v.trim().toLowerCase());
     }
-  } catch {
-    // ignore
   }
-})();
+}
+
+export function getLearnedVerbsForExtension(): string[] {
+  return [...KNOWN_VERBS].filter((v) => !VERB_BASELINE.has(v));
+}
 
 function persistLearnedVerbs() {
-  try {
-    // Only persist verbs that aren't part of the initial hardcoded list.
-    // (Keeps the stored payload small and resilient to future default changes.)
-    const baseline = new Set([
-      "clean", "cook", "write", "organize", "wash", "plan", "build", "review",
-    ]);
-    const learned = [...KNOWN_VERBS].filter((v) => !baseline.has(v));
-    localStorage.setItem(LEARNED_VERBS_KEY, JSON.stringify(learned));
-  } catch {
-    // ignore
-  }
+  void import("@/lib/apiExtension").then((m) => m.scheduleExtensionSync());
 }
 
 const ADJECTIVE_SUFFIXES = [

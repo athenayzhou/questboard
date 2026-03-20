@@ -4,6 +4,7 @@ import { useXPEventStore } from "./xpEvent";
 import { DECAY, MS } from "../utils/constants";
 import { calculateSkillDecay, checkDormancy, shouldDecaySkill } from "../utils/skill/analysis/decay";
 import { devLog } from "../dev/devLogs";
+import { scheduleSkillSync } from "@/lib/apiSkills";
 
 type SkillState = {
   skills: Record<string, Skill>;
@@ -21,22 +22,13 @@ type SkillState = {
 }
 
 export const useSkillStore = create<SkillState>((set, get) => ({
-  skills: (() => {
-    try {
-      const raw = localStorage.getItem("skills");
-      return raw ? (JSON.parse(raw) as Record<string, Skill>) : {};
-    } catch {
-      return {};
-    }
-  })(),
+  skills: {},
+
 
   addSkill: (skill) => {
     set((state) => { 
       const next = {...state.skills, [skill.id]: skill };
-      try {
-        localStorage.setItem("skills", JSON.stringify(next));
-        // eslint-disable-next-line no-empty
-      } catch {}
+      scheduleSkillSync();
       return { skills: next };
     });
   },
@@ -68,15 +60,10 @@ export const useSkillStore = create<SkillState>((set, get) => ({
 
     set((state) => { 
       const next = { ...state.skills, [id]: updated };
-      try {
-        localStorage.setItem("skills", JSON.stringify(next));
-        // eslint-disable-next-line no-empty
-      } catch {}
+      scheduleSkillSync();
       return { skills: next };
      });
-
      useXPEventStore.getState().recordXP(xpEvent);
-
      devLog("skill-gen", `XPEvent recorded from ${xpEvent.source}: "${xpEvent.sourceId}" (+${amount} xp)`);
   },
 
@@ -118,7 +105,6 @@ export const useSkillStore = create<SkillState>((set, get) => ({
     set(state => {
       const updatedSkills = { ...state.skills };
       let hasChanges = false;
-      let changedCount = 0;
 
       Object.values(updatedSkills).forEach(skill => {
         if(shouldDecaySkill(skill, now)) {
@@ -131,15 +117,11 @@ export const useSkillStore = create<SkillState>((set, get) => ({
             skill.isDormant = checkDormancy(skill, now);
             devLog("decay", `skill "${skill.name}" decayed ⇒ -${decayAmount} xp, total xp: ${skill.xp}, days idle: ${Math.floor(daysIdle)}, days until dormant: ${Math.floor(daysUntilDormant)}`);
             hasChanges = true;
-            changedCount += 1;
           }
         }
       });
       if (hasChanges){
-        try {
-          localStorage.setItem("skills", JSON.stringify(updatedSkills));
-          // eslint-disable-next-line no-empty
-        } catch {}
+        scheduleSkillSync();
       }
       return hasChanges ? { skills: updatedSkills } : state;
     });
@@ -170,7 +152,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
 
       const updated = { ...skill, name: newName };
       const next = { ...state.skills, [id]: updated };
-      localStorage.setItem("skills", JSON.stringify(next));
+      scheduleSkillSync();
       return { skills: next };
     })
   },
