@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { hashSessionToken } from "@/lib/betaAuth";
+import { assignPlayerCodeIfMissing } from "@/lib/playerCode";
 
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME ?? "qb_session";
 
@@ -14,11 +15,10 @@ type JsonRow = {
 
 const defaultPlayer = {
   profile: { name: "player" },
-  achievements: {
-    unlockedTitles: [],
+  badges: {
     unlockedBadges: [],
-    activeTitle: null,
-    activeBadge: null,
+    displayedBadgeIds: [],
+    badgePlacements: [],
   },
   equipment: {
     equipped: { head: null, body: null, accessory: null, weapon: null },
@@ -109,6 +109,8 @@ export async function GET(req: Request) {
 
     const clientGame =
       (extensionRows[0] as Record<string, unknown> | undefined) ?? {};
+    
+    const playerCode = await assignPlayerCodeIfMissing(session.tester_id);
 
     return NextResponse.json({
       ok: true,
@@ -118,6 +120,7 @@ export async function GET(req: Request) {
         skills,
         xpEvents,
         clientGame,
+        playerCode,
       },
     });
   } catch (error) {

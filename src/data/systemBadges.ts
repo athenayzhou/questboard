@@ -3,81 +3,100 @@ import type { BadgeCriteria } from "../types/badges";
 
 export type SystemBadgeDefinition = SystemBadge & { criteria: BadgeCriteria };
 
-/** Badges: display (id, display, icon) and criteria for earning. */
+export const BADGE_IMAGE_BASE = "/badge";
+export function getBadgeIconUrl(id: string): string {
+  return `${BADGE_IMAGE_BASE}/${id}.png`;
+}
+
 export const SYSTEM_BADGES: Record<string, SystemBadgeDefinition> = {
-  daily_streak: {
-    id: "daily_streak",
+  "daily-streak": {
+    id: "daily-streak",
     display: "daily streak",
-    criteria: { type: "streak", minDays: 7 },
+    description: "maintain a quest streak for 31 days",
+    criteria: { type: "streak", minDays: 31 },
   },
-  productive_bursts: {
-    id: "productive_bursts",
+  "productive-bursts": {
+    id: "productive-bursts",
     display: "productive bursts",
-    criteria: { type: "questsInDay", count: 5 },
+    description: "complete 10 quests in a single day",
+    criteria: { type: "questsInDay", count: 10 },
   },
-  quest_crusher: {
-    id: "quest_crusher",
+  "quest-crusher": {
+    id: "quest-crusher",
     display: "quest crusher",
-    criteria: { type: "totalCompleted", count: 50 },
+    description: "complete 100 quests total",
+    criteria: { type: "totalCompleted", count: 100 },
   },
-  well_rounded: {
-    id: "well_rounded",
+  "well-rounded": {
+    id: "well-rounded",
     display: "well rounded",
-    criteria: { type: "balance", minSkills: 4 },
+    description: "show progress across at least 10 different skills.",
+    criteria: { type: "balance", minSkills: 10 },
   },
-  back_in_saddle: {
-    id: "back_in_saddle",
+  "back-in-saddle": {
+    id: "back-in-saddle",
     display: "back in the saddle",
+    description: "return after 7+ days away and get back on track",
     criteria: { type: "recovery", minGapDays: 7 },
   },
   daredevil: {
     id: "daredevil",
     display: "daredevil",
-    criteria: { type: "difficulty", minHard: 10 },
+    description: "complete 100 hard difficulty quests",
+    criteria: { type: "difficulty", minHard: 100 },
   },
-  on_time: {
-    id: "on_time",
+  "on-time": {
+    id: "on-time",
     display: "on time",
-    criteria: { type: "timeliness", minOnTime: 5 },
+    description: "finish at least 50 quests before their deadlines",
+    criteria: { type: "timeliness", minOnTime: 50 },
   },
-  deep_diver: {
-    id: "deep_diver",
+  "deep-diver": {
+    id: "deep-diver",
     display: "deep diver",
-    criteria: { type: "skillFocus", count: 5, timeWindowDays: 7 },
+    description: "complete 10 quests in one skill within 7 days",
+    criteria: { type: "skillFocus", count: 10, timeWindowDays: 7 },
   },
   perfectionist: {
     id: "perfectionist",
     display: "perfectionist",
-    criteria: { type: "consecutiveSuccess", count: 10 },
+    description: "succeed on 100 quests in a row without failing",
+    criteria: { type: "consecutiveSuccess", count: 100 },
   },
-  steady_pace: {
-    id: "steady_pace",
+  "steady-pace": {
+    id: "steady-pace",
     display: "steady pace",
+    description: "spread quests evenly: at most 3 per day over 7 days",
     criteria: { type: "evenDistribution", days: 7, maxPerDay: 3 },
   },
-  jack_of_all_trades: {
-    id: "jack_of_all_trades",
+  "jack-of-all-trades": {
+    id: "jack-of-all-trades",
     display: "jack of all trades",
+    description: "use at least 5 different categories",
     criteria: { type: "categoryDiversity", minCategories: 5 },
   },
   phoenix: {
     id: "phoenix",
     display: "phoenix",
+    description: "bounce back: succeed 3 times after a failed quest",
     criteria: { type: "postFailureSuccess", count: 3 },
   },
-  early_bird: {
-    id: "early_bird",
+  "early-bird": {
+    id: "early-bird",
     display: "early bird",
-    criteria: { type: "earlyCompletion", daysEarly: 2, count: 5 },
+    description: "finish 15 quests at least 2 days before deadline",
+    criteria: { type: "earlyCompletion", daysEarly: 2, count: 15 },
   },
-  century_club: {
-    id: "century_club",
+  "century-club": {
+    id: "century-club",
     display: "century club",
-    criteria: { type: "totalCompleted", count: 100 },
+    description: "complete 500 quests total",
+    criteria: { type: "totalCompleted", count: 500 },
   },
   specialist: {
     id: "specialist",
     display: "specialist",
-    criteria: { type: "skillFocus", count: 10, timeWindowDays: 30 },
+    description: "complete 15 quests in one skill within 30 days",
+    criteria: { type: "skillFocus", count: 15, timeWindowDays: 30 },
   },
 };

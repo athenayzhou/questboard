@@ -21,6 +21,7 @@ export function AddQuestOverlay() {
   const [frequency, setFrequency] = useState<"once"|"daily"|"weekly"|"monthly"|"custom">("once");
   const [customFrequency, setCustomFrequency] = useState<number | undefined>(undefined);
   const [deadline, setDeadline] = useState<string | null>(null);
+  const [duration, setDuration] = useState<number | "">("");
   const [subquests, setSubquests] = useState<NonNullable<Quest["subquests"]>>([]);
   const [currentSubquest, setCurrentSubquest] = useState("");
 
@@ -75,12 +76,14 @@ export function AddQuestOverlay() {
         frequency,
         customFrequency: frequency === "custom" ? customFrequency : undefined,
         deadline,
+        duration: duration === "" ? undefined : Number(duration),
         subquests: subquests.length > 0 ? subquests : undefined,
       });
       setTitle("");
       setDescription("");
       setCategories([]);
       setCurrentCategory("");
+      setDuration("");
       setSubquests([]);
       setCurrentSubquest("");
       useOverlay.getState().setBoardTab("available");
@@ -219,6 +222,11 @@ export function AddQuestOverlay() {
                 </select>
               </div>
             </div>
+
+            <p className="quest-edit-hint">
+              coins and XP rewards are calculated automatically from difficulty and
+              duration (gems are only used for seasonal system quests).
+            </p>
           </section>
 
           <section className="quest-edit-section" aria-labelledby="addq-schedule">
@@ -258,14 +266,33 @@ export function AddQuestOverlay() {
           </section>
 
           <section className="quest-edit-section" aria-labelledby="addq-time">
-            <div className="form-group">
-              <label htmlFor="addq-deadline">deadline</label>
-              <input
-                id="addq-deadline"
-                type="date"
-                value={deadline ?? ""}
-                onChange={(e) => setDeadline(e.target.value)}
-              />
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="addq-duration">duration (min)</label>
+                <input
+                  id="addq-duration"
+                  type="number"
+                  min="1"
+                  max={1440}
+                  value={duration === "" ? "" : duration}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (!raw) return setDuration("");
+                    const n = Number(raw);
+                    if (Number.isFinite(n) && n > 0) setDuration(n);
+                  }}
+                  placeholder="e.g. 30"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="addq-deadline">deadline</label>
+                <input
+                  id="addq-deadline"
+                  type="date"
+                  value={deadline ?? ""}
+                  onChange={(e) => setDeadline(e.target.value)}
+                />
+              </div>
             </div>
           </section>
 

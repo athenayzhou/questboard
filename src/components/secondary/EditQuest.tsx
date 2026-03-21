@@ -72,7 +72,6 @@ export function EditQuest({ quest, onSave, onCancel, onDelete }: EditQuestProps)
   const descriptionError = getDescriptionError(formData.description);
 
   useEffect(() => {
-    // Ensure initial quest values (or templates) render proper error state.
     setError("title", titleError);
     setError("description", descriptionError);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -165,9 +164,6 @@ export function EditQuest({ quest, onSave, onCancel, onDelete }: EditQuestProps)
 
       <section className="quest-edit-section" aria-labelledby="edit-tags">
         <div className="form-group">
-          {/* <label className="sr-only" htmlFor="quest-edit-cat-input">
-            add category
-          </label> */}
           <label htmlFor="quest-edit-cat">categories</label>
           <div className="category-input">
             <input

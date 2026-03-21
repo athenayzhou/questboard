@@ -1,5 +1,6 @@
 import type { Quest } from "@/types/quest";
 import type { PlayerData } from "@/types/player";
+import { normalizePlayerData } from "@/lib/playerData";
 import type { Skill, XPEvent } from "@/types/skills";
 import { setQuestSyncSuppressed } from "@/lib/apiQuests";
 import { setPlayerSyncSuppressed } from "@/lib/apiPlayer";
@@ -15,6 +16,9 @@ import { useQuestStore } from "@/store/quest";
 import { usePlayerStore } from "@/store/player";
 import { useSkillStore } from "@/store/skill";
 import { useXPEventStore } from "@/store/xpEvent";
+import { useIdentityStore } from "@/store/identity";
+import { applyDevFriendsSeed } from "@/dev/applyDevFriendsSeed";
+import { applyDevMasterySeed } from "@/dev/applyDevMasterySeed";
 
 export type BootstrapStatus =
   | "idle"
@@ -23,7 +27,6 @@ export type BootstrapStatus =
   | "unauthorized"
   | "error";
 
-/** Thrown when `fetch` fails before a response (offline, DNS, etc.). */
 export class BootstrapNetworkError extends Error {
   constructor() {
     super("Failed to reach the server");
@@ -37,6 +40,7 @@ type BootstrapData = {
   skills: unknown;
   xpEvents: unknown;
   clientGame?: unknown;
+  playerCode?: unknown;
 };
 
 type BootstrapOkResponse = {
@@ -50,25 +54,7 @@ type BootstrapErrResponse = {
 };
 
 function normalizePlayer(raw: unknown): PlayerData {
-  const p = raw as PlayerData;
-  return {
-    ...p,
-    profile: p.profile ?? { name: "player" },
-    achievements: {
-      unlockedTitles: p.achievements?.unlockedTitles ?? [],
-      unlockedBadges: p.achievements?.unlockedBadges ?? [],
-      activeTitle: p.achievements?.activeTitle ?? null,
-      activeBadge: p.achievements?.activeBadge ?? null,
-    },
-    equipment: p.equipment ?? {
-      equipped: { head: null, body: null, accessory: null, weapon: null },
-    },
-    inventory: p.inventory ?? { items: {} },
-    currencies: {
-      coins: p.currencies?.coins ?? 0,
-      gems: p.currencies?.gems ?? 0,
-    },
-  };
+  return normalizePlayerData(raw);
 }
 
 function normalizeQuests(raw: unknown): Quest[] {
@@ -103,6 +89,9 @@ function applyBootstrapData(data: BootstrapData) {
     useSkillStore.setState({ skills });
     useXPEventStore.setState({ events });
     applyClientGameBlob(normalizeClientGameBlob(data.clientGame));
+    applyDevFriendsSeed();
+    applyDevMasterySeed();
+    useIdentityStore.getState().setPlayerCode(typeof data.playerCode === "string" ? data.playerCode : null)
   } finally {
     setQuestSyncSuppressed(false);
     setPlayerSyncSuppressed(false);
@@ -112,7 +101,6 @@ function applyBootstrapData(data: BootstrapData) {
   }
 }
 
-/** Used by tests and the bootstrap hook. */
 export async function fetchBootstrapOnce(): Promise<BootstrapStatus> {
   let res: Response;
   try {

@@ -7,9 +7,8 @@ import { useSkillStore } from "../../store/skill";
 import { createTestSkill, resetAllStores } from "../../test/utils";
 
 vi.mock("../../store/xpEvent", () => ({
-  useXPEventStore: {
-    getState: () => ({ recordXP: vi.fn() }),
-  },
+  useXPEventStore: (selector: (s: { events: unknown[] }) => unknown) =>
+    selector({ events: [] }),
 }));
 
 describe("SkillLedger", () => {
@@ -29,9 +28,11 @@ describe("SkillLedger", () => {
     expect(screen.getByRole("button", { name: /close/i })).toBeInTheDocument();
   });
 
-  it("should show select a skill message when no skill selected", () => {
+  it("should show select message when nothing selected", () => {
     render(<SkillLedger />);
-    expect(screen.getByText("select a skill to see details")).toBeInTheDocument();
+    expect(
+      screen.getByText("select a path or skill to see details")
+    ).toBeInTheDocument();
   });
 
   it("should display skills when store has skills", () => {

@@ -48,27 +48,24 @@ export function onQuestComplete(
         (c) => maxClusterCount(c) >= CANDIDATE.MIN_SIZE
       );
 
-      const promotedThisRun = new Set<string>();
-      if(ready.length > 0){
-        if(autoNameEnabled) {
-          const created = autoNameSkill(ready, candidateStore);
-          created.forEach((k) => promotedThisRun.add(k));
+      if (ready.length > 0) {
+        if (autoNameEnabled) {
+          autoNameSkill(ready, candidateStore);
         } else {
-          const candidatesToName = ready.map(candidate => ({
+          const candidatesToName = ready.map((candidate) => ({
             candidate,
             xp,
-            questId: quest.id
+            questId: quest.id,
+            questTitle: quest.title,
           }));
-          if(candidatesToName.length > 0){
+          if (candidatesToName.length > 0) {
             useNameStore.getState().showPrompt(candidatesToName);
-            return;
           }
         }
       }
 
       const { getByKey, getAll } = useSkillStore.getState();
       for (const key of keys) {
-        if (promotedThisRun.has(key)) continue;
         let skill = getByKey(key);
         if (!skill) {
           const verb = key.includes(":") ? key.slice(0, key.indexOf(":")) : key;
@@ -76,8 +73,16 @@ export function onQuestComplete(
           skill = byVerb[0];
         }
         if (skill) {
-          useSkillStore.getState().gainXP(skill.id, xp, quest.id);
-          devLog('skill-gen', `existing skill for VO pair "${key}" found. skill name: ${skill.name}, xp: ${skill.xp}, proficiency: ${skill.proficiency}`);
+          useSkillStore.getState().gainXP(
+            skill.id,
+            xp,
+            quest.id,
+            quest.title
+          );
+          devLog(
+            "skill-gen",
+            `skill for VO pair "${key}": ${skill.name}, xp after award path scheduled`
+          );
         }
       }
       if(!useNameStore.getState().isNaming){

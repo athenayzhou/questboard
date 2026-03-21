@@ -11,11 +11,14 @@ import { clearLocalQuestboardState } from "../../lib/clearLocalQuestboardState";
 import { scheduleSkillSync } from "../../lib/apiSkills";
 import { signOutFromApp } from "../../lib/sessionRecovery";
 import { APP, CANDIDATE } from "../../utils/constants";
-import { IconX, IconCloudUpload, IconLogOut, IconTrash2 } from "../ui/icons";
+import { useIdentityStore } from "../../store/identity";
+import { IconX, IconCloudUpload, IconLogOut, IconTrash2, IconMessage } from "../ui/icons";
 import { autoNameSkill, generateSkillNames } from "../../utils/skill/generation/name";
 
 export function Settings() {
   const closeOverlay = useOverlay((s) => s.closeOverlay);
+  const openOverlay = useOverlay((s) => s.openOverlay);
+  const playerCode = useIdentityStore((s) => s.playerCode);
   const autoNameSkills = useQuestboardSettings((s) => s.autoNameSkills);
   const setAutoNameSkillsStore = useQuestboardSettings(
     (s) => s.setAutoNameSkills,
@@ -145,6 +148,34 @@ export function Settings() {
 
           <div className="settings-account">
             <p className="settings-section-title">account</p>
+            {playerCode ? (
+              <div className="settings-player-id">
+                <span className="settings-player-id-label">player id</span>
+                <code className="settings-player-id-code">{playerCode}</code>
+                <button
+                  type="button"
+                  className="settings-copy-id-btn"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(playerCode).then(
+                      () => showToast("success", "copied"),
+                      () => showToast("error", "could not copy"),
+                    );
+                  }}
+                >
+                  copy
+                </button>
+              </div>
+            ) : (
+              <p className="settings-cloud-sync-hint">player id loads after sync</p>
+            )}
+            <button
+              type="button"
+              className="settings-feedback-btn"
+              onClick={() => openOverlay("feedback")}
+            >
+              <IconMessage size={16} />
+              <span>send feedback or report a problem</span>
+            </button>
             <button
               type="button"
               className="settings-signout-btn"

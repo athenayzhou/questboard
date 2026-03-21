@@ -1054,6 +1054,14 @@
   border-bottom: 1px solid var(--path-light);
 }
 
+.quest-edit-hint {
+  margin: 0 0 var(--space-sm) 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-warm-medium);
+  opacity: 0.95;
+}
+
 .quest-edit-form .form-group {
   display: flex;
   flex-direction: column;

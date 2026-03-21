@@ -127,4 +127,8 @@ export const VALIDATION_RULES = {
 
 export const CURRENCY = {
   LEVELUP_REWARD: 10,
-}
+  /** `coins = clamp(floor(skillXP / QUEST_COINS_PER_XP), min, max)` — tied to {@link calculateXP}. */
+  QUEST_COINS_PER_XP: 4,
+  QUEST_COINS_MIN: 1,
+  QUEST_COINS_MAX: 250,
+} as const;

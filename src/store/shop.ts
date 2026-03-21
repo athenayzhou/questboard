@@ -3,9 +3,16 @@ import type { ShopItem } from "../types/shop";
 import { usePlayerStore } from "./player";
 import { useMasteryStore } from "./mastery";
 
-type PurchaseResult = 
+type PurchaseResult =
   | { ok: true }
-  | { ok: false; reason: "not_found" | "insufficient_funds" | "missing_mastery" };
+  | {
+      ok: false;
+      reason:
+        | "not_found"
+        | "insufficient_funds"
+        | "missing_mastery"
+        | "already_owned";
+    };
 
 type ShopState = {
   items: ShopItem[];
@@ -45,6 +52,12 @@ export const useShopStore = create<ShopState>((set, get) => ({
       if(!hasMastery) {
         return { ok: false, reason: "missing_mastery" as const};
       }
+    }
+
+    const ownedQty =
+      playerState.player.inventory.items[shopItem.itemId]?.quantity ?? 0;
+    if (ownedQty >= 1) {
+      return { ok: false, reason: "already_owned" as const };
     }
 
     const spent = playerState.spendCurrency(shopItem.currency, shopItem.price);

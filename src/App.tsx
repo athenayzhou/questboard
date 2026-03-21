@@ -19,6 +19,7 @@ import { useBootstrap } from "./hooks/useBootstrap";
 import { BetaInviteGate } from "./components/auth/BetaInviteGate";
 import { NamePrompt } from "./hooks/onQuestComplete";
 import { useSkillDecay } from "./hooks/useSkillDecay";
+import { StatusSync } from "./components/StatusSync";
 
 function BootstrapLoadingShell() {
   return (
@@ -92,6 +93,7 @@ function QuestboardMain() {
 
   return (
     <>
+      <StatusSync />
       <div id="root">
         <Canvas resize={{ scroll: false }}>
           <Scene orbitEnabled={orbitEnabled} resetCamera={!orbitUser} />

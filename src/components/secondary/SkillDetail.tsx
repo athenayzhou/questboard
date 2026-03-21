@@ -4,14 +4,32 @@ import { useXPEventStore } from "../../store/xpEvent";
 import { getSkillCooccurence } from "../../utils/skill/analysis/cooccurence";
 import { useStreakStore } from "../../store/streak";
 import { IconX, IconPencil } from "../ui/icons";
+import { levelToProgress } from "../../utils/skill/analysis/experience";
+import { ProgressBar } from "../ui/ProgressBar";
+import { formatDateUsSlash } from "../../utils/format/date";
+import { xpEventActivityLabel } from "../../utils/xpEventLabel";
 
 type Props = {
   skill: SkillLedgerEntry;
   onClose: () => void;
   onRename?: () => void;
+  /** Open another skill from “often practiced with” (same as path contributing skills). */
+  onSelectRelatedSkill?: (skillId: string) => void;
+};
+
+function formatActivityAmount(amount: number): string {
+  const rounded = Math.round(amount * 10) / 10;
+  if (rounded > 0) return `+${rounded} xp`;
+  if (rounded < 0) return `${rounded} xp`;
+  return "0 xp";
 }
 
-export function SkillDetail({ skill, onClose, onRename }: Props) {
+export function SkillDetail({
+  skill,
+  onClose,
+  onRename,
+  onSelectRelatedSkill,
+}: Props) {
   const skillId = skill.id;
   const events = useXPEventStore((s) => s.events);
   const streakDays = useStreakStore((s) => s.currentDays);
@@ -22,19 +40,17 @@ export function SkillDetail({ skill, onClose, onRename }: Props) {
     [events, skillId]
   );
 
-  const sortedXP = useMemo(
-    () => [...xpEvents].sort((a,b) => b.timestamp - a.timestamp),
-    [xpEvents]
-  );
-  const totalXP = useMemo(
-    () => xpEvents.reduce((sum, e) => sum + e.amount, 0),
+  const sortedActivity = useMemo(
+    () => [...xpEvents].sort((a, b) => b.timestamp - a.timestamp),
     [xpEvents]
   );
 
   const cooccuring = useMemo(
     () => getSkillCooccurence(skillId),
-    [skillId]
+    [skillId, events]
   );
+
+  const { progress } = levelToProgress(skill.xp);
 
   return (
     <div className="skill-detail">
@@ -60,43 +76,85 @@ export function SkillDetail({ skill, onClose, onRename }: Props) {
       )}
       <h2>{skill.name}</h2>
       <div className="skill-summary">
-        <p>total xp: {totalXP}</p>
-        <p>sessions: {xpEvents.length}</p>
+        <p className="skill-last-practiced">
+          last practiced: {formatDateUsSlash(skill.lastSeenAt)}
+        </p>
+        <p className="skill-activity-count">
+          activity: {xpEvents.length}{" "}
+          {xpEvents.length === 1 ? "entry" : "entries"}
+        </p>
       </div>
 
       <div className="streak-display">
         <h3>daily quest streak</h3>
-        <p>{streakDays} days (last: {streakLastDate || "none"})</p>
+        <p>
+          {streakDays} {streakDays === 1 ? "day" : "days"}
+          {streakLastDate
+            ? ` (last completion: ${formatDateUsSlash(streakLastDate)})`
+            : ""}
+        </p>
       </div>
 
-      {sortedXP.length > 0 && (
-        <div className="ledger-xp-log">
-          <h4>recent xp log</h4>
+      <div className="ledger-activity-log">
+        <h4>activity</h4>
+        {sortedActivity.length === 0 ? (
+          <p className="ledger-activity-empty">
+            no entries yet — complete quests that match this skill to log XP here.
+          </p>
+        ) : (
           <ul>
-            {sortedXP.map((e) => (
-              <li key={e.id}>
-                <span className="xp-date">{new Date(e.timestamp).toLocaleDateString()}</span>
-                <span className="xp-source">{e.source}</span>
-                <span className="xp-source-name">{e.name || e.sourceId}</span>
-                <span className="xp-amount">+{e.amount} xp</span>
+            {sortedActivity.map((e) => (
+              <li key={e.id} className="ledger-activity-row">
+                <span className="activity-date">
+                  {formatDateUsSlash(e.timestamp)}
+                </span>
+                <span className="activity-source">{e.source}</span>
+                <span className="activity-name">
+                  {e.name || e.sourceId || "—"}
+                </span>
+                <span
+                  className={
+                    e.amount < 0 ? "activity-amount is-negative" : "activity-amount"
+                  }
+                >
+                  {formatActivityAmount(e.amount)}
+                </span>
               </li>
-            ))
-          }
-        </ul>
+            ))}
+          </ul>
+        )}
       </div>
-    )}
 
       {cooccuring.length > 0 && (
-        <div className = "cooccurence">
-          <h3>often practiced with</h3>
-          <ul>
-            {cooccuring.map(c => (
-              <li key={c.id}>{c.name} ({c.count} sessions)</li>
+        <div className="cooccurrence-block">
+          <h3>practiced with</h3>
+          <ul className="cooccurrence-list">
+            {cooccuring.map((c) => (
+              <li key={c.id} className="cooccurrence-row">
+                {onSelectRelatedSkill ? (
+                  <button
+                    type="button"
+                    className="cooccurrence-skill-btn"
+                    onClick={() => onSelectRelatedSkill(c.id)}
+                  >
+                    <span className="cooccurrence-name">{c.name}</span>
+                    <span className="cooccurrence-meta">
+                      {c.count} shared {c.count === 1 ? "activity" : "activities"}
+                    </span>
+                  </button>
+                ) : (
+                  <div className="cooccurrence-row-static">
+                    <span className="cooccurrence-name">{c.name}</span>
+                    <span className="cooccurrence-meta">
+                      {c.count} shared {c.count === 1 ? "activity" : "activities"}
+                    </span>
+                  </div>
+                )}
+              </li>
             ))}
           </ul>
         </div>
       )}
-
     </div>
-  )
+  );
 }

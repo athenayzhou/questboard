@@ -10,6 +10,7 @@ type XPEventState = {
     source: XPEvent["source"];
     sourceId: string;
     name?: string;
+    questTitle?: string;
   }) => void;
   getAll: () => XPEvent[];
   getBySkill: (skillId: string) => XPEvent[];
@@ -19,7 +20,7 @@ type XPEventState = {
 export const useXPEventStore = create<XPEventState>((set, get) => ({
   events: [],
 
-  recordXP: ({ skillId, amount, source, sourceId, name}) => {
+  recordXP: ({ skillId, amount, source, sourceId, name, questTitle }) => {
     const timestamp = Date.now();
     const newEvent: XPEvent = {
       id: crypto.randomUUID(),
@@ -28,8 +29,9 @@ export const useXPEventStore = create<XPEventState>((set, get) => ({
       source,
       sourceId: sourceId ?? "unidentified",
       name,
+      questTitle,
       timestamp,
-    }
+    };
     set(state => {
       const next = [newEvent, ...state.events];
       scheduleXPEventSync();

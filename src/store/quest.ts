@@ -16,6 +16,8 @@ import { isQuestOverdue } from "../utils/recurrence";
 
 import { scheduleQuestSync } from "@/lib/apiQuests";
 import { useQuestboardSettings } from "@/store/questboardSettings";
+import { grantQuestRewards } from "@/lib/questRewards";
+import { withComputedReward } from "@/lib/computeQuestReward";
 
 type QuestState = {
   quests: Quest[];
@@ -27,9 +29,12 @@ type QuestState = {
 
   setQuest: (q: Quest[]) => void;
   addQuest: (
-    input: Omit<Quest, "id" | "status" | "createdAt">
+    input: Omit<Quest, "id" | "status" | "createdAt" | "reward">
   ) => Quest;
-  editQuest: (id: string, updates: Partial<Omit<Quest, "id"|"status"|"createdAt">>) => void;
+  editQuest: (
+    id: string,
+    updates: Partial<Omit<Quest, "id" | "status" | "createdAt" | "reward">>
+  ) => void;
   deleteQuest: (id: string) => void;
   acceptQuest: (id: string) => void;
   completeQuest: (id: string) => void;
@@ -42,7 +47,9 @@ type QuestState = {
 
   processRecurrence: () => void;
   processAutoFail: () => void;
-  createRecurrence: (quest: Omit<Quest, 'id'|'status'|'createdAt'>) => Quest;
+  createRecurrence: (
+    quest: Omit<Quest, "id" | "status" | "createdAt" | "reward">
+  ) => Quest;
   updateRecurrence: (templateId: string, updates: Partial<Quest>) => void;
   pauseRecurrence: (templateId: string) => void;
   resumeRecurrence: (templateId: string) => void;
@@ -69,13 +76,13 @@ export const useQuestStore = create<QuestState>((set, get) => ({
   },
 
   addQuest: (input) => {
-    const quest: Quest = {
+    const quest: Quest = withComputedReward({
       ...input,
       id: crypto.randomUUID(),
       status: "available",
       createdAt: Date.now(),
       pinned: false,
-    };
+    });
 
     set((state) => {
       const next = [...state.quests, quest];
@@ -163,11 +170,12 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         return { quests: next };
       });
       useStreakStore.getState().registerCompletion(new Date());
+      grantQuestRewards(quest);
       const quests = get().quests;
       const newlyEarned = getBadges(SYSTEM_BADGES, {
         currentStreakDays: useStreakStore.getState().currentDays,
         quests,
-        unlockedBadges: usePlayerStore.getState().player.achievements.unlockedBadges,
+        unlockedBadges: usePlayerStore.getState().player.badges.unlockedBadges,
         xpEvents: useXPEventStore.getState().getAll(),
       });
       newlyEarned.forEach((badgeId) => usePlayerStore.getState().unlockBadge(badgeId));
@@ -213,7 +221,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       const originalQuest = get().quests.find(q => q.id === id);
       if (!originalQuest) return null;
 
-      const duplicatedQuest: Quest = {
+      const duplicatedQuest: Quest = withComputedReward({
         ...originalQuest,
         id: crypto.randomUUID(),
         status: "available",
@@ -221,7 +229,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         acceptedAt: undefined,
         completedAt: undefined,
         pinned: false,
-      };
+      });
 
       set(state => {
         const next = [...state.quests, duplicatedQuest];
@@ -292,8 +300,8 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       RecurringQuests.shouldGenerateNext(q)
     );
     if (dueQuests.length === 0) return;
-    const newQuests = dueQuests.map(template =>
-      RecurringQuests.generateNextInstance(template)
+    const newQuests = dueQuests.map((template) =>
+      withComputedReward(RecurringQuests.generateNextInstance(template))
     );
     const updatedCompletedQuests = dueQuests.map(quest => ({
       ...quest,
@@ -332,18 +340,19 @@ export const useQuestStore = create<QuestState>((set, get) => ({
   },
 
   updateRecurrence: (templateId: string, updates: Partial<Quest>) => {
-    set(state => {
-      const template = state.quests.find(q => q.id === templateId);
-      if(!template || !template.isTemplate) return state;
-      const updatedTemplate = {...template, ... updates};
-      const updatedQuests = state.quests.map(q => {
-        if(q.parentQuestId === templateId && q.status === 'available') {
-          return {...q, ...updates };
+    set((state) => {
+      const template = state.quests.find((q) => q.id === templateId);
+      if (!template || !template.isTemplate) return state;
+      const mergedTemplate = { ...template, ...updates } as Quest;
+      const updatedTemplate = withComputedReward(mergedTemplate);
+      const updatedQuests = state.quests.map((q) => {
+        if (q.parentQuestId === templateId && q.status === "available") {
+          return withComputedReward({ ...q, ...updates } as Quest);
         }
         return q.id === templateId ? updatedTemplate : q;
       });
       scheduleQuestSync();
-      return { quests: updatedQuests }
+      return { quests: updatedQuests };
     });
   },
 

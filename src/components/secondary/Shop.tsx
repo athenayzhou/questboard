@@ -32,8 +32,9 @@ export function Shop() {
         not_found: "item not found",
         insufficient_funds: "not enough currency",
         missing_mastery: "missing required mastery",
+        already_owned: "you already own this item",
       };
-      showToast('error', messages[result.reason]);
+      showToast("error", messages[result.reason]);
     }
   }
 
@@ -77,6 +78,10 @@ export function Shop() {
                 const itemName = systemItem?.name ?? shopItem.itemId;
                 const balance = loadedPlayer.currencies[shopItem.currency];
                 const canAfford = balance >= shopItem.price;
+                const alreadyOwned =
+                  (loadedPlayer.inventory.items[shopItem.itemId]?.quantity ??
+                    0) >= 1;
+                const canBuy = canAfford && !alreadyOwned;
                 return (
                   <div key={shopItem.id} className="shop-item">
                     {systemItem && (
@@ -100,10 +105,14 @@ export function Shop() {
                     )}
                     <button
                       className="shop-buy-btn"
-                      disabled={!canAfford}
+                      disabled={!canBuy}
                       onClick={() => handlePurchase(shopItem.id)}
                     >
-                      {canAfford ? "buy" : "can't afford"}
+                      {alreadyOwned
+                        ? "owned"
+                        : canAfford
+                          ? "buy"
+                          : "can't afford"}
                     </button>
                   </div>
                 );

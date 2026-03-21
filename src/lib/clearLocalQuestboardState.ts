@@ -11,6 +11,7 @@ import { useQuestboardSettings } from "@/store/questboardSettings";
 import { useFriendsStore } from "@/store/friends";
 import { useStreakStore } from "@/store/streak";
 import { hydrateLearnedVerbsFromExtension } from "@/utils/format/text";
+import { useIdentityStore } from "@/store/identity";
 
 /**
  * Clears quests, skills, XP events, mastery, naming pipeline, bundled skill-gen stores,
@@ -59,6 +60,8 @@ export function clearLocalQuestboardState(options?: {
   useFriendsStore.setState({ friends: [] });
   useStreakStore.setState({ currentDays: 0, lastCompletion: "" });
   hydrateLearnedVerbsFromExtension([]);
+
+  useIdentityStore.getState().reset();
 
   candidateStore.clear();
   clusterStore.clear();

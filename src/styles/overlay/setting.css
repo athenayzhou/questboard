@@ -95,6 +95,76 @@
   gap: 1rem;
 }
 
+.settings-player-id {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--path-light);
+  background: var(--sand-bright);
+  margin-bottom: 8px;
+}
+
+.settings-player-id-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  color: var(--text-path);
+  opacity: 0.85;
+}
+
+.settings-player-id-code {
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--grass-dark);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.settings-copy-id-btn {
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: lowercase;
+  border-radius: 8px;
+  border: 2px solid var(--path);
+  background: var(--path-light);
+  color: var(--grass-dark);
+  cursor: pointer;
+}
+
+.settings-copy-id-btn:hover {
+  border-color: var(--grass-light);
+}
+
+.settings-feedback-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 2px solid var(--path);
+  background: var(--sand-bright);
+  color: var(--grass-dark);
+  font-weight: 700;
+  font-size: 0.88rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.settings-feedback-btn:hover {
+  background: var(--grass-pale);
+  border-color: var(--grass-light);
+}
+
 .settings-section-title {
   display: flex;
   align-items: center;

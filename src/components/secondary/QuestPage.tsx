@@ -3,6 +3,11 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Detail } from "../ui/Detail";
 import { useQuestStore } from "../../store/quest";
+import { getRewardCoins, getRewardGems } from "@/lib/questRewards";
+import {
+  computePlayerQuestReward,
+  isSystemGeneratedQuest,
+} from "@/lib/computeQuestReward";
 import { EditQuest } from "./EditQuest";
 import {
   isQuestOverdue,
@@ -61,6 +66,11 @@ export function QuestPage({
   const [animationState, setAnimationState] = useState<"entering" | "entered" | "exiting">("entering");
   const canEdit = quest.status === "available" || quest.isTemplate === true;
 
+  const rewardForDisplay =
+    isSystemGeneratedQuest(quest) && quest.reward
+      ? quest.reward
+      : computePlayerQuestReward(quest);
+
   useEffect(() => {
     const t = requestAnimationFrame(() => setAnimationState("entered"));
     return () => cancelAnimationFrame(t);
@@ -72,10 +82,15 @@ export function QuestPage({
   };
 
   const handleEditSave = (updates: Partial<Quest>) => {
+    const safe = { ...updates };
+    delete (safe as { reward?: unknown }).reward;
     if (quest.isTemplate) {
-      updateRecurrence(quest.id, updates);
+      updateRecurrence(quest.id, safe);
     } else {
-      editQuest(quest.id, updates);
+      editQuest(
+        quest.id,
+        safe as Partial<Omit<Quest, "id" | "status" | "createdAt" | "reward">>
+      );
     }
     setIsEditing(false);
   };
@@ -294,15 +309,27 @@ export function QuestPage({
         </section>
       )}
 
-      {quest.reward && (
+      {rewardForDisplay &&
+        (getRewardCoins(rewardForDisplay) > 0 ||
+          getRewardGems(rewardForDisplay) > 0 ||
+          (rewardForDisplay.xp != null && rewardForDisplay.xp > 0) ||
+          (rewardForDisplay.items?.length ?? 0) > 0) && (
         <section className="quest-page-block quest-rewards">
           <h3 className="quest-page-block-title">Rewards</h3>
           <ul>
-            {quest.reward.xp && <li>xp: {quest.reward.xp}</li>}
-            {quest.reward.currency && <li>currency: {quest.reward.currency}</li>}
-            {quest.reward.items && quest.reward.items.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
+            {getRewardCoins(rewardForDisplay) > 0 && (
+              <li>coins: {getRewardCoins(rewardForDisplay)}</li>
+            )}
+            {getRewardGems(rewardForDisplay) > 0 && (
+              <li>gems: {getRewardGems(rewardForDisplay)}</li>
+            )}
+            {rewardForDisplay.xp != null && rewardForDisplay.xp > 0 && (
+              <li>xp: {rewardForDisplay.xp}</li>
+            )}
+            {rewardForDisplay.items &&
+              rewardForDisplay.items.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
           </ul>
         </section>
       )}

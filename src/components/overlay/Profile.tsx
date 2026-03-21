@@ -12,16 +12,26 @@ import {
 import type { PlayerData } from "../../types/player";
 import type { EquipSlot, SystemItem } from "../../types/system";
 import { SYSTEM_ITEMS_BY_ID, getItemIconUrl } from "../../data/systemItems";
-import { SYSTEM_TITLES } from "../../data/systemTitles";
-import { SYSTEM_BADGES } from "../../data/systemBadges";
+import { SYSTEM_BADGES, getBadgeIconUrl } from "../../data/systemBadges";
 import { createPortal } from "react-dom";
 import { usePlayerStore } from "../../store/player";
 import { IconX, IconPencil } from "../ui/icons";
+import { PlayerNamePlate } from "../PlayerNamePlate";
+import {
+  clamp01,
+  slotPlacementForIndex,
+} from "../../lib/playerBadges";
+
 type Action =
   | { type: "EQUIP_ITEM"; slot: EquipSlot; itemId: string }
   | { type: "UNEQUIP_ITEM"; slot: EquipSlot }
-  | { type: "SET_ACTIVE_TITLE"; titleId: string }
-  | { type: "SET_ACTIVE_BADGE"; badgeId: string }
+  | { type: "TOGGLE_DISPLAY_BADGE"; badgeId: string }
+  | {
+      type: "SET_BADGE_PLACEMENT";
+      badgeId: string;
+      x: number;
+      y: number;
+    }
   | { type: "SET_PROFILE_NAME"; name: string }
   | { type: "UPDATE_PLAYER"; player: PlayerData };
 
@@ -55,28 +65,52 @@ function playerReducer(state: PlayerData, action: Action): PlayerData {
           }
         }
       };
-    case "SET_ACTIVE_TITLE":
-      if(!state.achievements.unlockedTitles.includes(action.titleId)){
-        return state;
+    case "TOGGLE_DISPLAY_BADGE": {
+      const b = action.badgeId;
+      if (!state.badges.unlockedBadges.includes(b)) return state;
+      const d = [...state.badges.displayedBadgeIds];
+      const p = [...state.badges.badgePlacements];
+      const idx = d.indexOf(b);
+      if (idx >= 0) {
+        d.splice(idx, 1);
+        const nextP = p.filter((x) => x.id !== b);
+        return {
+          ...state,
+          badges: {
+            ...state.badges,
+            displayedBadgeIds: d,
+            badgePlacements: nextP,
+          },
+        };
       }
+      const nextD = [...d, b];
+      const nextP = [...p, slotPlacementForIndex(nextD.length - 1, b)];
       return {
         ...state,
-        achievements: {
-          ...state.achievements,
-          activeTitle: action.titleId
-        }
+        badges: {
+          ...state.badges,
+          displayedBadgeIds: nextD,
+          badgePlacements: nextP,
+        },
       };
-    case "SET_ACTIVE_BADGE":
-      if(!state.achievements.unlockedBadges.includes(action.badgeId)){
+    }
+    case "SET_BADGE_PLACEMENT": {
+      if (!state.badges.displayedBadgeIds.includes(action.badgeId)) {
         return state;
       }
+      const p = state.badges.badgePlacements.map((pl) =>
+        pl.id === action.badgeId
+          ? { ...pl, x: clamp01(action.x), y: clamp01(action.y) }
+          : pl,
+      );
       return {
         ...state,
-        achievements: {
-          ...state.achievements,
-          activeBadge: action.badgeId
-        }
+        badges: {
+          ...state.badges,
+          badgePlacements: p,
+        },
       };
+    }
     case "SET_PROFILE_NAME": {
       const next = action.name.trim();
       if (!next || next === state.profile.name) return state;
@@ -104,7 +138,7 @@ export function Profile(){
     loadedPlayer,
     p => structuredClone(p));
   const [hoveredSlot, setHoveredSlot] = useState<EquipSlot | null>(null);
-  const [inventoryTip, setInventoryTip] = useState<{
+  const [profileTooltip, setProfileTooltip] = useState<{
     id: string;
     x: number;
     y: number;
@@ -133,15 +167,15 @@ export function Profile(){
     return () => ro.disconnect();
   }, [player.equipment.equipped]);
 
-  function updateInventoryTipFromEvent(
-    itemId: string,
+  function updateProfileTooltipFromEvent(
+    tipId: string,
     e: MouseEvent<HTMLButtonElement> | FocusEvent<HTMLButtonElement>,
     item: { name: string; description?: string }
   ) {
     if ("clientX" in e.nativeEvent && e.nativeEvent instanceof globalThis.MouseEvent) {
       const ev = e.nativeEvent;
-      setInventoryTip({
-        id: itemId,
+      setProfileTooltip({
+        id: tipId,
         x: ev.clientX + INV_TIP_OFFSET_X,
         y: ev.clientY + INV_TIP_OFFSET_Y,
         name: item.name,
@@ -150,8 +184,8 @@ export function Profile(){
     } else {
       const el = e.currentTarget;
       const r = el.getBoundingClientRect();
-      setInventoryTip({
-        id: itemId,
+      setProfileTooltip({
+        id: tipId,
         x: r.right + INV_TIP_OFFSET_X,
         y: r.bottom + INV_TIP_OFFSET_Y,
         name: item.name,
@@ -196,26 +230,29 @@ export function Profile(){
       })
       .filter((item): item is SystemItem & { quantity: number } => Boolean(item))
   }, [player.inventory.items]);
-  const unlockedTitles = useMemo(
-    () =>
-      player.achievements.unlockedTitles.map((id) => SYSTEM_TITLES[id] ?? { id, display: id }),
-    [player.achievements.unlockedTitles]
-  );
   const unlockedBadges = useMemo(
     () =>
-      player.achievements.unlockedBadges
+      player.badges.unlockedBadges
         .map((id) => SYSTEM_BADGES[id])
         .filter(Boolean),
-    [player.achievements.unlockedBadges]
+    [player.badges.unlockedBadges]
   );
 
-  const activeTitle = useMemo(
-    () => unlockedTitles.find(t => t.id === player.achievements.activeTitle),
-    [player.achievements.activeTitle, unlockedTitles]
-  );
-  const activeBadge = useMemo(
-    () => unlockedBadges.find(b => b.id === player.achievements.activeBadge),
-    [player.achievements.activeBadge, unlockedBadges]
+  const namePlatePlacements = useMemo(() => {
+    const unlocked = new Set(player.badges.unlockedBadges);
+    const shown = new Set(player.badges.displayedBadgeIds);
+    return player.badges.badgePlacements.filter(
+      (p) => unlocked.has(p.id) && shown.has(p.id),
+    );
+  }, [
+    player.badges.badgePlacements,
+    player.badges.displayedBadgeIds,
+    player.badges.unlockedBadges,
+  ]);
+
+  const displayedBadgeSet = useMemo(
+    () => new Set(player.badges.displayedBadgeIds),
+    [player.badges.displayedBadgeIds],
   );
 
   function equipItem(itemId: string) {
@@ -225,17 +262,8 @@ export function Profile(){
     const slot = systemItem.slot;
     dispatch({ type: "EQUIP_ITEM", slot, itemId });
   }
-  function setTitle(titleId: string){
-    dispatch({
-      type: "SET_ACTIVE_TITLE",
-      titleId
-    });
-  }
-  function setBadge(badgeId: string){
-    dispatch({
-      type: "SET_ACTIVE_BADGE",
-      badgeId
-    });
+  function toggleDisplayBadge(badgeId: string) {
+    dispatch({ type: "TOGGLE_DISPLAY_BADGE", badgeId });
   }
 
   function saveProfile(){
@@ -274,74 +302,88 @@ export function Profile(){
       <div className="character-panel">
         <div className="player-figure">
         <div className="player-identity">
-          <div className="player-name-row">
-            {nameEditing ? (
-              <>
-                <label className="visually-hidden" htmlFor="profile-display-name">
-                  display name
-                </label>
-                <input
-                  id="profile-display-name"
-                  className="profile-name-input"
-                  name="display-name"
-                  value={nameDraft}
-                  onChange={(e) => setNameDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") commitNameEdit();
-                    if (e.key === "Escape") cancelNameEdit();
-                  }}
-                  maxLength={48}
-                  autoFocus
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck={false}
-                  enterKeyHint="done"
-                />
-                <div className="profile-name-edit-actions">
-                  <button
-                    type="button"
-                    className="profile-name-btn profile-name-btn--primary"
-                    onClick={commitNameEdit}
-                  >
-                    save
-                  </button>
-                  <button
-                    type="button"
-                    className="profile-name-btn"
-                    onClick={cancelNameEdit}
-                  >
-                    cancel
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <h2 className="player-name">{player.profile.name}</h2>
-                <button
-                  type="button"
-                  className="profile-name-edit-btn"
-                  onClick={() => {
-                    setNameDraft(player.profile.name);
-                    setNameEditing(true);
-                  }}
-                  aria-label="Edit display name"
-                  title="Edit name"
-                >
-                  <IconPencil size={18} className="profile-name-edit-icon" />
-                </button>
-              </>
-            )}
-          </div>
-          <div className="player-achievements">
-          {activeTitle && (
-            <span className="active-title">{activeTitle.display.toLowerCase()}</span>
-          )}
-          {activeBadge && (
-            <div className="active-badge">
-              <div className="active-badge-icon">{activeBadge.icon}</div>
-            </div>
-          )}
+          <div className="profile-name-plate-block">
+            <PlayerNamePlate
+              playerName={player.profile.name}
+              nameSlot={
+                nameEditing ? (
+                  <div className="name-plate-name-edit">
+                    <label
+                      className="visually-hidden"
+                      htmlFor="profile-display-name"
+                    >
+                      display name
+                    </label>
+                    <input
+                      id="profile-display-name"
+                      className="profile-name-input name-text"
+                      name="display-name"
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") commitNameEdit();
+                        if (e.key === "Escape") cancelNameEdit();
+                      }}
+                      maxLength={48}
+                      autoFocus
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
+                      enterKeyHint="done"
+                    />
+                    <div className="profile-name-edit-actions">
+                      <button
+                        type="button"
+                        className="profile-name-btn profile-name-btn--primary"
+                        onClick={commitNameEdit}
+                      >
+                        save
+                      </button>
+                      <button
+                        type="button"
+                        className="profile-name-btn"
+                        onClick={cancelNameEdit}
+                      >
+                        cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="name-plate-name-with-edit">
+                    <span className="name-text name-plate-preview-name">
+                      {player.profile.name}
+                    </span>
+                    <button
+                      type="button"
+                      className="profile-name-edit-btn"
+                      onClick={() => {
+                        setNameDraft(player.profile.name);
+                        setNameEditing(true);
+                      }}
+                      aria-label="Edit display name"
+                      title="Edit name"
+                    >
+                      <IconPencil
+                        size={18}
+                        className="profile-name-edit-icon"
+                      />
+                    </button>
+                  </div>
+                )
+              }
+              placements={namePlatePlacements}
+              interactive
+              onPlacementChange={(badgeId, x, y) =>
+                dispatch({
+                  type: "SET_BADGE_PLACEMENT",
+                  badgeId,
+                  x,
+                  y,
+                })
+              }
+              className="profile-name-plate"
+            />
           </div>
         </div>
         <div className="player-preview">
@@ -425,10 +467,10 @@ export function Profile(){
                 }}
                 onMouseEnter={(e) => {
                   setHoveredSlot(item.slot);
-                  updateInventoryTipFromEvent(item.id, e, item);
+                  updateProfileTooltipFromEvent(item.id, e, item);
                 }}
                 onMouseMove={(e) => {
-                  setInventoryTip({
+                  setProfileTooltip({
                     id: item.id,
                     x: e.clientX + INV_TIP_OFFSET_X,
                     y: e.clientY + INV_TIP_OFFSET_Y,
@@ -438,11 +480,11 @@ export function Profile(){
                 }}
                 onMouseLeave={() => {
                   setHoveredSlot(null);
-                  setInventoryTip((t) => (t?.id === item.id ? null : t));
+                  setProfileTooltip((t) => (t?.id === item.id ? null : t));
                 }}
-                onFocus={(e) => updateInventoryTipFromEvent(item.id, e, item)}
+                onFocus={(e) => updateProfileTooltipFromEvent(item.id, e, item)}
                 onBlur={() =>
-                  setInventoryTip((t) => (t?.id === item.id ? null : t))
+                  setProfileTooltip((t) => (t?.id === item.id ? null : t))
                 }
               >
                 <div className="item-image">
@@ -458,48 +500,61 @@ export function Profile(){
           </div>
         </section>
         <section>
-          <h3>achievements</h3>
-          <div className="subsection">
-            <h4>titles</h4>
-            <div className="title-section">
-              {unlockedTitles.length === 0 ? (
-                <p className="profile-panel-empty">
-                  no titles yet — earn them from masteries and milestones
-                </p>
-              ) : null}
-              {unlockedTitles.map(title => (
-                <button 
-                  key={title.id}
-                  className={`title-banner ${activeTitle?.id === title.id ? "active" : ""}`}
-                  onClick={() => setTitle(title.id)}
-                  disabled={activeTitle?.id === title.id}
-                >
-                  <span className="title-text">{title.display}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="subsection">
-            <h4>badges</h4>
+          <h3>badges</h3>
             <div className="badge-section">
               {unlockedBadges.length === 0 ? (
                 <p className="profile-panel-empty">
                   no badges yet — keep questing to unlock flair
                 </p>
               ) : null}
-              {unlockedBadges.map(badge => (
+              {unlockedBadges.map((badge) => (
                 <button
                   key={badge.id}
-                  className={`badge-card ${activeBadge?.id === badge.id ? "active" : ""}`}
-                  onClick={() => setBadge(badge.id)}
-                  disabled={activeBadge?.id === badge.id}
+                  type="button"
+                  className={`badge-card ${
+                    displayedBadgeSet.has(badge.id) ? "active" : ""
+                  }`}
+                  onClick={() => toggleDisplayBadge(badge.id)}
+                  aria-pressed={displayedBadgeSet.has(badge.id)}
+                  aria-label={badge.display}
+                  title=""
+                  onMouseEnter={(e) =>
+                    updateProfileTooltipFromEvent(badge.id, e, {
+                      name: badge.display,
+                      description: badge.description,
+                    })
+                  }
+                  onMouseMove={(e) => {
+                    setProfileTooltip({
+                      id: badge.id,
+                      x: e.clientX + INV_TIP_OFFSET_X,
+                      y: e.clientY + INV_TIP_OFFSET_Y,
+                      name: badge.display,
+                      description: badge.description,
+                    });
+                  }}
+                  onMouseLeave={() =>
+                    setProfileTooltip((t) => (t?.id === badge.id ? null : t))
+                  }
+                  onFocus={(e) =>
+                    updateProfileTooltipFromEvent(badge.id, e, {
+                      name: badge.display,
+                      description: badge.description,
+                    })
+                  }
+                  onBlur={() =>
+                    setProfileTooltip((t) => (t?.id === badge.id ? null : t))
+                  }
                 >
-                  <div className="badge-icon">{badge.icon}</div>
-                  <div className="badge-name">{badge.display}</div>
-                  </button>
+                  <img
+                    src={getBadgeIconUrl(badge.id)}
+                    alt=""
+                    className="badge-card-img"
+                    decoding="async"
+                  />
+                </button>
               ))}
             </div>
-          </div>
         </section>
 
         
@@ -515,16 +570,16 @@ export function Profile(){
         </div>
       </div>
       </div>
-      {inventoryTip &&
+      {profileTooltip &&
         createPortal(
           <div
             className="item-tooltip item-tooltip--cursor"
             role="tooltip"
-            style={{ left: inventoryTip.x, top: inventoryTip.y }}
+            style={{ left: profileTooltip.x, top: profileTooltip.y }}
           >
-            <div className="item-tooltip-name">{inventoryTip.name}</div>
-            {inventoryTip.description && (
-              <div className="item-tooltip-desc">{inventoryTip.description}</div>
+            <div className="item-tooltip-name">{profileTooltip.name}</div>
+            {profileTooltip.description && (
+              <div className="item-tooltip-desc">{profileTooltip.description}</div>
             )}
           </div>,
           document.body

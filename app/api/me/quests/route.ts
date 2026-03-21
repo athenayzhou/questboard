@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getTesterIdFromRequest } from "@/lib/session";
 import { Quest } from "@/types/quest";
+import { questRowIdFromClientId } from "@/lib/questRowId";
 
 type QuestLike = {
   id?: string;
@@ -26,7 +27,9 @@ export async function PUT(req: Request) {
     await query(`delete from quests where tester_id = $1`, [testerId]);
 
     for (const q of quests) {
-      if(!q?.id || typeof q.id !== "string") continue;
+      if (!q?.id || typeof q.id !== "string") continue;
+
+      const rowId = questRowIdFromClientId(q.id);
 
       await query(
         `
@@ -34,7 +37,7 @@ export async function PUT(req: Request) {
         values ($1::uuid, $2::uuid, $3::jsonb, $4, $5, now())
         `,
         [
-          q.id,
+          rowId,
           testerId,
           JSON.stringify(q),
           typeof q.status === "string" ? q.status : "available",

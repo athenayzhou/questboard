@@ -8,7 +8,15 @@ type ModelProps = {
   position?: [number, number, number]
   scale?: number | [number, number, number]
   rotation?: [number, number, number]
-  overlay?: "profile"| "quests" | "logs" | "friends" | "skills" | "settings" | null
+  overlay?:
+    | "profile"
+    | "quests"
+    | "logs"
+    | "friends"
+    | "skills"
+    | "settings"
+    | "feedback"
+    | null;
   label?: string
   hideMesh?: string[]
 }

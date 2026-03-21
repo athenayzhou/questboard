@@ -225,3 +225,11 @@ export function IconAlertTriangle({ size = 18, className, ...rest }: IconProps) 
     </svg>
   );
 }
+
+export function IconMessage({ size = 18, className, ...rest }: IconProps) {
+  return (
+    <svg {...base(size)} className={className} aria-hidden {...rest}>
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}

@@ -9,14 +9,11 @@ export type SystemItem = {
     icon?: string;
     description?: string;
 }
-export type SystemTitle = {
-    id: string;
-    display: string;
-    description?: string;
-}
 export type SystemBadge = {
     id: string;
     display: string;
+    /** Shown in profile tooltip (like item descriptions). */
+    description?: string;
     icon?: string;
 }
 

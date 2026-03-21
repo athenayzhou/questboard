@@ -25,7 +25,7 @@ export const SYSTEM_QUESTS: SystemQuestTemplate[] = [
     description: "Organize your workspace and tackle those lingering tasks",
     category: ["productivity", "organization"],
     difficulty: "medium",
-    reward: { xp: 100, currency: 50 },
+    reward: { xp: 100, gems: 50 },
     systemType: "seasonal",
     generationCriteria: {
       season: "spring",

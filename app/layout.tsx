@@ -12,6 +12,7 @@ import '../src/styles/overlay/skill-ledger.css';
 import '../src/styles/overlay/quest-board.css';
 import '../src/styles/overlay/quest-log.css';
 import '../src/styles/overlay/setting.css';
+import '../src/styles/overlay/feedback.css';
 import '../src/styles/overlay/shop.css';
 import '../src/styles/ui/badges.css';
 import '../src/styles/ui/buttons.css';

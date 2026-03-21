@@ -3,7 +3,7 @@
 .profile-overlay {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  /* gap: 0.75rem; */
 }
 
 .character-information {
@@ -36,14 +36,99 @@
 .player-identity {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-start;
   gap: 0.25rem;
   min-width: 0;
   width: 100%;
   max-width: 100%;
   text-align: center;
-  align-self: center;
+  /* Match width of .player-preview below (equip column → character column) */
+  align-self: stretch;
+}
+
+.profile-name-plate-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.profile-name-plate-hint {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--text-path);
+  opacity: 0.85;
+  max-width: 16rem;
+}
+
+.profile-name-plate {
+  pointer-events: auto;
+}
+
+/* Full row width: override global .name-container fixed width so plate aligns with equip → character */
+.profile-overlay .profile-name-plate.name-container {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Center the name on the plate (matches scene); pencil sits just to the right */
+.profile-name-plate .name-plate-name-center {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  column-gap: 0;
+}
+
+.name-plate-name-with-edit {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  max-width: calc(100% - 2.5rem);
+  margin: 0 auto;
+}
+
+.name-plate-name-with-edit .name-plate-preview-name {
+  display: block;
+  text-align: center;
+  margin: 0 auto;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name-plate-name-with-edit .profile-name-edit-btn {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 6px;
+}
+
+.name-plate-name-edit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+.name-plate-name-edit .profile-name-input {
+  width: 100%;
+  max-width: 100%;
+  text-align: center;
 }
 .player-name-row {
   display: flex;
@@ -220,29 +305,13 @@
   color: var(--sand-bright);
 }
 
-.player-achievements {
+.player-badges {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   flex-wrap: wrap;
-}
-.active-title {
-  padding: 4px 12px;
-  background: var(--grass-pale);
-  border: 2px solid var(--path-shadow);
-  border-radius: var(--radius-lg);
-  font-size: 0.78rem;
-  font-weight: 800;
-  font-style: normal;
-  letter-spacing: 0.05em;
-  text-transform: lowercase;
-  color: var(--grass-dark);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.65),
-    0 2px 6px rgba(92, 74, 50, 0.12);
-  white-space: nowrap;
 }
 .active-badge {
   display: flex;
@@ -271,6 +340,7 @@
   justify-content: center;
   font-size: 1.05rem;
   flex-shrink: 0;
+  overflow: hidden;
   box-shadow:
     inset 0 2px 8px rgba(255, 255, 255, 0.55),
     inset 0 -2px 6px rgba(196, 165, 116, 0.35),
@@ -531,29 +601,28 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 0;
   padding: 6px;
   background: var(--sand-bright);
   border: 2px solid var(--path);
   border-radius: 10px;
   cursor: pointer;
 }
-.badge-card.active {
+.badge-card.active,
+.badge-card[aria-pressed="true"] {
   outline: 2px solid var(--grass);
   background: var(--grass-pale);
   box-shadow: inset 0 0 24px var(--sunbeam);
 }
-.badge-card:disabled {
-  /* Prevent the browser's default "disabled/invalid" cursor glyph. */
-  cursor: pointer;
-}
 
-.badge-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--path-light);
-  border: 2px solid var(--path-shadow);
+/* Badge art only — no circular frame (matches name plate) */
+.badge-card-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
 }
 .badge-name {
   font-size: 0.65rem;

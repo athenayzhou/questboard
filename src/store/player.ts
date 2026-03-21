@@ -4,12 +4,12 @@ import type { CurrencyId } from "../types/system";
 import { getSystemItemById } from "../data/systemItems";
 import { devLog } from "../dev/devLogs";
 import { createDefaultPlayerData } from "@/lib/defaultPlayerData";
+import { normalizePlayerData } from "@/lib/playerData";
 import { schedulePlayerSync } from "@/lib/apiPlayer";
 
 type PlayerStore = {
     player: PlayerData;
     setPlayer: (p: PlayerData) => void;
-    unlockTitle: (title: string) => void;
     unlockBadge: (badge: string) => void;
 
     acquireItem: (itemId: string, quantity?: number) => void;
@@ -20,38 +20,21 @@ type PlayerStore = {
 export const usePlayerStore = create<PlayerStore>((set) => ({
     player: createDefaultPlayerData(),
     setPlayer: (player) => {
-        set({ player });
-        schedulePlayerSync();
-    },
-
-    unlockTitle: (title) => {
-        set((state: PlayerStore): Partial<PlayerStore> => {
-            const list = state.player.achievements.unlockedTitles ?? [];
-            if (list.includes(title)) {
-                return {};
-            }
-            devLog("player", `title acquired: "${title}"`);
-            const nextPlayer: PlayerData = {
-                ...state.player,
-                achievements: {
-                    ...state.player.achievements,
-                    unlockedTitles: [...list, title],
-                },
-            };
-            schedulePlayerSync();
-            return { player: nextPlayer };
+        set({
+          player: normalizePlayerData(player),
         });
+        schedulePlayerSync();
     },
 
     unlockBadge: (badge) => {
         set((state: PlayerStore): Partial<PlayerStore> => {
-            const list = state.player.achievements.unlockedBadges ?? [];
+            const list = state.player.badges.unlockedBadges ?? [];
             if (list.includes(badge)) return {};
             devLog("player", `badge acquired: "${badge}"`);
             const nextPlayer: PlayerData = {
                 ...state.player,
-                achievements: {
-                    ...state.player.achievements,
+                badges: {
+                    ...state.player.badges,
                     unlockedBadges: [...list, badge],
                 },
             };
@@ -69,7 +52,10 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
             const items = state.player.inventory.items ?? {};
             const existing = items[itemId];
 
-            const nextQuantity = (existing?.quantity ?? 0) + quantity;
+            const nextQuantity = Math.min(
+              1,
+              (existing?.quantity ?? 0) + quantity,
+            );
             const nextItems = {
                 ...items,
                 [itemId]: {

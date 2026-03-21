@@ -1,14 +1,12 @@
 import type { PlayerData } from "@/types/player";
 
-/** Fresh player profile for resets / signed-out state (matches store defaults). */
 export function createDefaultPlayerData(): PlayerData {
   return {
     profile: { name: "player" },
-    achievements: {
-      unlockedTitles: [],
+    badges: {
       unlockedBadges: [],
-      activeTitle: null,
-      activeBadge: null,
+      displayedBadgeIds: [],
+      badgePlacements: [],
     },
     equipment: {
       equipped: {

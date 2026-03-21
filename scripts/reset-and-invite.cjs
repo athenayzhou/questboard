@@ -5,6 +5,9 @@
  *
  * Needs DATABASE_URL + INVITE_HMAC_SECRET (same as the running app).
  * Loads .env.local if present.
+ * 
+ * Usage (in terminal):
+ *    node scripts/reset-and-invite.cjs
  */
 
 const fs = require("fs");

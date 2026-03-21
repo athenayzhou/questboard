@@ -14,14 +14,28 @@ export type PendingSkill = {
   candidate: Candidate;
   xp: number;
   questId: string;
+  /** Quest title for XP activity log when this pending skill is named. */
+  questTitle?: string;
   discoveredAt: number;
 };
 
 type NameState = {
   isNaming: boolean;
-  pendingNaming: Array<{ candidate: any; xp: number; questId: string }>;
+  pendingNaming: Array<{
+    candidate: Candidate;
+    xp: number;
+    questId: string;
+    questTitle?: string;
+  }>;
   currentNameIndex: number;
-  showPrompt: (skills: Array<{ candidate: any; xp: number, questId: string }>) => void;
+  showPrompt: (
+    skills: Array<{
+      candidate: Candidate;
+      xp: number;
+      questId: string;
+      questTitle?: string;
+    }>
+  ) => void;
   completeNaming: (name: string) => void;
   skipNaming: () => void;
   closePrompt: () => void;
@@ -55,7 +69,12 @@ export const useNameStore = create<NameState>((set, get) => ({
       promote(currentItem.candidate, name, candidateStore);
       const skill = useSkillStore.getState().getByKey(currentItem.candidate.key);
       if (skill) {
-        useSkillStore.getState().gainXP(skill.id, currentItem.xp, currentItem.questId);
+        useSkillStore.getState().gainXP(
+          skill.id,
+          currentItem.xp,
+          currentItem.questId,
+          currentItem.questTitle
+        );
       }
       devLog('skill', 'user named skill created', {
         name,
@@ -111,6 +130,7 @@ export const useNameStore = create<NameState>((set, get) => ({
                 candidate: currentItem.candidate,
                 xp: currentItem.xp,
                 questId: currentItem.questId,
+                questTitle: currentItem.questTitle,
                 discoveredAt: Date.now(),
               },
             ];
@@ -167,7 +187,12 @@ export const useNameStore = create<NameState>((set, get) => ({
       promote(pendingSkill.candidate, name, candidateStore);
       const skill = useSkillStore.getState().getByKey(pendingSkill.candidate.key);
       if(skill){
-        useSkillStore.getState().gainXP(skill.id, pendingSkill.xp, pendingSkill.questId);
+        useSkillStore.getState().gainXP(
+          skill.id,
+          pendingSkill.xp,
+          pendingSkill.questId,
+          pendingSkill.questTitle
+        );
       }
       get().removePendingSkill(id);
     }

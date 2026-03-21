@@ -1,4 +1,5 @@
 import type { ClientGameBlobV1 } from "@/types/clientExtension";
+import type { Mastery } from "@/types/skills";
 import { evidenceStore, clusterStore, candidateStore } from "@/store/bundledStores";
 import { useNameStore } from "@/store/name";
 import { useMasteryStore } from "@/store/mastery";
@@ -41,7 +42,12 @@ export function normalizeClientGameBlob(raw: unknown): ClientGameBlobV1 {
     clusters: Array.isArray(o.clusters) ? o.clusters : base.clusters,
     learnedVerbs: Array.isArray(o.learnedVerbs) ? o.learnedVerbs : base.learnedVerbs,
     pendingSkills: Array.isArray(o.pendingSkills) ? o.pendingSkills : base.pendingSkills,
-    masteries: Array.isArray(o.masteries) ? o.masteries : base.masteries,
+    masteries: Array.isArray(o.masteries)
+      ? (o.masteries as Mastery[]).map((m) => ({
+          ...m,
+          skillIds: Array.isArray(m.skillIds) ? m.skillIds : [],
+        }))
+      : base.masteries,
     streak: {
       currentDays:
         typeof o.streak?.currentDays === "number"
@@ -100,6 +106,7 @@ export function applyClientGameBlob(blob: ClientGameBlobV1) {
 
   useNameStore.setState({ pendingSkills: data.pendingSkills });
   useMasteryStore.setState({ masteries: data.masteries });
+  useMasteryStore.getState().reconcileAllMasteriesWithSkills();
   useStreakStore.getState().hydrate(data.streak);
   useFriendsStore.getState().hydrate(data.friends);
   useQuestboardSettings.getState().hydrate(data.settings);

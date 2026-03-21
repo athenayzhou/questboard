@@ -6,6 +6,11 @@ type QuestAction = {
 
 type QuestReward = {
   xp?: number;
+  /** Gold / shop currency (regular quests). */
+  coins?: number;
+  /** Premium currency — intended for seasonal & special quests. */
+  gems?: number;
+  /** @deprecated use `coins` — still read for older saved quests */
   currency?: number;
   items?: string[];
 }
