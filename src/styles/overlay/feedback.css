@@ -5,6 +5,7 @@
   flex-direction: column;
   gap: 0.75rem;
   max-width: min(100vw - 2rem, 420px);
+  z-index: 210;
 }
 
 .feedback-header h2 {

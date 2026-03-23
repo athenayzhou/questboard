@@ -2,21 +2,21 @@ import { randomBytes } from "crypto";
 import { query } from "./db";
 const PREFIX = "QB-";
 
-export function generatePlayerCode(): string {
+export function generateUserCode(): string {
   return `${PREFIX}${randomBytes(4).toString("hex").toUpperCase()}`;
 }
 
-export { normalizePlayerCodeInput } from "@/utils/format/code";
+export { normalizeUserCodeInput } from "@/utils/format/code";
 
-export async function assignPlayerCodeIfMissing(testerId: string): Promise<string> {
+export async function assignUserCodeIfMissing(testerId: string): Promise<string> {
   const cur = await query<{ player_code: string | null }>(
     `select player_code from testers where id = $1`,
     [testerId],
   );
-  if(cur.rows[0]?.player_code) return cur.rows[0].player_code;
+  if (cur.rows[0]?.player_code) return cur.rows[0].player_code;
 
-  for(let attempt = 0; attempt < 12; attempt++) {
-    const code = generatePlayerCode();
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const code = generateUserCode();
     try {
       const upd = await query<{ player_code: string }>(
         `
@@ -27,15 +27,15 @@ export async function assignPlayerCodeIfMissing(testerId: string): Promise<strin
         `,
         [code, testerId],
       );
-      if(upd.rows[0]?.player_code) return upd.rows[0].player_code;
+      if (upd.rows[0]?.player_code) return upd.rows[0].player_code;
       const again = await query<{ player_code: string | null }>(
         `select player_code from testers where id = $1`,
         [testerId],
       );
-      if(again.rows[0]?.player_code) return again.rows[0].player_code;
+      if (again.rows[0]?.player_code) return again.rows[0].player_code;
     } catch (e: unknown) {
-      if((e as { code?: string }).code !== "23505") throw e;
+      if ((e as { code?: string }).code !== "23505") throw e;
     }
   }
-  throw new Error("assignPlayerCodeIfMissing: could not assign unique code");
+  throw new Error("assignUserCodeIfMissing: could not assign unique code");
 }

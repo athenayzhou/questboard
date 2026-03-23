@@ -1,8 +1,7 @@
 import type { Quest } from "@/types/quest";
-import { usePlayerStore } from "@/store/player";
+import { useUserStore } from "@/store/user";
 import { calculateQuestCoinReward } from "@/lib/computeQuestReward";
 
-/** Legacy `reward.currency` counts as coins (display / saved rows only). */
 export function getRewardCoins(reward: Quest["reward"]): number {
   if (!reward) return 0;
   if (typeof reward.coins === "number" && reward.coins > 0) return reward.coins;
@@ -16,19 +15,30 @@ export function getRewardGems(reward: Quest["reward"]): number {
   return typeof g === "number" && g > 0 ? g : 0;
 }
 
-/**
- * Grants currency when a quest is completed. Amounts are **system-calculated** for player
- * quests; seasonal quests use template `reward.gems` only.
- */
+
 export function grantQuestRewards(quest: Quest): void {
-  const player = usePlayerStore.getState();
+  const user = useUserStore.getState();
 
   if (quest.systemType === "seasonal") {
     const gems = getRewardGems(quest.reward);
-    if (gems > 0) player.addCurrency("gems", gems);
+    if (gems > 0) user.addCurrency("gems", gems);
+    return;
+  }
+
+  if (quest.systemType === "tutorial") {
+    const coins = getRewardCoins(quest.reward);
+    if (coins > 0) user.addCurrency("coins", coins);
+    const gems = getRewardGems(quest.reward);
+    if (gems > 0) user.addCurrency("gems", gems);
+    const items = quest.reward?.items;
+    if (items?.length) {
+      for (const itemId of items) {
+        user.acquireItem(itemId, 1);
+      }
+    }
     return;
   }
 
   const coins = calculateQuestCoinReward(quest);
-  if (coins > 0) player.addCurrency("coins", coins);
+  if (coins > 0) user.addCurrency("coins", coins);
 }

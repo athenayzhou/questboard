@@ -33,7 +33,7 @@ describe("flushAllServerSyncs", () => {
     expect(vi.mocked(fetch)).toHaveBeenCalledTimes(5);
     expect(showToast).toHaveBeenCalledWith(
       "success",
-      "Saved to server.",
+      "saved to server",
     );
   });
 

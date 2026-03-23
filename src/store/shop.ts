@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { ShopItem } from "../types/shop";
-import { usePlayerStore } from "./player";
+import { useUserStore } from "./user";
 import { useMasteryStore } from "./mastery";
 
 type PurchaseResult =
@@ -41,7 +41,7 @@ export const useShopStore = create<ShopState>((set, get) => ({
       return { ok: false, reason: "not_found" as const };
     }
 
-    const playerState = usePlayerStore.getState();
+    const userState = useUserStore.getState();
     const masteryState = useMasteryStore.getState();
 
     if(shopItem.requiredMasteryVerb){
@@ -55,17 +55,17 @@ export const useShopStore = create<ShopState>((set, get) => ({
     }
 
     const ownedQty =
-      playerState.player.inventory.items[shopItem.itemId]?.quantity ?? 0;
+      userState.user.inventory.items[shopItem.itemId]?.quantity ?? 0;
     if (ownedQty >= 1) {
       return { ok: false, reason: "already_owned" as const };
     }
 
-    const spent = playerState.spendCurrency(shopItem.currency, shopItem.price);
+    const spent = userState.spendCurrency(shopItem.currency, shopItem.price);
     if(!spent) {
       return { ok: false, reason: "insufficient_funds" as const };
     }
 
-    playerState.acquireItem(shopItem.itemId, 1);
+    userState.acquireItem(shopItem.itemId, 1);
     return { ok: true };
   },
 

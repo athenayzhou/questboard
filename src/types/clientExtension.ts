@@ -2,7 +2,7 @@ import type { Evidence, Cluster, Candidate, Mastery } from "@/types/skills";
 import type { Friend } from "@/types/friend";
 import type { PendingSkill } from "@/store/name";
 
-export type QuestboardSettingsPersisted = {
+export type SettingsPersisted = {
   autoNameSkills: boolean;
   autoFailOverdueQuests: boolean;
 };
@@ -18,5 +18,5 @@ export type ClientGameBlobV1 = {
   masteries: Mastery[];
   streak: { currentDays: number; lastCompletion: string };
   friends: Friend[];
-  settings: QuestboardSettingsPersisted;
+  settings: SettingsPersisted;
 };

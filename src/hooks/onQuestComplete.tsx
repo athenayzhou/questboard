@@ -12,7 +12,7 @@ import { CANDIDATE } from "../utils/constants";
 
 import { autoNameSkill } from "../utils/skill/generation/name";
 import { useNameStore } from "../store/name";
-import { useQuestboardSettings } from "../store/questboardSettings";
+import { useSettingsStore } from "../store/settings";
 import { NameSkill } from "../components/secondary/NameSkill";
 
 import { showToast } from "../utils/toast";
@@ -39,7 +39,7 @@ export function onQuestComplete(
       const clusters = aggregate(xp, newEvidence, clusterStore);
       discover(clusters, candidateStore);
 
-      const autoNameEnabled = useQuestboardSettings.getState().autoNameSkills;
+      const autoNameEnabled = useSettingsStore.getState().autoNameSkills;
       const readyCandidates = candidateStore.getAll().filter(c => c.state === "ready");
 
       const maxClusterCount = (c: { clusters: { count: number }[] }) =>

@@ -15,11 +15,15 @@ import path from "path";
 import crypto from "crypto";
 import { Pool } from "pg";
 import {
-  buildBetaSeedPlayer,
+  buildBetaSeedUser,
   buildBetaSeedQuestsForDb,
   buildBetaSeedSkillsForDb,
   buildBetaSeedClientGameBlob,
 } from "../src/dev/seed/buildDbBetaPayload";
+import {
+  questRowIdFromClientId,
+  skillRowIdFromClientId,
+} from "../src/lib/questRowId";
 
 function loadEnvLocal() {
   const p = path.join(process.cwd(), ".env.local");
@@ -71,7 +75,7 @@ async function main() {
         : { rejectUnauthorized: false },
   });
 
-  const player = buildBetaSeedPlayer();
+  const user = buildBetaSeedUser();
   const quests = buildBetaSeedQuestsForDb();
   const skills = buildBetaSeedSkillsForDb();
   const clientGame = buildBetaSeedClientGameBlob();
@@ -98,10 +102,10 @@ async function main() {
     );
     const testerId = testerRes.rows[0].id;
 
-    const playerCode = `QB-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+    const userCode = `QB-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
     await client.query(
       `update testers set player_code = $1 where id = $2`,
-      [playerCode, testerId],
+      [userCode, testerId],
     );
 
     await client.query(
@@ -114,7 +118,7 @@ async function main() {
       `insert into player_states (tester_id, data, updated_at)
        values ($1, $2::jsonb, now())
        on conflict (tester_id) do update set data = excluded.data, updated_at = now()`,
-      [testerId, JSON.stringify(player)]
+      [testerId, JSON.stringify(user)]
     );
 
     await client.query(`delete from quests where tester_id = $1`, [testerId]);
@@ -123,7 +127,7 @@ async function main() {
         `insert into quests (id, tester_id, data, status, created_at, updated_at)
          values ($1::uuid, $2::uuid, $3::jsonb, $4, $5, now())`,
         [
-          q.id,
+          questRowIdFromClientId(q.id, testerId),
           testerId,
           JSON.stringify(q),
           q.status,
@@ -137,7 +141,7 @@ async function main() {
       await client.query(
         `insert into skills (id, tester_id, data, updated_at)
          values ($1::uuid, $2::uuid, $3::jsonb, now())`,
-        [s.id, testerId, JSON.stringify(s)]
+        [skillRowIdFromClientId(s.id, testerId), testerId, JSON.stringify(s)]
       );
     }
 

@@ -14,13 +14,32 @@ import { ConfirmProvider } from "./store/confirmation";
 import { ToastContainer } from "./components/ui/Toast";
 import { useRecurringQuests } from "./hooks/useRecurringQuests";
 import { useSystemQuests } from "./hooks/useSystemQuests";
-import { SkillActivityLog } from "./components/ui/SkillActivityLog";
+import { SkillActivityLog } from "./components/SkillActivityLog";
 import { useBootstrap } from "./hooks/useBootstrap";
-import { BetaInviteGate } from "./components/auth/BetaInviteGate";
+import { BetaInviteGate } from "./beta/BetaInviteGate";
+import { WelcomeGate } from "./onboarding/WelcomeGate";
 import { NamePrompt } from "./hooks/onQuestComplete";
+import { TutorialSkillNamePrompt } from "./onboarding/TutorialSkillNamePrompt";
 import { useSkillDecay } from "./hooks/useSkillDecay";
 import { StatusSync } from "./components/StatusSync";
-
+import { useTutorialQuestBootstrap } from "./onboarding/useTutorial";
+import { TutorialSpotlight } from "./onboarding/TutorialSpotlight";
+import { TutorialCompleteModal } from "./onboarding/TutorialCompleteModal";
+import { useUserStore } from "./store/user";
+import { useTutorialStore } from "./onboarding/tutorialStore";
+import {
+  boardTabForSpotlight,
+  overlayForSpotlight,
+} from "./onboarding/tutorialOverlaySync";
+import {
+  isTutorialSpotlightAllowed,
+  shouldAdvanceTutorialOnDataSpotlightClick,
+} from "./onboarding/tutorialGating";
+import { useEffectiveTutorialSpotlight } from "./onboarding/useEffectiveTutorialSpotlight";
+import { shouldBlockTutorialPointerEvent } from "./onboarding/tutorialSequence";
+import type { SpotlightTarget } from "./onboarding/tutorialTypes";
+import { useQuestStore } from "./store/quest";
+import { isUnsetDisplayName } from "./lib/defaultUserData";
 function BootstrapLoadingShell() {
   return (
     <div
@@ -36,9 +55,9 @@ function BootstrapLoadingShell() {
           <div className="bootstrap-skeleton-line bootstrap-skeleton-line--long" />
           <div className="bootstrap-skeleton-line bootstrap-skeleton-line--medium" />
         </div>
-        <p className="bootstrap-shell-title">Loading your questboard…</p>
+        <p className="bootstrap-shell-title">loading your questboard…</p>
         <p className="bootstrap-shell-detail">
-          Syncing quests, skills, and progress from the server.
+          syncing quests, skills, and progress from the server
         </p>
       </div>
     </div>
@@ -81,15 +100,133 @@ function BootstrapErrorShell(props: {
   );
 }
 
-function QuestboardMain() {
+function QuestboardMain({ bootstrapReady }: { bootstrapReady: boolean }) {
   const [orbitUser, setOrbitUser] = useState(true);
   const activeOverlay = useOverlay((s) => s.activeOverlay);
+  const boardTab = useOverlay((s) => s.boardTab);
+  const openOverlay = useOverlay((s) => s.openOverlay);
+  const setBoardTab = useOverlay((s) => s.setBoardTab);
   const overlayOpen = activeOverlay !== null;
   const orbitEnabled = orbitUser && !overlayOpen;
+  const { isActive, currentSubquest } = useTutorialStore();
+  const quests = useQuestStore((s) => s.quests);
+
+  const effectiveSpotlight = useEffectiveTutorialSpotlight();
+
+  useTutorialQuestBootstrap({ bootstrapReady });
+
+  useEffect(() => {
+    function tryStartTutorial() {
+      if (!bootstrapReady) return;
+      const tutorial = useTutorialStore.getState();
+      if (tutorial.isActive || tutorial.completed) return;
+      if (localStorage.getItem("tutorial-completed") === "true") return;
+      const hasNewbieBadge = useUserStore
+        .getState()
+        .user.badges.unlockedBadges.includes("newbie");
+      if (hasNewbieBadge) return;
+      tutorial.startTutorial();
+    }
+    tryStartTutorial();
+    const unsub = useTutorialStore.persist.onFinishHydration(() => {
+      tryStartTutorial();
+    });
+    return unsub;
+  }, [bootstrapReady]);
+
+
+  useEffect(() => {
+    if (!isActive) return;
+    const raw = currentSubquest?.spotlight;
+    if (!raw?.startsWith("entry-")) return;
+    if (!isTutorialSpotlightAllowed(currentSubquest, quests)) return;
+    const o = useOverlay.getState();
+    if (o.activeOverlay !== null && o.activeOverlay !== "quests") {
+      o.closeOverlay();
+    }
+    const after = useOverlay.getState();
+    if (after.activeOverlay === "quests") {
+      return;
+    }
+    if (after.openQuestPages.length > 0) {
+      after.closeAllQuests();
+    }
+  }, [isActive, currentSubquest, quests]);
+
+  useEffect(() => {
+    if (!isActive) return;
+    const spot = effectiveSpotlight as SpotlightTarget | undefined;
+    if (!spot) return;
+    const want = overlayForSpotlight(spot);
+    if (want && activeOverlay !== want) {
+      openOverlay(want);
+    }
+    const tab = boardTabForSpotlight(spot);
+    if (tab && boardTab !== tab) {
+      setBoardTab(tab);
+    }
+  }, [
+    isActive,
+    effectiveSpotlight,
+    activeOverlay,
+    boardTab,
+    openOverlay,
+    setBoardTab,
+  ]);
 
   useEffect(() => {
     useShopStore.getState().setItems(DEFAULT_SHOP_ITEMS);
   }, []);
+
+  useEffect(() => {
+    const blockWrongSpotlight = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      if (shouldBlockTutorialPointerEvent(e.target)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      }
+    };
+    const blockWrongClick = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      if (shouldBlockTutorialPointerEvent(e.target as EventTarget)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      }
+    };
+    document.addEventListener("pointerdown", blockWrongSpotlight, true);
+    document.addEventListener("click", blockWrongClick, true);
+
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const spotlightId = target.closest("[data-spotlight]")?.getAttribute("data-spotlight");
+      if (spotlightId) {
+        if (spotlightId === "profile-display-name") {
+          return;
+        }
+        const state = useTutorialStore.getState();
+        const sub = state.currentSubquest;
+        if (
+          sub &&
+          shouldAdvanceTutorialOnDataSpotlightClick(
+            spotlightId,
+            useQuestStore.getState().quests,
+            useOverlay.getState().activeOverlay,
+          )
+        ) {
+          state.markSubquestComplete(sub.id);
+        }
+      }
+    };
+    document.addEventListener("click", handleClick);
+    return () => {
+      document.removeEventListener("pointerdown", blockWrongSpotlight, true);
+      document.removeEventListener("click", blockWrongClick, true);
+      document.removeEventListener("click", handleClick);
+    };
+  }, []);
+
 
   return (
     <>
@@ -98,13 +235,28 @@ function QuestboardMain() {
         <Canvas resize={{ scroll: false }}>
           <Scene orbitEnabled={orbitEnabled} resetCamera={!orbitUser} />
         </Canvas>
-        <OrbitToggle enabled={orbitUser} toggle={() => setOrbitUser((v) => !v)} />
+        <div className="scene-control-dock">
+          {isActive && (
+            <button
+              type="button"
+              className="tutorial-spotlight-skip"
+              aria-label="Skip tutorial"
+              onClick={() => useTutorialStore.getState().skipTutorial()}
+            >
+              skip tutorial
+            </button>
+          )}
+          <OrbitToggle enabled={orbitUser} toggle={() => setOrbitUser((v) => !v)} />
+        </div>
         <div id="html-layer" />
         <ActiveQuest />
         <SkillActivityLog />
         <OverlayManager />
         <div id="windows" />
         <NamePrompt />
+        <TutorialSkillNamePrompt />
+        <TutorialCompleteModal />
+        {isActive && <TutorialSpotlight activeSpotlight={effectiveSpotlight} />}
       </div>
     </>
   );
@@ -114,6 +266,8 @@ function AppBootstrapBody() {
   const { status: bootstrapStatus, error, retry } = useBootstrap();
   const bootstrapSettled = bootstrapStatus !== "loading";
   const bootstrapReady = bootstrapStatus === "ready";
+  const userName = useUserStore((s) => s.user.profile?.name ?? "");
+  const showWelcome = bootstrapReady && isUnsetDisplayName(userName);
 
   useSkillDecay({ bootstrapSettled });
   useRecurringQuests({ bootstrapSettled, bootstrapReady });
@@ -131,7 +285,15 @@ function AppBootstrapBody() {
     return <BetaInviteGate onSignedIn={retry} />;
   }
 
-  return <QuestboardMain />;
+  return (
+    <div className="app-bootstrap-body" suppressHydrationWarning>
+      {showWelcome ? (
+        <WelcomeGate />
+      ) : (
+        <QuestboardMain bootstrapReady={bootstrapStatus === "ready"} />
+      )}
+    </div>
+  );
 }
 
 export default function App() {

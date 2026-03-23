@@ -10,8 +10,9 @@ type NameSkillProps = {
   onNameSelected: (name: string, pendingId?: string) => void;
   onCancel: () => void;
   currentName?: string;
-  /** When naming a pending skill, pass its id so the callback receives it at submit time */
   pendingId?: string | null;
+  presentationTitle?: string;
+  presentationDescription?: string;
 }
 
 export function NameSkill({
@@ -22,6 +23,8 @@ export function NameSkill({
   onCancel,
   currentName,
   pendingId,
+  presentationTitle,
+  presentationDescription,
 }: NameSkillProps) {
   const [suggestedNames, setSuggestedNames] = useState<string[]>([]);
   const [customName, setCustomName] = useState(currentName || "");
@@ -29,11 +32,18 @@ export function NameSkill({
   const prevOpenRef = useRef(false);
 
   const context = useMemo(() => {
-    if(skill){
-      return{
-        title: 'rename this skill',
+    if (presentationTitle) {
+      return {
+        title: presentationTitle,
+        description: presentationDescription ?? "",
+        questTitles: [],
+      };
+    }
+    if (skill) {
+      return {
+        title: "rename this skill",
         description: `this skill was first seen ${new Date(skill.firstSeenAt).toLocaleDateString()}.`,
-        questTitles: []
+        questTitles: [],
       };
     }
 
@@ -42,11 +52,6 @@ export function NameSkill({
       .map(origin => origin.split(':')[1])
       .filter((title, index, arr) => arr.indexOf(title) === index)
       .slice(0, 3);
-
-      // const verb = `actions like ${candidate.verb}`;
-      // const objects = `in cases of ${candidate.objects.join(' and ')}`;
-      // const contextParts = [verb, objects].filter(Boolean);
-      // const skillPattern = contextParts.length > 0 ? contextParts.join(' and '): 'various activities';
 
       return {
         title: 'new skill discovered',
@@ -59,10 +64,10 @@ export function NameSkill({
 
     return {
       title: "name skill",
-      description: 'what should we call this skill?',
-      questTitles: []
+      description: "what should we call this skill?",
+      questTitles: [],
     };
-  }, [candidate, skill])
+  }, [candidate, skill, presentationTitle, presentationDescription]);
 
   useEffect(() => {
     const justOpened = isOpen && !prevOpenRef.current;

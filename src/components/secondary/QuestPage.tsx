@@ -22,6 +22,8 @@ import {
   IconRefreshCw,
   IconClipboard,
 } from "../ui/icons";
+import { tryCompleteTutorialSpotlight } from "@/onboarding/tutorialProgress";
+import { isTutorial } from "@/onboarding/tutorialTypes";
 
 type QuestPageProps = {
   quest: Quest;
@@ -64,7 +66,9 @@ export function QuestPage({
 
   const [isEditing, setIsEditing] = useState(false);
   const [animationState, setAnimationState] = useState<"entering" | "entered" | "exiting">("entering");
-  const canEdit = quest.status === "available" || quest.isTemplate === true;
+  const canEdit =
+    (quest.status === "available" || quest.isTemplate === true) &&
+    !isSystemGeneratedQuest(quest);
 
   const rewardForDisplay =
     isSystemGeneratedQuest(quest) && quest.reward
@@ -103,6 +107,7 @@ export function QuestPage({
 
   function handleAccept() {
     accept(quest.id);
+    tryCompleteTutorialSpotlight("qp-accept");
     handleClose();
   }
   function handleComplete() {
@@ -216,7 +221,11 @@ export function QuestPage({
               <button
                 type="button"
                 className={`quest-page-tool-btn${quest.pinned ? " quest-page-tool-btn--pinned" : ""}`}
-                onClick={() => pin(quest.id)}
+                data-spotlight="qp-pin"
+                onClick={() => {
+                  pin(quest.id);
+                  tryCompleteTutorialSpotlight("qp-pin");
+                }}
                 aria-label={quest.pinned ? "Unpin quest" : "Pin quest"}
                 title={quest.pinned ? "Unpin" : "Pin"}
               >
@@ -292,7 +301,7 @@ export function QuestPage({
 
       {quest.subquests && quest.subquests.length > 0 && (
         <section className="quest-page-block quest-subquests">
-          <h3 className="quest-page-block-title">Subquests</h3>
+          <h3 className="quest-page-block-title">subquests</h3>
           <ul>
             {quest.subquests.map((action) => (
               <li key={action.id}>
@@ -315,16 +324,16 @@ export function QuestPage({
           (rewardForDisplay.xp != null && rewardForDisplay.xp > 0) ||
           (rewardForDisplay.items?.length ?? 0) > 0) && (
         <section className="quest-page-block quest-rewards">
-          <h3 className="quest-page-block-title">Rewards</h3>
+          <h3 className="quest-page-block-title">rewards</h3>
           <ul>
             {getRewardCoins(rewardForDisplay) > 0 && (
-              <li>coins: {getRewardCoins(rewardForDisplay)}</li>
+              <li>{getRewardCoins(rewardForDisplay)} coins</li>
             )}
             {getRewardGems(rewardForDisplay) > 0 && (
-              <li>gems: {getRewardGems(rewardForDisplay)}</li>
+              <li>{getRewardGems(rewardForDisplay)} gems</li>
             )}
             {rewardForDisplay.xp != null && rewardForDisplay.xp > 0 && (
-              <li>xp: {rewardForDisplay.xp}</li>
+              <li>{rewardForDisplay.xp} xp</li>
             )}
             {rewardForDisplay.items &&
               rewardForDisplay.items.map((item) => (
@@ -334,27 +343,45 @@ export function QuestPage({
         </section>
       )}
 
-      <footer className="quest-actions">
-        {quest.status === "available" && (
-          <button className="accept" onClick={handleAccept}>
-            accept quest
-          </button>
-        )}
-
-        {quest.status === "accepted" && (
-          <>
-          <button className="quest-action-complete" onClick={handleComplete}>
-            complete
-          </button>
-          <button className="quest-action-fail" onClick={handleFail}>
-            give up
-          </button>
-          </>
-        )}
-      </footer>
-
     </>
     )}
+      {quest.status === "available" && (
+        <footer className="quest-actions">
+          <button
+            type="button"
+            className="accept"
+            data-spotlight="qp-accept"
+            disabled={isEditing}
+            onClick={handleAccept}
+          >
+            accept quest
+          </button>
+        </footer>
+      )}
+      {quest.status === "accepted" && (
+        <footer className="quest-actions">
+          {!isEditing && (
+            <>
+              <button
+                type="button"
+                className="quest-action-complete"
+                onClick={handleComplete}
+              >
+                complete
+              </button>
+              {!isTutorial(quest) && (
+                <button
+                  type="button"
+                  className="quest-action-fail"
+                  onClick={handleFail}
+                >
+                  give up
+                </button>
+              )}
+            </>
+          )}
+        </footer>
+      )}
       </div>
     </div>,
     document.getElementById("windows")!

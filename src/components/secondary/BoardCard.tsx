@@ -5,17 +5,24 @@ import { memo } from "react"
 import { IconRefreshCw, IconClock, IconAlertTriangle } from "../ui/icons"
 
 type BoardCardProps = {
-  quest: Quest,
+  quest: Quest;
   onSelect: () => void;
-}
+  /** Tutorial (or tests): only the targeted card carries `data-spotlight`. */
+  dataSpotlight?: string;
+};
 
 export const BoardCard = memo(function BoardCard({
   quest,
   onSelect,
+  dataSpotlight,
 }: BoardCardProps) {
 
   return (
-    <div className="quest-card" onClick={onSelect}>
+    <div
+      className="quest-card"
+      {...(dataSpotlight ? { "data-spotlight": dataSpotlight } : {})}
+      onClick={onSelect}
+    >
       <div className="quest-card-header">
         <h3 className="quest-title">{quest.title}</h3>
         <DifficultyBadge difficulty={quest.difficulty} />

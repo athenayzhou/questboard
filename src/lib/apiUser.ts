@@ -1,46 +1,46 @@
-import { usePlayerStore } from "@/store/player";
+import { useUserStore } from "@/store/user";
 import { notifyDebouncedSyncFailure } from "@/lib/syncNotify";
 import {
   isSessionExpiredError,
   throwIfUnauthorized,
 } from "@/lib/sessionRecovery";
 
-let suppressPlayerSync = false;
+let suppressUserSync = false;
 let timer: ReturnType<typeof setTimeout> | null = null;
 const DELAY_MS = 800;
 
-export function setPlayerSyncSuppressed(suppressed: boolean) {
-  suppressPlayerSync = suppressed;
-  if(suppressed && timer){
+export function setUserSyncSuppressed(suppressed: boolean) {
+  suppressUserSync = suppressed;
+  if (suppressed && timer) {
     clearTimeout(timer);
     timer = null;
   }
 }
 
-export async function savePlayerToServer(player: unknown) {
-  const res = await fetch("/api/me/player", {
+export async function saveUserToServer(user: unknown) {
+  const res = await fetch("/api/me/user", {
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ player }),
+    body: JSON.stringify({ user }),
   });
   await throwIfUnauthorized(res);
-  if(!res.ok){
+  if (!res.ok) {
     const t = await res.text().catch(() => "");
-    throw new Error(`save player failed: ${res.status} ${t}`);
+    throw new Error(`save user failed: ${res.status} ${t}`);
   }
 }
 
-export function schedulePlayerSync() {
-  if(suppressPlayerSync) return;
-  if(timer) clearTimeout(timer);
+export function scheduleUserSync() {
+  if (suppressUserSync) return;
+  if (timer) clearTimeout(timer);
 
   timer = setTimeout(async () => {
     timer = null;
-    if(suppressPlayerSync) return;
-    const player = usePlayerStore.getState().player;
-    try{
-      await savePlayerToServer(player);
+    if (suppressUserSync) return;
+    const user = useUserStore.getState().user;
+    try {
+      await saveUserToServer(user);
     } catch (e) {
       if (isSessionExpiredError(e)) return;
       console.error(e);

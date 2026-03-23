@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTesterIdFromRequest } from "@/lib/session";
 import { query } from "@/lib/db";
-import { getDisplayNameForTester } from "@/lib/playerDisplayName";
+import { getDisplayNameForTester } from "@/lib/userDisplayName";
 
 const MAX_BODY = 8000;
 

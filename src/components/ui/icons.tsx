@@ -15,7 +15,6 @@ const base = (size: number) => ({
   strokeLinejoin: "round" as const,
 });
 
-/** Bookmark ribbon: outline when off, filled when marked (e.g. pinned quest). */
 export function IconBookmark({
   size = 18,
   marked = false,

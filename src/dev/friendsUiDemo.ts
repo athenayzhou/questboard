@@ -3,11 +3,11 @@
  * Not bundled into production behavior: seed runs only when `NODE_ENV === "development"`.
  * Not used by `db:seed-beta`.
  */
-import type { BadgePlatePlacement } from "@/types/player";
+import type { BadgePlatePlacement } from "@/types/user";
 import type { Friend, FriendActivity, FriendStatus } from "@/types/friend";
 
 export type DevFriendDetail = {
-  playerCode: string;
+  userCode: string;
   displayName: string;
   status: FriendStatus;
   badgePlacements: BadgePlatePlacement[];
@@ -30,7 +30,7 @@ function act(
 
 const DEV_FRIEND_DETAILS: readonly DevFriendDetail[] = [
   {
-    playerCode: "QB-11111111",
+    userCode: "QB-11111111",
     displayName: "goldie",
     status: "online",
     badgePlacements: [
@@ -45,7 +45,7 @@ const DEV_FRIEND_DETAILS: readonly DevFriendDetail[] = [
       ]),
   },
   {
-    playerCode: "QB-22222222",
+    userCode: "QB-22222222",
     displayName: "samuel",
     status: "offline",
     badgePlacements: [
@@ -60,7 +60,7 @@ const DEV_FRIEND_DETAILS: readonly DevFriendDetail[] = [
       ]),
   },
   {
-    playerCode: "QB-33333333",
+    userCode: "QB-33333333",
     displayName: "kith",
     status: "idle",
     badgePlacements: [
@@ -75,7 +75,7 @@ const DEV_FRIEND_DETAILS: readonly DevFriendDetail[] = [
       ]),
   },
   {
-    playerCode: "QB-44444444",
+    userCode: "QB-44444444",
     displayName: "rowan",
     status: "online",
     badgePlacements: [
@@ -93,7 +93,7 @@ const DEV_FRIEND_DETAILS: readonly DevFriendDetail[] = [
 
 /** Persisted `Friend` rows — only applied in development (see `applyDevFriendsSeed`). */
 export const DEV_SEED_FRIENDS: Friend[] = DEV_FRIEND_DETAILS.map((p) => ({
-  id: p.playerCode,
+  id: p.userCode,
   name: p.displayName,
   status: p.status,
 }));
@@ -107,7 +107,7 @@ export function getDevFriendUiDetail(
   activity: FriendActivity[];
 } | null {
   if (process.env.NODE_ENV !== "development") return null;
-  const row = DEV_FRIEND_DETAILS.find((p) => p.playerCode === friendId);
+  const row = DEV_FRIEND_DETAILS.find((p) => p.userCode === friendId);
   if (!row) return null;
   return {
     badgePlacements: row.badgePlacements,

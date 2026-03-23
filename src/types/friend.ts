@@ -1,8 +1,7 @@
-import type { BadgePlatePlacement } from "./player";
+import type { BadgePlatePlacement } from "./user";
 
 export type FriendStatus = "online" | "offline" | "idle";
 
-/** Persisted list entry (local store + extension sync). */
 export type Friend = {
   id: string;
   name: string;
@@ -18,9 +17,8 @@ export type FriendActivity = {
   source?: string;
 };
 
-/** Server-computed row for friends overlay (status + optional activity). */
 export type FriendSummary = {
-  playerCode: string;
+  userCode: string;
   displayName: string;
   badges: {
     displayedBadgeIds: string[];

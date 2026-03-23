@@ -1,9 +1,6 @@
 import { useSkillStore } from "@/store/skill";
 import { notifyDebouncedSyncFailure } from "@/lib/syncNotify";
-import {
-  isSessionExpiredError,
-  throwIfUnauthorized,
-} from "@/lib/sessionRecovery";
+import { isSessionExpiredError } from "@/lib/sessionRecovery";
 
 let suppressSkillSync = false;
 let timer: ReturnType<typeof setTimeout> | null = null;

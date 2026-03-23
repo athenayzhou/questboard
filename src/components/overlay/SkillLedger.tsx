@@ -1,4 +1,4 @@
-import { useState, useMemo, type FormEvent } from "react";
+import { useState, useMemo, useEffect, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useXPEventStore } from "../../store/xpEvent";
 import { useOverlay } from "../../store/overlay";
@@ -36,8 +36,14 @@ export function SkillLedger() {
   const masteries = useMasteryStore((s) => s.masteries);
   const xpEvents = useXPEventStore((s) => s.events);
 
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   const ledgerEntries = useMemo(() => {
-    const now = Date.now();
+    const now = nowMs;
     const DORMANT_AFTER = DECAY.DORMANT_THRESHOLD_DAYS * MS.DAY;
     const skills = Object.values(skillsRecord);
     return skills.map((skill) => ({
@@ -49,7 +55,7 @@ export function SkillLedger() {
       lastSeenAt: skill.lastSeenAt ?? 0,
       isDormant: skill.lastSeenAt ? now - skill.lastSeenAt > DORMANT_AFTER : true,
     }));
-  }, [skillsRecord]);
+  }, [skillsRecord, nowMs]);
 
   const selectedSkill = useMemo(
     () => ledgerEntries.find((s) => s.id === selectedSkillId) ?? null,
@@ -225,6 +231,7 @@ export function SkillLedger() {
                         className={`ledger-item ${skill.isDormant ? "dormant" : ""} ${
                           selectedSkillId === skill.id ? "selected" : ""
                         }`}
+                        data-spotlight="ledger-skill-row"
                         onClick={() => selectSkill(skill.id)}
                       >
                         <div className="ledger-header">

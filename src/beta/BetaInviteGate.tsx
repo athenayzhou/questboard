@@ -4,12 +4,12 @@ import { useState, useEffect, useRef } from "react";
 import { showToast } from "@/utils/toast";
 
 const SESSION_ERRORS: Record<string, string> = {
-  inviteKey_required: "Enter your invite code.",
-  invalid_invite: "That invite code is not valid.",
-  invite_revoked: "This invite has been revoked.",
-  invite_expired: "This invite has expired.",
-  invite_max_uses_reached: "This invite has reached its use limit.",
-  server_error: "Server error. Try again later.",
+  inviteKey_required: "enter invite code.",
+  invalid_invite: "invite code is not valid",
+  invite_revoked: "invite has been revoked",
+  invite_expired: "invite has expired",
+  invite_max_uses_reached: "invite has reached its use limit",
+  server_error: "server error... try again later..",
 };
 
 type Props = {
@@ -55,10 +55,10 @@ export function BetaInviteGate({ onSignedIn }: Props) {
         return;
       }
 
-      showToast("success", "Signed in. Loading your data…");
+      showToast("success", "signed in... loading data..");
       onSignedIn();
     } catch {
-      showToast("error", "Network error. Check your connection.");
+      showToast("error", "network error... check connection..");
     } finally {
       setSubmitting(false);
     }
@@ -75,7 +75,7 @@ export function BetaInviteGate({ onSignedIn }: Props) {
           Questboard
         </h1>
         <p className="bootstrap-gate-lead">
-          Enter your beta invite code to load your saved quests and skills.
+          enter your beta invite code to load your saved quests and skills
         </p>
         <form onSubmit={handleSubmit} className="bootstrap-gate-form">
           <label className="bootstrap-gate-label" htmlFor="invite-key">

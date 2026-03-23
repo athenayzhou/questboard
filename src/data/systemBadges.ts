@@ -9,6 +9,12 @@ export function getBadgeIconUrl(id: string): string {
 }
 
 export const SYSTEM_BADGES: Record<string, SystemBadgeDefinition> = {
+  "newbie":{
+    id: "newbie",
+    display: "newbie",
+    description: "baby adventurer completing quests",
+    criteria: { type: "totalCompleted", count: 999999 },
+  },
   "daily-streak": {
     id: "daily-streak",
     display: "daily streak",

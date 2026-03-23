@@ -8,23 +8,26 @@ export type UseSystemQuestsOptions = {
 
 export function useSystemQuests(options?: UseSystemQuestsOptions) {
   const bootstrapSettled = options?.bootstrapSettled ?? true;
-  const quests = useQuestStore((s) => s.quests);
   const setQuest = useQuestStore((s) => s.setQuest);
 
   useEffect(() => {
-    if(!bootstrapSettled) return;
+    if (!bootstrapSettled) return;
 
-    const systemQuests = quests.filter((q) => q.isSystemGenerated);
-    const seasonalQuest = SystemQuestGenerator.generateSeasonalQuest();
-    if (seasonalQuest) {
-      const questExists = systemQuests.some(
-        (q) =>
-          q.systemType === "seasonal" &&
-          q.generationCriteria?.season === seasonalQuest.generationCriteria?.season
-      );
-      if (!questExists) {
-        setQuest([...quests, seasonalQuest]);
+    setQuest((prev) => {
+      const systemQuests = prev.filter((q) => q.isSystemGenerated);
+      const seasonalQuest = SystemQuestGenerator.generateSeasonalQuest();
+      if (seasonalQuest) {
+        const questExists = systemQuests.some(
+          (q) =>
+            q.systemType === "seasonal" &&
+            q.generationCriteria?.season ===
+              seasonalQuest.generationCriteria?.season,
+        );
+        if (!questExists) {
+          return [...prev, seasonalQuest];
+        }
       }
-    }
-  }, [quests, setQuest, bootstrapSettled]);
+      return prev;
+    });
+  }, [setQuest, bootstrapSettled]);
 }

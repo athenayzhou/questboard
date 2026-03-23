@@ -15,7 +15,7 @@ const localStorageMock = {
   }),
 }
 
-;(globalThis as any).localStorage = localStorageMock
+vi.stubGlobal("localStorage", localStorageMock)
 
 let uuidCounter = 0
 Object.defineProperty(globalThis, 'crypto', {

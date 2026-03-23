@@ -9,18 +9,22 @@ import {
   type MouseEvent,
   type FocusEvent,
 } from "react";
-import type { PlayerData } from "../../types/player";
+import type { UserData } from "../../types/user";
 import type { EquipSlot, SystemItem } from "../../types/system";
 import { SYSTEM_ITEMS_BY_ID, getItemIconUrl } from "../../data/systemItems";
 import { SYSTEM_BADGES, getBadgeIconUrl } from "../../data/systemBadges";
 import { createPortal } from "react-dom";
-import { usePlayerStore } from "../../store/player";
+import { useUserStore } from "../../store/user";
+import { useTutorialStore } from "@/onboarding/tutorialStore";
+import { tryCompleteTutorialSpotlight } from "@/onboarding/tutorialProgress";
+import { showToast } from "@/utils/toast";
+import { isReservedDisplayName, isUnsetDisplayName } from "@/lib/defaultUserData";
 import { IconX, IconPencil } from "../ui/icons";
-import { PlayerNamePlate } from "../PlayerNamePlate";
+import { UserNamePlate } from "../NamePlate";
 import {
   clamp01,
   slotPlacementForIndex,
-} from "../../lib/playerBadges";
+} from "../../lib/userBadges";
 
 type Action =
   | { type: "EQUIP_ITEM"; slot: EquipSlot; itemId: string }
@@ -33,9 +37,9 @@ type Action =
       y: number;
     }
   | { type: "SET_PROFILE_NAME"; name: string }
-  | { type: "UPDATE_PLAYER"; player: PlayerData };
+  | { type: "UPDATE_USER"; user: UserData };
 
-function playerReducer(state: PlayerData, action: Action): PlayerData {
+function userReducer(state: UserData, action: Action): UserData {
   switch (action.type) {
     case "EQUIP_ITEM":
       if(state.equipment.equipped[action.slot] === action.itemId){
@@ -119,8 +123,8 @@ function playerReducer(state: PlayerData, action: Action): PlayerData {
         profile: { ...state.profile, name: next },
       };
     }
-    case "UPDATE_PLAYER":
-      return structuredClone(action.player);
+    case "UPDATE_USER":
+      return structuredClone(action.user);
     default:
       return state;
   }
@@ -131,11 +135,11 @@ const EQUIP_SLOTS: EquipSlot[] = ["head", "body", "accessory", "weapon"];
 export function Profile(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);
   const openOverlay = useOverlay((s) => s.openOverlay);
-  const loadedPlayer = usePlayerStore(s => s.player);
-  const setPlayerGlobal = usePlayerStore(s => s.setPlayer);
-  const [player, dispatch] = useReducer(
-    playerReducer, 
-    loadedPlayer,
+  const loadedUser = useUserStore(s => s.user);
+  const setUserGlobal = useUserStore(s => s.setUser);
+  const [user, dispatch] = useReducer(
+    userReducer, 
+    loadedUser,
     p => structuredClone(p));
   const [hoveredSlot, setHoveredSlot] = useState<EquipSlot | null>(null);
   const [profileTooltip, setProfileTooltip] = useState<{
@@ -146,9 +150,8 @@ export function Profile(){
     description?: string;
   } | null>(null);
   const [nameEditing, setNameEditing] = useState(false);
-  const [nameDraft, setNameDraft] = useState(loadedPlayer.profile.name);
+  const [nameDraft, setNameDraft] = useState(loadedUser.profile.name);
 
-  /** Small nudge so the tooltip sits just beside the cursor (not overlapping it). */
   const INV_TIP_OFFSET_X = 4;
   const INV_TIP_OFFSET_Y = 4;
 
@@ -165,7 +168,7 @@ export function Profile(){
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [player.equipment.equipped]);
+  }, [user.equipment.equipped]);
 
   function updateProfileTooltipFromEvent(
     tipId: string,
@@ -195,70 +198,80 @@ export function Profile(){
   }
 
   useEffect(() => {
-    dispatch({ type: "UPDATE_PLAYER", player: loadedPlayer });
-  }, [loadedPlayer]);
+    dispatch({ type: "UPDATE_USER", user: loadedUser });
+  }, [loadedUser]);
 
   useEffect(() => {
     if (!nameEditing) {
-      setNameDraft(loadedPlayer.profile.name);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- keep draft aligned with loaded profile when not editing
+      setNameDraft(loadedUser.profile.name);
     }
-  }, [loadedPlayer.profile.name, nameEditing]);
+  }, [loadedUser.profile.name, nameEditing]);
 
-  const isDefaultDisplayName =
-    player.profile.name.trim().toLowerCase() === "player";
+  const isDefaultDisplayName = isUnsetDisplayName(user.profile.name);
+
+  const autoOpenedDefaultNameRef = useRef(false);
+  /* eslint-disable react-hooks/set-state-in-effect -- one-time open rename when name is still the default placeholder */
+  useEffect(() => {
+    if (!isDefaultDisplayName || autoOpenedDefaultNameRef.current) return;
+    autoOpenedDefaultNameRef.current = true;
+    setNameEditing(true);
+    setNameDraft(loadedUser.profile.name);
+  }, [isDefaultDisplayName, loadedUser.profile.name]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const equippedItems = useMemo(() => {
     const result: Partial<Record<EquipSlot, SystemItem>> = {};
     EQUIP_SLOTS.forEach(slot => {
-      const itemId = player.equipment.equipped[slot];
+      const itemId = user.equipment.equipped[slot];
       if(itemId && SYSTEM_ITEMS_BY_ID[itemId]) {
         result[slot] = SYSTEM_ITEMS_BY_ID[itemId];
       }
     });
     return result;
-  }, [player.equipment.equipped]);
+  }, [user.equipment.equipped]);
 
   const inventoryItems = useMemo(() => {
-    return Object.keys(player.inventory.items)
+    return Object.keys(user.inventory.items)
       .map(id => {
         const systemItem = SYSTEM_ITEMS_BY_ID[id];
         if(!systemItem) return null;
         return {
           ...systemItem,
-          ...player.inventory.items[id]
+          ...user.inventory.items[id]
         };
       })
       .filter((item): item is SystemItem & { quantity: number } => Boolean(item))
-  }, [player.inventory.items]);
+  }, [user.inventory.items]);
   const unlockedBadges = useMemo(
     () =>
-      player.badges.unlockedBadges
+      user.badges.unlockedBadges
         .map((id) => SYSTEM_BADGES[id])
         .filter(Boolean),
-    [player.badges.unlockedBadges]
+    [user.badges.unlockedBadges]
   );
 
   const namePlatePlacements = useMemo(() => {
-    const unlocked = new Set(player.badges.unlockedBadges);
-    const shown = new Set(player.badges.displayedBadgeIds);
-    return player.badges.badgePlacements.filter(
+    const unlocked = new Set(user.badges.unlockedBadges);
+    const shown = new Set(user.badges.displayedBadgeIds);
+    return user.badges.badgePlacements.filter(
       (p) => unlocked.has(p.id) && shown.has(p.id),
     );
   }, [
-    player.badges.badgePlacements,
-    player.badges.displayedBadgeIds,
-    player.badges.unlockedBadges,
+    user.badges.badgePlacements,
+    user.badges.displayedBadgeIds,
+    user.badges.unlockedBadges,
   ]);
 
   const displayedBadgeSet = useMemo(
-    () => new Set(player.badges.displayedBadgeIds),
-    [player.badges.displayedBadgeIds],
+    () => new Set(user.badges.displayedBadgeIds),
+    [user.badges.displayedBadgeIds],
   );
 
   function equipItem(itemId: string) {
     const systemItem = SYSTEM_ITEMS_BY_ID[itemId];
     if(!systemItem) return;
-    if(!player.inventory.items[itemId]) return;
+    if(!user.inventory.items[itemId]) return;
     const slot = systemItem.slot;
     dispatch({ type: "EQUIP_ITEM", slot, itemId });
   }
@@ -267,18 +280,31 @@ export function Profile(){
   }
 
   function saveProfile(){
-    setPlayerGlobal(player);
+    setUserGlobal(user);
+    tryCompleteTutorialSpotlight("profile-save");
   }
 
   function commitNameEdit() {
     const next = nameDraft.trim();
     if (!next) return;
+    if (isReservedDisplayName(next)) {
+      showToast(
+        "warning",
+        "name unavailable, choose a different name",
+      );
+      return;
+    }
     dispatch({ type: "SET_PROFILE_NAME", name: next });
     setNameEditing(false);
+
+    const sub = useTutorialStore.getState().currentSubquest;
+    if (sub?.spotlight === "profile-display-name") {
+      useTutorialStore.getState().markSubquestComplete(sub.id);
+    }
   }
 
   function cancelNameEdit() {
-    setNameDraft(player.profile.name);
+    setNameDraft(user.profile.name);
     setNameEditing(false);
   }
 
@@ -302,9 +328,12 @@ export function Profile(){
       <div className="character-panel">
         <div className="player-figure">
         <div className="player-identity">
-          <div className="profile-name-plate-block">
-            <PlayerNamePlate
-              playerName={player.profile.name}
+          <div
+            className="profile-name-plate-block"
+            data-spotlight="profile-display-name"
+          >
+            <UserNamePlate
+              userName={user.profile.name}
               nameSlot={
                 nameEditing ? (
                   <div className="name-plate-name-edit">
@@ -352,13 +381,13 @@ export function Profile(){
                 ) : (
                   <div className="name-plate-name-with-edit">
                     <span className="name-text name-plate-preview-name">
-                      {player.profile.name}
+                      {user.profile.name}
                     </span>
                     <button
                       type="button"
                       className="profile-name-edit-btn"
                       onClick={() => {
-                        setNameDraft(player.profile.name);
+                        setNameDraft(user.profile.name);
                         setNameEditing(true);
                       }}
                       aria-label="Edit display name"
@@ -423,9 +452,9 @@ export function Profile(){
             }}
           >
             <div className="character-image">
-              {player.profile.character ? (
+              {user.profile.character ? (
                 <img
-                  src={player.profile.character}
+                  src={user.profile.character}
                   alt="character"
                   className="character-img"
                 />
@@ -435,13 +464,13 @@ export function Profile(){
         </div>
         </div>
         <div className="player-currency">
-          <span>coins: {player.currencies.coins}</span>
-          <span>gems: {player.currencies.gems}</span>
+          <span>coins: {user.currencies.coins}</span>
+          <span>gems: {user.currencies.gems}</span>
         </div>
       </div>
 
       <div className="item-panel">
-        <section>
+        <section data-spotlight="inventory">
           <h3>inventory</h3>
           <div id="inventory" className="grid">
             {inventoryItems.length === 0 ? (
@@ -451,7 +480,7 @@ export function Profile(){
               </p>
             ) : null}
             {inventoryItems.map((item) => {
-              const isEquipped = player.equipment.equipped[item.slot] === item.id;
+              const isEquipped = user.equipment.equipped[item.slot] === item.id;
               return (
               <button
                 key={item.id}
@@ -501,7 +530,7 @@ export function Profile(){
         </section>
         <section>
           <h3>badges</h3>
-            <div className="badge-section">
+            <div className="badge-section" data-spotlight="profile-badges">
               {unlockedBadges.length === 0 ? (
                 <p className="profile-panel-empty">
                   no badges yet — keep questing to unlock flair
@@ -562,11 +591,19 @@ export function Profile(){
           <button
             type="button"
             className="shop-btn"
+            data-spotlight="profile-shop"
             onClick={() => openOverlay("shop")}
           >
             shop
           </button>
-          <button id="save-profile" onClick={saveProfile}>save changes</button>
+          <button
+            type="button"
+            id="save-profile"
+            data-spotlight="profile-save"
+            onClick={saveProfile}
+          >
+            save changes
+          </button>
         </div>
       </div>
       </div>

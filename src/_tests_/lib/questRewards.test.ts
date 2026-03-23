@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { getRewardCoins, getRewardGems, grantQuestRewards } from "../../lib/questRewards";
-import { usePlayerStore } from "../../store/player";
+import { getRewardCoins, grantQuestRewards } from "../../lib/questRewards";
+import { useUserStore } from "../../store/user";
 import type { Quest } from "../../types/quest";
-import { createDefaultPlayerData } from "../../lib/defaultPlayerData";
+import { createDefaultUserData } from "../../lib/defaultUserData";
 import { calculateQuestCoinReward } from "../../lib/computeQuestReward";
 
 describe("questRewards", () => {
   beforeEach(() => {
-    usePlayerStore.setState({ player: createDefaultPlayerData() });
+    useUserStore.setState({ user: createDefaultUserData() });
   });
 
   it("maps legacy currency to coins", () => {
@@ -29,8 +29,8 @@ describe("questRewards", () => {
       createdAt: Date.now(),
     } as Quest;
     grantQuestRewards(q);
-    expect(usePlayerStore.getState().player.currencies.gems).toBe(3);
-    expect(usePlayerStore.getState().player.currencies.coins).toBe(0);
+    expect(useUserStore.getState().user.currencies.gems).toBe(3);
+    expect(useUserStore.getState().user.currencies.coins).toBe(0);
   });
 
   it("regular grants coins from formula, not stored reward", () => {
@@ -45,7 +45,25 @@ describe("questRewards", () => {
     } as Quest;
     const expected = calculateQuestCoinReward(q);
     grantQuestRewards(q);
-    expect(usePlayerStore.getState().player.currencies.coins).toBe(expected);
-    expect(usePlayerStore.getState().player.currencies.gems).toBe(0);
+    expect(useUserStore.getState().user.currencies.coins).toBe(expected);
+    expect(useUserStore.getState().user.currencies.gems).toBe(0);
+  });
+
+  it("tutorial grants template coins and items, not XP formula", () => {
+    const q = {
+      id: "tutorial-01-first-loop",
+      title: "tutorial",
+      difficulty: "easy",
+      status: "accepted",
+      createdAt: Date.now(),
+      systemType: "tutorial",
+      isSystemGenerated: true,
+      reward: { coins: 10, items: ["lucky-coin"] },
+    } as Quest;
+    grantQuestRewards(q);
+    expect(useUserStore.getState().user.currencies.coins).toBe(10);
+    expect(
+      useUserStore.getState().user.inventory.items["lucky-coin"]?.quantity,
+    ).toBe(1);
   });
 });

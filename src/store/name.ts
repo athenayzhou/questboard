@@ -14,7 +14,6 @@ export type PendingSkill = {
   candidate: Candidate;
   xp: number;
   questId: string;
-  /** Quest title for XP activity log when this pending skill is named. */
   questTitle?: string;
   discoveredAt: number;
 };

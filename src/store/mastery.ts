@@ -40,9 +40,7 @@ type MasteryState = {
   grantMastery: () => Mastery[];
   getAll: () => Mastery[];
   getByVerb: (verb?: string | null) => Mastery | undefined;
-  /** Recompute `skillIds` for the mastery matching this verb from current skills (e.g. after a new skill is added). */
   syncSkillsForVerb: (verb: string) => void;
-  /** Recompute every mastery's `skillIds` from current skills (e.g. after hydrating from server). */
   reconcileAllMasteriesWithSkills: () => void;
   updateMastery: (
     id: string,
@@ -96,7 +94,7 @@ export const useMasteryStore = create<MasteryState>((set, get) => ({
         );
         continue;
       }
-      devLog("player", `mastery granted: "${mastery.name}"`);
+      devLog("user", `mastery granted: "${mastery.name}"`);
       devLog(
         "mastery",
         `new mastery: "${mastery.name}" for verb: "${mastery.verb}" from skills, ${mastery.skillIds.join(", ")}`,

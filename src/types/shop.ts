@@ -6,5 +6,4 @@ export type ShopItem = {
   price: number;
   currency: CurrencyId;
   requiredMasteryVerb?: string;
-  seasonalTag?: string;
 };

@@ -1,17 +1,17 @@
 import { create } from "zustand";
-import type { QuestboardSettingsPersisted } from "@/types/clientExtension";
+import type { SettingsPersisted } from "@/types/clientExtension";
 
-type State = QuestboardSettingsPersisted & {
+type State = SettingsPersisted & {
   setAutoNameSkills: (v: boolean) => void;
   setAutoFailOverdueQuests: (v: boolean) => void;
-  hydrate: (partial: Partial<QuestboardSettingsPersisted>) => void;
+  hydrate: (partial: Partial<SettingsPersisted>) => void;
 };
 
 function touchExtension() {
   void import("@/lib/apiExtension").then((m) => m.scheduleExtensionSync());
 }
 
-export const useQuestboardSettings = create<State>((set) => ({
+export const useSettingsStore = create<State>((set) => ({
   autoNameSkills: true,
   autoFailOverdueQuests: false,
 

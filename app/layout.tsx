@@ -19,6 +19,7 @@ import '../src/styles/ui/buttons.css';
 import '../src/styles/ui/progress-bar.css';
 import '../src/styles/ui/toast.css';
 import '../src/styles/ui/confirm.css';
+import '../src/styles/ui/tutorial-complete-modal.css';
 import '../src/styles/ui/skill-activity-log.css';
 
 

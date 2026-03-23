@@ -4,10 +4,7 @@ import { useXPEventStore } from "../../store/xpEvent";
 import { getSkillCooccurence } from "../../utils/skill/analysis/cooccurence";
 import { useStreakStore } from "../../store/streak";
 import { IconX, IconPencil } from "../ui/icons";
-import { levelToProgress } from "../../utils/skill/analysis/experience";
-import { ProgressBar } from "../ui/ProgressBar";
 import { formatDateUsSlash } from "../../utils/format/date";
-import { xpEventActivityLabel } from "../../utils/xpEventLabel";
 
 type Props = {
   skill: SkillLedgerEntry;
@@ -47,10 +44,9 @@ export function SkillDetail({
 
   const cooccuring = useMemo(
     () => getSkillCooccurence(skillId),
-    [skillId, events]
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recomputes when XP events change (helper reads store)
+    [skillId, events],
   );
-
-  const { progress } = levelToProgress(skill.xp);
 
   return (
     <div className="skill-detail">

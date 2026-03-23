@@ -38,7 +38,7 @@ export function promote(
   };
   candidateStore.remove(candidate.key);
   addSkill(skill);
-  devLog('player', `skill gained: "${skill.name}"`);
+  devLog('user', `skill gained: "${skill.name}"`);
   devLog('skill-gen', `new skill {${skill.name}} from candidate {${candidate.verb}} with [${candidate.objects.join(", ")}]. xp: ${skill.xp}, proficiency: ${skill.proficiency}`);
 
   return skill;

@@ -1,4 +1,6 @@
+import type { Quest } from "@/types/quest";
 import { useQuestStore } from "@/store/quest";
+import { dedupeQuestsById } from "@/lib/questDedupe";
 import { notifyDebouncedSyncFailure } from "@/lib/syncNotify";
 import {
   isSessionExpiredError,
@@ -18,11 +20,13 @@ export function setQuestSyncSuppressed(suppressed: boolean) {
 }
 
 export async function saveQuestsToServer(quests: unknown[]) {
+  const list = Array.isArray(quests) ? quests : [];
+  const deduped = dedupeQuestsById(list as Quest[]);
   const res = await fetch("/api/me/quests", {
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ quests }),
+    body: JSON.stringify({ quests: deduped }),
   });
 
   await throwIfUnauthorized(res);

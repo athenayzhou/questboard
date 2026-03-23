@@ -1,13 +1,6 @@
 import { createHash } from "crypto";
 
-const UUID_HEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/**
- * Postgres `quests.id` is `uuid`. Client quests may use string ids (e.g.
- * `seasonal-spring-cleaning-1774062207117` from {@link SystemQuestGenerator}).
- * Row id must be a UUID; the original id stays in the JSON `data` column.
- */
 export function stableUuidFromSeed(namespace: string, seed: string): string {
   const hash = createHash("sha256")
     .update(`${namespace}:${seed}`)
@@ -20,8 +13,17 @@ export function stableUuidFromSeed(namespace: string, seed: string): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
 }
 
-export function questRowIdFromClientId(clientId: string): string {
+export function questRowIdFromClientId(clientId: string, testerId: string): string {
   const id = clientId.trim();
-  if (UUID_HEX.test(id)) return id.toLowerCase();
-  return stableUuidFromSeed("questboard:quest", id);
+  return stableUuidFromSeed("questboard:quest:row", `${testerId}:${id}`);
+}
+
+export function skillRowIdFromClientId(clientId: string, testerId: string): string {
+  const id = clientId.trim();
+  return stableUuidFromSeed("questboard:skill:row", `${testerId}:${id}`);
+}
+
+export function xpEventRowIdFromClientId(clientId: string, testerId: string): string {
+  const id = clientId.trim();
+  return stableUuidFromSeed("questboard:xp_event:row", `${testerId}:${id}`);
 }

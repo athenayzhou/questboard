@@ -62,6 +62,36 @@ export const SYSTEM_ITEMS: SystemItem[] = [
     slot: "accessory",
     description: "ultimate battle resource in cooking"
   },
+  {
+    id: "knights-helmet",
+    name: "drifter's hood",
+    slot: "head",
+    description: "worn leather and stitched lining—keeps rain off the road.",
+  },
+  {
+    id: "rangers-sash",
+    name: "ranger's sash",
+    slot: "accessory",
+    description: "faded cloth and a few spare knots for charms and trail markers.",
+  },
+  {
+    id: "rusty-sword",
+    name: "rusty sword",
+    slot: "weapon",
+    description: "pitted steel and a loose grip—still points the right way.",
+  },
+  {
+    id: "wayfinder-staff",
+    name: "wayfinder staff",
+    slot: "weapon",
+    description: "knotted ash and iron ferrule; lean on it when the path gets long.",
+  },
+  {
+    id: "field-jacket",
+    name: "field jacket",
+    slot: "body",
+    description: "pockets for snacks and notes.",
+  },
 ];
 
 export const MASTERY__ITEMS: Record<string, string> = {
@@ -70,13 +100,28 @@ export const MASTERY__ITEMS: Record<string, string> = {
   focus: "focus-band",
 };
 
+export const STARTER_SHOP_ITEM_IDS: string[] = [
+  "shop-knights-helmet",
+  "shop-wayfinder-staff",
+  "shop-rangers-sash",
+  "shop-rusty-sword",
+];
 
 export const DEFAULT_SHOP_ITEMS: ShopItem[] = [
-  { id: "shop-planner-satchel", itemId: "planner-satchel", price: 80, currency: "coins", requiredMasteryVerb: "plan" },
+  { id: "shop-knights-helmet", itemId: "knights-helmet", price: 50, currency: "coins" },
+  { id: "shop-rangers-sash", itemId: "rangers-sash", price: 50, currency: "coins" },
+  { id: "shop-rusty-sword", itemId: "rusty-sword", price: 50, currency: "coins" },
+  { id: "shop-wayfinder-staff", itemId: "wayfinder-staff", price: 50, currency: "coins" },
+  { id: "shop-enchanted-cloak", itemId: "enchanted-cloak", price: 75, currency: "coins" },
+  { id: "shop-field-jacket", itemId: "field-jacket", price: 140, currency: "coins" },
+  { id: "shop-yellow-apron", itemId: "yellow-apron", price: 95, currency: "coins" },
+  { id: "shop-pink-headband", itemId: "pink-headband", price: 100, currency: "coins" },
+  { id: "shop-salt-shaker", itemId: "salt-shaker", price: 60, currency: "coins" },
+  { id: "shop-lucky-coin", itemId: "lucky-coin", price: 25, currency: "gems" },
+  { id: "shop-planner-satchel", itemId: "planner-satchel", price: 280, currency: "coins", requiredMasteryVerb: "plan" },
   { id: "shop-focus-band", itemId: "focus-band", price: 120, currency: "coins", requiredMasteryVerb: "focus" },
   { id: "shop-sturdy-sponge", itemId: "sturdy-sponge", price: 200, currency: "coins", requiredMasteryVerb: "clean" },
-  { id: "shop-enchanged-cloak", itemId: "enchanted-cloak", price: 30, currency: "coins" },
-  { id: "shop-lucky-coin", itemId: "lucky-coin", price: 25, currency: "gems" },
+  { id: "shop-soup-ladle", itemId: "soup-ladle", price: 180, currency: "coins", requiredMasteryVerb: "cook" },
 ];
 
 

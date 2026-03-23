@@ -4,15 +4,15 @@ import { useState, useEffect, useMemo } from "react";
 import { useOverlay } from "../../store/overlay";
 import { useFriendsStore } from "../../store/friends";
 import { showToast } from "../../utils/toast";
-import { normalizePlayerCodeInput } from "../../utils/format/code";
+import { normalizeUserCodeInput } from "../../utils/format/code";
 import { fetchFriendSummaries } from "@/lib/apiFriendsSummary";
 import type { FriendActivity, FriendSummary } from "@/types/friend";
 import { getDevFriendUiDetail } from "@/dev/friendsUiDemo";
 import { IconUserPlus, IconX } from "../ui/icons";
-import { PlayerNamePlate } from "../PlayerNamePlate";
+import { UserNamePlate } from "../NamePlate";
 
 type LookupOk = {
-  playerCode: string;
+  userCode: string;
   displayName: string;
 };
 
@@ -65,7 +65,6 @@ export function FriendsList() {
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [summaries, setSummaries] = useState<Record<string, FriendSummary>>({});
 
-  /** Refresh dev activity timestamps when opening the overlay. */
   const devUiTick = useMemo(() => Date.now(), [activeOverlay]);
 
   useEffect(() => {
@@ -78,7 +77,7 @@ export function FriendsList() {
       if (cancelled) return;
       const next: Record<string, FriendSummary> = {};
       for (const s of list) {
-        next[s.playerCode] = s;
+        next[s.userCode] = s;
       }
       setSummaries(next);
     });
@@ -105,9 +104,9 @@ export function FriendsList() {
   }
 
   async function handleLookup() {
-    const code = normalizePlayerCodeInput(codeInput);
+    const code = normalizeUserCodeInput(codeInput);
     if (!code) {
-      setLookupError("enter a valid player id (e.g. QB-XXXXXXXX)");
+      setLookupError("enter a valid user id (e.g. QB-XXXXXXXX)");
       setPreview(null);
       return;
     }
@@ -128,8 +127,8 @@ export function FriendsList() {
         const err = json.error ?? "unknown";
         const messages: Record<string, string> = {
           unauthorized: "sign in required",
-          invalid_code: "invalid player id format",
-          not_found: "no player with that id",
+          invalid_code: "invalid user id format",
+          not_found: "no user with that id",
           self: "that’s your own id",
         };
         setLookupError(messages[err] ?? "lookup failed");
@@ -145,12 +144,12 @@ export function FriendsList() {
 
   function handleAddFriend() {
     if (!preview) return;
-    if (friends.some((f) => f.id === preview.playerCode)) {
+    if (friends.some((f) => f.id === preview.userCode)) {
       showToast("warning", "already in your list");
       return;
     }
     addFriend({
-      id: preview.playerCode,
+      id: preview.userCode,
       name: preview.displayName,
       status: "offline",
     });
@@ -167,7 +166,7 @@ export function FriendsList() {
             type="button"
             className="add-friend-btn"
             aria-label="Add friend"
-            title="Add friend by player id"
+            title="Add friend by user id"
             onClick={openModal}
           >
             <IconUserPlus size={16} />
@@ -196,7 +195,7 @@ export function FriendsList() {
               add friend
             </h2>
             <p className="friends-add-hint">
-              enter their player id (e.g. <code>QB-A1B2C3D4</code>)
+              enter their user id (e.g. <code>QB-A1B2C3D4</code>)
             </p>
             <input
               type="text"
@@ -236,7 +235,7 @@ export function FriendsList() {
             {preview ? (
               <div className="friends-add-preview">
                 <div className="friends-add-preview-name">{preview.displayName}</div>
-                <div className="friends-add-preview-code">{preview.playerCode}</div>
+                <div className="friends-add-preview-code">{preview.userCode}</div>
                 <button
                   type="button"
                   className="friends-add-btn friends-add-btn--primary friends-add-btn--full"
@@ -293,8 +292,8 @@ export function FriendsList() {
 
               {platePlacements.length > 0 ? (
                 <div className="friend-info friend-info--nameplate">
-                  <PlayerNamePlate
-                    playerName={displayName}
+                  <UserNamePlate
+                    userName={displayName}
                     placements={platePlacements}
                     interactive={false}
                     className="friend-nameplate"

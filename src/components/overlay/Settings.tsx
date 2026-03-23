@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useOverlay } from "../../store/overlay";
 import { useQuestStore } from "../../store/quest";
 import { useNameStore } from "../../store/name";
-import { useQuestboardSettings } from "../../store/questboardSettings";
+import { useSettingsStore } from "../../store/settings";
 import { candidateStore } from "../../store/bundledStores";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { showToast } from "../../utils/toast";
 import { flushAllServerSyncs } from "../../lib/syncFlush";
-import { clearLocalQuestboardState } from "../../lib/clearLocalQuestboardState";
+import { clearLocalState } from "../../lib/clearLocalState";
 import { scheduleSkillSync } from "../../lib/apiSkills";
 import { signOutFromApp } from "../../lib/sessionRecovery";
 import { APP, CANDIDATE } from "../../utils/constants";
@@ -18,13 +18,13 @@ import { autoNameSkill, generateSkillNames } from "../../utils/skill/generation/
 export function Settings() {
   const closeOverlay = useOverlay((s) => s.closeOverlay);
   const openOverlay = useOverlay((s) => s.openOverlay);
-  const playerCode = useIdentityStore((s) => s.playerCode);
-  const autoNameSkills = useQuestboardSettings((s) => s.autoNameSkills);
-  const setAutoNameSkillsStore = useQuestboardSettings(
+  const userCode = useIdentityStore((s) => s.userCode);
+  const autoNameSkills = useSettingsStore((s) => s.autoNameSkills);
+  const setAutoNameSkillsStore = useSettingsStore(
     (s) => s.setAutoNameSkills,
   );
-  const autoFailOverdue = useQuestboardSettings((s) => s.autoFailOverdueQuests);
-  const setAutoFailOverdueQuests = useQuestboardSettings(
+  const autoFailOverdue = useSettingsStore((s) => s.autoFailOverdueQuests);
+  const setAutoFailOverdueQuests = useSettingsStore(
     (s) => s.setAutoFailOverdueQuests,
   );
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -64,16 +64,19 @@ export function Settings() {
     }
   };
 
-  const handleResetData = () => {
-    clearLocalQuestboardState({ closeOverlays: true });
+  const handleResetData = async () => {
+    clearLocalState({ closeOverlays: true });
     scheduleSkillSync();
-
-    showToast(
-      "success",
-      "Data reset locally. Use “save to server now” to clear your cloud copy too.",
-    );
     setShowResetConfirm(false);
     closeOverlay();
+
+    const ok = await flushAllServerSyncs({ suppressSuccessToast: true });
+    if (ok) {
+      showToast(
+        "success",
+        "data reset and saved to the server.",
+      );
+    }
   };
 
   const handleSignOut = async () => {
@@ -148,15 +151,15 @@ export function Settings() {
 
           <div className="settings-account">
             <p className="settings-section-title">account</p>
-            {playerCode ? (
+            {userCode ? (
               <div className="settings-player-id">
-                <span className="settings-player-id-label">player id</span>
-                <code className="settings-player-id-code">{playerCode}</code>
+                <span className="settings-player-id-label">user id</span>
+                <code className="settings-player-id-code">{userCode}</code>
                 <button
                   type="button"
                   className="settings-copy-id-btn"
                   onClick={() => {
-                    void navigator.clipboard.writeText(playerCode).then(
+                    void navigator.clipboard.writeText(userCode).then(
                       () => showToast("success", "copied"),
                       () => showToast("error", "could not copy"),
                     );
@@ -166,7 +169,7 @@ export function Settings() {
                 </button>
               </div>
             ) : (
-              <p className="settings-cloud-sync-hint">player id loads after sync</p>
+              <p className="settings-cloud-sync-hint">user id loads after sync</p>
             )}
             <button
               type="button"
@@ -212,7 +215,7 @@ export function Settings() {
         options={{
           title: "reset data",
           message:
-            "clear all quests and skills on this device? use “save to server now” afterward if you also want the cloud copy emptied.",
+            "clear all quests and skills on this device? cannot revert changes",
           confirmText: "reset",
           type: "danger",
         }}
@@ -224,7 +227,7 @@ export function Settings() {
         options={{
           title: "sign out",
           message:
-            "Sign out and clear local data? You’ll need your invite code to sign back in.",
+            "sign out and clear local data? you’ll need your invite code to sign back in",
           confirmText: "sign out",
           type: "warning",
         }}

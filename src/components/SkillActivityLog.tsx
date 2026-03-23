@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { useXPEventStore } from "../../store/xpEvent";
-import { useSkillStore } from "../../store/skill";
-import { levelToProgress } from "../../utils/skill/analysis/experience";
-import { ProgressBar } from "./ProgressBar";
+import { useXPEventStore } from "../store/xpEvent";
+import { useSkillStore } from "../store/skill";
+import { levelToProgress } from "../utils/skill/analysis/experience";
+import { ProgressBar } from "./ui/ProgressBar";
 
 function timeAgo(ts: number) {
   const diff = Date.now() - ts;

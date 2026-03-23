@@ -57,4 +57,17 @@ describe('quest store', () => {
       expect(available[0].id).toBe(quest2.id)
     })
   })
+
+  describe('duplicateQuest', () => {
+    it('returns null for system-generated quests', () => {
+      useQuestStore.getState().setQuest([
+        {
+          ...createTestQuest({ id: "sys-1" }),
+          isSystemGenerated: true,
+          systemType: "tutorial",
+        },
+      ]);
+      expect(useQuestStore.getState().duplicateQuest("sys-1")).toBeNull();
+    });
+  });
 })

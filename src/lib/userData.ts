@@ -1,10 +1,8 @@
-import type { PlayerData } from "@/types/player";
-import { migrateBadges } from "@/lib/playerBadges";
+import type { UserData } from "@/types/user";
+import { DEFAULT_DISPLAY_NAME_PLACEHOLDER } from "./defaultUserData";
+import { migrateBadges } from "@/lib/userBadges";
 
-/**
- * Coerce bootstrap / API / local JSON into `PlayerData` and migrate legacy fields.
- */
-export function normalizePlayerData(raw: unknown): PlayerData {
+export function normalizeUserData(raw: unknown): UserData {
   const p = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
 
   const profileRaw = p.profile;
@@ -23,7 +21,7 @@ export function normalizePlayerData(raw: unknown): PlayerData {
       name:
         typeof profile.name === "string" && profile.name.trim()
           ? profile.name
-          : "player",
+          : DEFAULT_DISPLAY_NAME_PLACEHOLDER,
       ...(typeof profile.character === "string" && profile.character
         ? { character: profile.character }
         : {}),
@@ -31,7 +29,7 @@ export function normalizePlayerData(raw: unknown): PlayerData {
     badges: migrateBadges(badgesRaw),
     equipment:
       p.equipment && typeof p.equipment === "object"
-        ? (p.equipment as PlayerData["equipment"])
+        ? (p.equipment as UserData["equipment"])
         : {
             equipped: {
               head: null,
@@ -42,7 +40,7 @@ export function normalizePlayerData(raw: unknown): PlayerData {
           },
     inventory:
       p.inventory && typeof p.inventory === "object"
-        ? (p.inventory as PlayerData["inventory"])
+        ? (p.inventory as UserData["inventory"])
         : { items: {} },
     currencies: {
       coins: Number((p.currencies as Record<string, unknown> | undefined)?.coins) || 0,

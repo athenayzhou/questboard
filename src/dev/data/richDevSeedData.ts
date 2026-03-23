@@ -2,7 +2,7 @@
  * Fixtures for DB beta seed (`db:seed-beta`) and any scripts that import this module.
  * Not used in production builds unless the env flag is set.
  */
-import type { PlayerData } from "@/types/player";
+import type { UserData } from "@/types/user";
 import type { Quest } from "@/types/quest";
 import type { Skill } from "@/types/skills";
 import type { Mastery } from "@/types/skills";
@@ -14,7 +14,7 @@ export const ALL_BADGE_IDS = Object.keys(SYSTEM_BADGES);
 
 const ISO = () => new Date().toISOString().slice(0, 10);
 
-export function buildDevInventory(): PlayerData["inventory"]["items"] {
+export function buildDevInventory(): UserData["inventory"]["items"] {
   return Object.fromEntries(
     SYSTEM_ITEMS.map((item) => [
       item.id,
@@ -23,7 +23,7 @@ export function buildDevInventory(): PlayerData["inventory"]["items"] {
   );
 }
 
-export function buildRichDevPlayer(): PlayerData {
+export function buildRichDevUser(): UserData {
   return {
     profile: {
       name: "dev atheba",

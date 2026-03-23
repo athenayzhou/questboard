@@ -1,6 +1,6 @@
 const isDev = process.env.NODE_ENV === "development";
 
-type logCategory = "quest" | "storage" | "pipeline" | "decay" | "evidence" | "skill" | "skill-gen" | "mastery" | "player" | "streak";
+type logCategory = "quest" | "storage" | "pipeline" | "decay" | "evidence" | "skill" | "skill-gen" | "mastery" | "user" | "streak";
 
 function formatMessage(category: logCategory, message: string, data?: unknown): string {
   const prefix = `[${category}]`;

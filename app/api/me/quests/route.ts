@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getTesterIdFromRequest } from "@/lib/session";
-import { Quest } from "@/types/quest";
 import { questRowIdFromClientId } from "@/lib/questRowId";
 
 type QuestLike = {
@@ -24,13 +23,16 @@ export async function PUT(req: Request) {
 
     const quests = body.quests as QuestLike[];
 
-    await query(`delete from quests where tester_id = $1`, [testerId]);
-
+    const byRowId = new Map<string, QuestLike>();
     for (const q of quests) {
       if (!q?.id || typeof q.id !== "string") continue;
+      const rowId = questRowIdFromClientId(q.id, testerId);
+      byRowId.set(rowId, q);
+    }
 
-      const rowId = questRowIdFromClientId(q.id);
+    await query(`delete from quests where tester_id = $1`, [testerId]);
 
+    for (const [rowId, q] of byRowId) {
       await query(
         `
         insert into quests (id, tester_id, data, status, created_at, updated_at)

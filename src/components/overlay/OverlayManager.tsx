@@ -5,7 +5,7 @@ import { QuestLog } from "./QuestLog";
 import { FriendsList } from "./FriendsList";
 import { SkillLedger } from "./SkillLedger";
 import { Settings } from "./Settings";
-import { FeedbackOverlay } from "./FeedbackOverlay";
+import { Feedback } from "../secondary/Feedback";
 
 import { QuestPage } from "../secondary/QuestPage";
 import { useQuestStore } from "../../store/quest";
@@ -69,7 +69,7 @@ export function OverlayManager(){
     case "settings":
       return <Settings />
     case "feedback":
-      return <FeedbackOverlay />
+      return <Feedback />
     default:
       return null
   }

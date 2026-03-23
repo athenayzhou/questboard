@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTesterIdFromRequest } from "@/lib/session";
 import { query } from "@/lib/db";
-import { normalizePlayerCodeInput } from "@/lib/playerCode";
-import { string } from "three/tsl";
+import { normalizeUserCodeInput } from "@/utils/format/code";
 
 export async function GET(req: Request) {
   try{
@@ -12,7 +11,7 @@ export async function GET(req: Request) {
     }
 
     const url = new URL(req.url);
-    const code = normalizePlayerCodeInput(url.searchParams.get("code") ?? "");
+    const code = normalizeUserCodeInput(url.searchParams.get("code") ?? "");
     if(!code){
       return NextResponse.json({ ok: false, error: "invalid_code" }, { status: 400 });
     }
@@ -46,7 +45,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       ok: true,
       data: {
-        playerCode: row.player_code,
+        userCode: row.player_code,
         displayName: row.display_name?.trim() || "friend",
       },
     });

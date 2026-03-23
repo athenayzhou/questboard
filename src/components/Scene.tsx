@@ -1,8 +1,9 @@
 import { OrthographicCamera, OrbitControls, Environment } from "@react-three/drei"
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { Model } from "./Model";
 import { useRef, useEffect } from "react";
 // import { SkillActivity } from "./SkillActivity";
-import Name from "./Name"
+// import Name from "./Name"
 
 const COLORS = {
   grass: "#5a9c4e",
@@ -19,7 +20,7 @@ export function Scene({
   orbitEnabled: boolean;
   resetCamera: boolean;
 }) {
-  const controlsRef = useRef<any>(null);
+  const controlsRef = useRef<OrbitControlsImpl | null>(null);
 
   useEffect(() => {
     if (!resetCamera || !controlsRef.current) return;
@@ -69,18 +70,7 @@ export function Scene({
       />
       <ambientLight intensity={0.4} />
 
-      <Name position={[-5, 7, 5]} />
-      {/* <SkillActivity position={[-4.8, 4, 5]} /> */}
-
-      {/* <mesh position={[0, -0.008, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[200, 200]} />
-        <meshStandardMaterial
-          color={COLORS.grass}
-          roughness={0.9}
-          metalness={0.05}
-          envMapIntensity={0.6}
-        />
-      </mesh> */}
+      {/* <Name position={[-5, 7, 5]} /> */}
 
       <Model
         src="/model/kitchen.glb"

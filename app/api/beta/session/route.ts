@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { hashInviteKey, hashSessionToken, makeSessionToken } from "@/lib/betaAuth";
-import { assignPlayerCodeIfMissing } from "@/lib/playerCode";
+import { assignUserCodeIfMissing } from "@/lib/userCode";
 
 type InviteRow = {
   id: string;
@@ -81,7 +81,7 @@ export async function POST(req: Request){
 
     // await query("commit");
 
-    await assignPlayerCodeIfMissing(testerId);
+    await assignUserCodeIfMissing(testerId);
 
     const res = NextResponse.json({ ok: true });
     res.cookies.set({

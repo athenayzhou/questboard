@@ -1,6 +1,6 @@
 const PREFIX = "QB-";
 
-export function normalizePlayerCodeInput(raw: string): string {
+export function normalizeUserCodeInput(raw: string): string {
   const t = raw.trim().toUpperCase().replace(/\s+/g, "");
   if (!t) return "";
   const stripped = t.replace(/^QB-?/, "");

@@ -11,6 +11,7 @@ import {
   IconChevronRight,
   IconGripVertical,
 } from "../ui/icons";
+import { tryCompleteTutorialSpotlight } from "@/onboarding/tutorialProgress";
 
 export function ActiveQuest() {
   const activeOverlay = useOverlay(s => s.activeOverlay);
@@ -89,13 +90,15 @@ export function ActiveQuest() {
     setDragOverIndex(null);
   }
 
-  // if(active.length === 0) return null;
-
   return (
-    <div className={`active-quest-panel ${collapsed ? "collapsed": ""}`}>
+    <div
+      className={`active-quest-panel ${collapsed ? "collapsed" : ""}`}
+      data-spotlight="active-strip"
+    >
       <button
         type="button"
         className="active-quest-handle"
+        data-spotlight="active-handle"
         onClick={() => setCollapsed((v) => !v)}
         aria-label={collapsed ? "Expand active quests" : "Collapse active quests"}
       >
@@ -161,10 +164,14 @@ export function ActiveQuest() {
                   <button
                     type="button"
                     className="complete-btn"
+                    data-spotlight="active-complete"
                     title="Complete"
                     aria-label="Complete quest"
                     onClick={(e) => {
                       e.stopPropagation();
+                      // Advance tutorial before completeQuest — canCompleteTutorialQuestForTemplate
+                      // requires the last spotlight step to already be marked done.
+                      tryCompleteTutorialSpotlight("active-complete");
                       completeQuest(q.id);
                     }}
                   >

@@ -2,6 +2,7 @@ import { useOverlay } from "../../store/overlay";
 import { LogCard } from "../secondary/LogCard";
 import type { CompletedQuest } from "../../types/quest";
 import { useQuestStore } from "../../store/quest";
+import { useTutorialStore } from "@/onboarding/tutorialStore";
 
 import { group } from "../../utils/format/grouping";
 import { IconX } from "../ui/icons";
@@ -9,6 +10,8 @@ import { IconX } from "../ui/icons";
 export function QuestLog(){
   const closeOverlay = useOverlay((s)=> s.closeOverlay);
   const quests = useQuestStore((s) => s.quests);
+  const logBrowseTutorial =
+    useTutorialStore((s) => s.currentSubquest?.spotlight) === "log-browse-entry";
   const log: CompletedQuest[] = quests
     .filter(
       (q): q is CompletedQuest =>
@@ -40,8 +43,12 @@ export function QuestLog(){
         {log.length === 0 ? (
           <p className="empty-log">no completed tasks yet</p>
         ) : (
-          groups.map(group => (
-            <LogCard key={group.title} group={group} />
+          groups.map((group) => (
+            <LogCard
+              key={group.title}
+              group={group}
+              tutorialSpotlightBrowse={logBrowseTutorial}
+            />
           ))
         )}
       </div>

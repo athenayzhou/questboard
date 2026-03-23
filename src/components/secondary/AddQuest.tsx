@@ -7,10 +7,14 @@ import { useValidation } from "../../hooks/useValidation";
 import { VALIDATION_RULES } from "../../utils/constants";
 import type { Quest } from "../../types/quest";
 import { IconPlus } from "../ui/icons";
+import { tryCompleteTutorialSpotlight } from "@/onboarding/tutorialProgress";
+import { useTutorialStore } from "@/onboarding/tutorialStore";
 
 export function AddQuestOverlay() {
   const setOverlay = useOverlay((s) => s.openOverlay);
-  const addQuest = useQuestStore((s) => s.addQuest)
+  const addQuest = useQuestStore((s) => s.addQuest);
+  const acceptQuest = useQuestStore((s) => s.acceptQuest);
+  const togglePin = useQuestStore((s) => s.togglePin);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -67,7 +71,7 @@ export function AddQuestOverlay() {
     setIsCreating(true);
     
     try {
-      addQuest({
+      const created = addQuest({
         title,
         description,
         category: categories.length > 0 ? categories : undefined,
@@ -79,6 +83,13 @@ export function AddQuestOverlay() {
         duration: duration === "" ? undefined : Number(duration),
         subquests: subquests.length > 0 ? subquests : undefined,
       });
+      if (
+        useTutorialStore.getState().currentSubquest?.spotlight === "addq-submit"
+      ) {
+        acceptQuest(created.id);
+        togglePin(created.id);
+      }
+      tryCompleteTutorialSpotlight("addq-submit");
       setTitle("");
       setDescription("");
       setCategories([]);
@@ -111,6 +122,7 @@ export function AddQuestOverlay() {
       <div className="modal quest-create addQuest-modal">
         <h2>new quest</h2>
         <form
+          data-spotlight="addq-form"
           onSubmit={(e) => {
             e.preventDefault();
             void handleCreate();
@@ -203,7 +215,9 @@ export function AddQuestOverlay() {
                 <select
                   id="addq-difficulty"
                   value={difficulty}
-                  onChange={(e) => setDifficulty(e.target.value as any)}
+                  onChange={(e) =>
+                    setDifficulty(e.target.value as "easy" | "medium" | "hard")
+                  }
                 >
                   <option value="easy">easy</option>
                   <option value="medium">medium</option>
@@ -215,7 +229,9 @@ export function AddQuestOverlay() {
                 <select
                   id="addq-priority"
                   value={priority}
-                  onChange={(e) => setPriority(e.target.value as any)}
+                  onChange={(e) =>
+                    setPriority(e.target.value as "high" | "low")
+                  }
                 >
                   <option value="low">low</option>
                   <option value="high">high</option>
@@ -235,7 +251,16 @@ export function AddQuestOverlay() {
               <select
                 id="addq-frequency"
                 value={frequency}
-                onChange={(e) => setFrequency(e.target.value as any)}
+                onChange={(e) =>
+                  setFrequency(
+                    e.target.value as
+                      | "once"
+                      | "daily"
+                      | "weekly"
+                      | "monthly"
+                      | "custom",
+                  )
+                }
               >
                 <option value="once">once</option>
                 <option value="daily">daily</option>
@@ -390,6 +415,7 @@ export function AddQuestOverlay() {
                 loading={isCreating}
                 disabled={hasErrors || !title.trim()}
                 className="quest-edit-save"
+                data-spotlight="addq-submit"
               >
                 create quest
               </LoadingButton>

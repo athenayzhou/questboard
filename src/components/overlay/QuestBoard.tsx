@@ -7,6 +7,10 @@ import { FilterQuest } from "../secondary/FilterQuest";
 import { useQuestStore } from "../../store/quest";
 import { QuestCardSkeleton } from "../ui/SkeletonLoader";
 import { IconPlus, IconX } from "../ui/icons";
+import { useTutorialStore } from "@/onboarding/tutorialStore";
+import { TUTORIAL_FIRST_LOOP_QUEST_ID } from "@/onboarding/tutorialConstants";
+import { templateIdForTutorialSubquestId } from "@/onboarding/tutorialGating";
+import { TUTORIAL_QUEST_TEMPLATES } from "@/onboarding/tutorialTemplates";
 
 type QuestBoardProps = {
   quests: Quest[];
@@ -27,6 +31,13 @@ export function QuestBoard({
 
   const { questSearch, questFilters } = useOverlay();
   const { isLoading } = useQuestStore();
+  const currentSubquest = useTutorialStore((s) => s.currentSubquest);
+  const tutorialSpotlight = currentSubquest?.spotlight;
+  const firstLoopTemplateId = TUTORIAL_QUEST_TEMPLATES[0]?.templateId;
+  const isFirstTutorialChain =
+    Boolean(firstLoopTemplateId) &&
+    templateIdForTutorialSubquestId(currentSubquest?.id ?? "") ===
+      firstLoopTemplateId;
 
   const dragEnabled = openQuestPages.length === 0;
   const boardRef = useRef<HTMLDivElement>(null);
@@ -109,6 +120,27 @@ export function QuestBoard({
     });
   }, [filtered]);
 
+  function spotlightForQuest(questId: string): string | undefined {
+    if (questId !== TUTORIAL_FIRST_LOOP_QUEST_ID) return undefined;
+    if (tab === "available") {
+      if (
+        tutorialSpotlight === "board-tutorial-card-available" ||
+        tutorialSpotlight === "qp-accept"
+      ) {
+        return "board-tutorial-card-available";
+      }
+    }
+    if (tab === "accepted") {
+      if (
+        tutorialSpotlight === "board-tutorial-card-accepted" ||
+        tutorialSpotlight === "qp-pin"
+      ) {
+        return "board-tutorial-card-accepted";
+      }
+    }
+    return undefined;
+  }
+
   const bringToFront = (id: string) => {
     setQuestsState(prev => {
       const maxZ = Math.max(...prev.map(q => q.zIndex || 1));
@@ -175,13 +207,30 @@ export function QuestBoard({
     dragRef.current = null;
   }
 
-  function handleCardClick(_e: React.MouseEvent, questId: string) {
+  function handleCardClick(e: React.MouseEvent, questId: string) {
     if (didDragRef.current === questId) {
       didDragRef.current = null;
+      e.stopPropagation();
       return;
     }
+    e.stopPropagation();
     onSelect(questId);
   }
+
+  const lockBoardChrome =
+    isFirstTutorialChain &&
+    (tutorialSpotlight === "board-tutorial-card-available" ||
+      tutorialSpotlight === "board-tutorial-card-accepted" ||
+      tutorialSpotlight === "qp-accept" ||
+      tutorialSpotlight === "qp-pin");
+  const disableAvailableTab =
+    lockBoardChrome &&
+    (tutorialSpotlight === "board-tutorial-card-accepted" ||
+      tutorialSpotlight === "qp-pin");
+  const disableAcceptedTab =
+    lockBoardChrome &&
+    (tutorialSpotlight === "board-tutorial-card-available" ||
+      tutorialSpotlight === "qp-accept");
 
   if (isLoading) {
     return (
@@ -207,6 +256,8 @@ export function QuestBoard({
               type="button"
               role="tab"
               aria-selected={tab === "available"}
+              data-spotlight="board-tab-available"
+              disabled={disableAvailableTab}
               className={`quest-board-tab${tab === "available" ? " quest-board-tab--active" : ""}`}
               onClick={() => handleTabSwitch("available")}
             >
@@ -216,6 +267,8 @@ export function QuestBoard({
               type="button"
               role="tab"
               aria-selected={tab === "accepted"}
+              data-spotlight="board-tab-accepted"
+              disabled={disableAcceptedTab}
               className={`quest-board-tab${tab === "accepted" ? " quest-board-tab--active" : ""}`}
               onClick={() => handleTabSwitch("accepted")}
             >
@@ -227,9 +280,15 @@ export function QuestBoard({
             <button
               type="button"
               className="add-quest-btn"
+              data-spotlight="board-add-quest"
+              disabled={lockBoardChrome}
               onClick={() => openOverlay("addQuest")}
               aria-label="Add quest"
-              title="Add quest"
+              title={
+                lockBoardChrome
+                  ? "Finish this tutorial step on the quest board first"
+                  : "Add quest"
+              }
             >
               <IconPlus size={16} />
             </button>
@@ -263,7 +322,11 @@ export function QuestBoard({
               onClick={(e) => handleCardClick(e, q.id)}
               onMouseEnter={() => bringToFront(q.id)}
             >
-              <BoardCard quest={q} onSelect={() => {}} />
+              <BoardCard
+                quest={q}
+                onSelect={() => {}}
+                dataSpotlight={spotlightForQuest(q.id)}
+              />
             </div>
           ))}
         </div>

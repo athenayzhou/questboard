@@ -1,9 +1,9 @@
 import type { Quest } from "@/types/quest";
-import type { PlayerData } from "@/types/player";
-import { normalizePlayerData } from "@/lib/playerData";
+import type { UserData } from "@/types/user";
+import { normalizeUserData } from "@/lib/userData";
 import type { Skill, XPEvent } from "@/types/skills";
 import { setQuestSyncSuppressed } from "@/lib/apiQuests";
-import { setPlayerSyncSuppressed } from "@/lib/apiPlayer";
+import { setUserSyncSuppressed } from "@/lib/apiUser";
 import { setSkillSyncSuppressed } from "@/lib/apiSkills";
 import { setXPEventSyncSuppressed } from "@/lib/apiXPEvents";
 import { setExtensionSyncSuppressed } from "@/lib/apiExtension";
@@ -13,7 +13,7 @@ import {
 } from "@/lib/clientExtensionPayload";
 import { resetSessionExpiryState } from "@/lib/sessionRecovery";
 import { useQuestStore } from "@/store/quest";
-import { usePlayerStore } from "@/store/player";
+import { useUserStore } from "@/store/user";
 import { useSkillStore } from "@/store/skill";
 import { useXPEventStore } from "@/store/xpEvent";
 import { useIdentityStore } from "@/store/identity";
@@ -35,12 +35,12 @@ export class BootstrapNetworkError extends Error {
 }
 
 type BootstrapData = {
-  player: unknown;
+  user: unknown;
   quests: unknown;
   skills: unknown;
   xpEvents: unknown;
   clientGame?: unknown;
-  playerCode?: unknown;
+  userCode?: unknown;
 };
 
 type BootstrapOkResponse = {
@@ -53,8 +53,8 @@ type BootstrapErrResponse = {
   error?: string;
 };
 
-function normalizePlayer(raw: unknown): PlayerData {
-  return normalizePlayerData(raw);
+function normalizeUser(raw: unknown): UserData {
+  return normalizeUserData(raw);
 }
 
 function normalizeQuests(raw: unknown): Quest[] {
@@ -74,27 +74,27 @@ function normalizeXPEvents(raw: unknown): XPEvent[] {
 
 function applyBootstrapData(data: BootstrapData) {
   const quests = normalizeQuests(data.quests);
-  const player = normalizePlayer(data.player);
+  const user = normalizeUser(data.user);
   const skills = normalizeSkills(data.skills);
   const events = normalizeXPEvents(data.xpEvents);
 
   setQuestSyncSuppressed(true);
-  setPlayerSyncSuppressed(true);
+  setUserSyncSuppressed(true);
   setSkillSyncSuppressed(true);
   setXPEventSyncSuppressed(true);
   setExtensionSyncSuppressed(true);
   try {
     useQuestStore.getState().setQuest(quests);
-    usePlayerStore.getState().setPlayer(player);
+    useUserStore.getState().setUser(user);
     useSkillStore.setState({ skills });
     useXPEventStore.setState({ events });
     applyClientGameBlob(normalizeClientGameBlob(data.clientGame));
     applyDevFriendsSeed();
     applyDevMasterySeed();
-    useIdentityStore.getState().setPlayerCode(typeof data.playerCode === "string" ? data.playerCode : null)
+    useIdentityStore.getState().setUserCode(typeof data.userCode === "string" ? data.userCode : null)
   } finally {
     setQuestSyncSuppressed(false);
-    setPlayerSyncSuppressed(false);
+    setUserSyncSuppressed(false);
     setSkillSyncSuppressed(false);
     setXPEventSyncSuppressed(false);
     setExtensionSyncSuppressed(false);

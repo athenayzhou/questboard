@@ -982,6 +982,12 @@
   filter: brightness(1.03);
 }
 
+.quest-actions button.accept:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: none;
+}
+
 .quest-actions button.quest-action-complete {
   background: var(--bg-field);
   border-color: var(--grass-dark);

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getTesterIdFromRequest } from "@/lib/session";
+import { xpEventRowIdFromClientId } from "@/lib/questRowId";
 
 type XPEventLike = {
   id?: string;
@@ -20,16 +21,22 @@ export async function PUT(req: Request) {
 
     const xpEvents = body.xpEvents as XPEventLike[];
 
-    await query(`delete from xp_events where tester_id = $1`, [testerId]);
-
+    const byRowId = new Map<string, XPEventLike>();
     for (const e of xpEvents) {
       if (!e?.id || typeof e.id !== "string") continue;
+      const rowId = xpEventRowIdFromClientId(e.id, testerId);
+      byRowId.set(rowId, e);
+    }
+
+    await query(`delete from xp_events where tester_id = $1`, [testerId]);
+
+    for (const [rowId, e] of byRowId) {
       await query(
         `
         insert into xp_events (id, tester_id, data, updated_at)
         values ($1::uuid, $2::uuid, $3::jsonb, now())
         `,
-        [e.id, testerId, JSON.stringify(e)],
+        [rowId, testerId, JSON.stringify(e)],
       );
     }
 

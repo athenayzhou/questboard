@@ -4,7 +4,7 @@ import { onQuestComplete } from "../hooks/onQuestComplete";
 import { evidenceStore, candidateStore, clusterStore } from './bundledStores';
 import { showToast } from "../utils/toast";
 import { useStreakStore } from "./streak";
-import { usePlayerStore } from "./player";
+import { useUserStore } from "./user";
 import { useNameStore } from "./name";
 import { useXPEventStore } from "./xpEvent";
 import { SYSTEM_BADGES } from "../data/systemBadges";
@@ -15,9 +15,17 @@ import { RecurringQuests } from "../utils/recurrence";
 import { isQuestOverdue } from "../utils/recurrence";
 
 import { scheduleQuestSync } from "@/lib/apiQuests";
-import { useQuestboardSettings } from "@/store/questboardSettings";
+import { useSettingsStore } from "@/store/settings";
 import { grantQuestRewards } from "@/lib/questRewards";
-import { withComputedReward } from "@/lib/computeQuestReward";
+import {
+  isSystemGeneratedQuest,
+  withComputedReward,
+} from "@/lib/computeQuestReward";
+
+import { isTutorial } from "@/onboarding/tutorialTypes";
+import { applyTutorialRewards } from "@/onboarding/tutorialRewards";
+import { useTutorialStore } from "@/onboarding/tutorialStore";
+import { dedupeQuestsById } from "@/lib/questDedupe";
 
 type QuestState = {
   quests: Quest[];
@@ -27,7 +35,7 @@ type QuestState = {
   setLoading: (loading: boolean) => void;
   setOperationLoading: (operation: string, loading: boolean) => void;
 
-  setQuest: (q: Quest[]) => void;
+  setQuest: (q: Quest[] | ((prev: Quest[]) => Quest[])) => void;
   addQuest: (
     input: Omit<Quest, "id" | "status" | "createdAt" | "reward">
   ) => Quest;
@@ -70,9 +78,17 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     operationLoading: { ...state.operationLoading, [operation]: loading }
   })),
 
-  setQuest: (quests) => {
-    scheduleQuestSync();
-    set({ quests });
+  setQuest: (questsOrFn) => {
+    set((state) => {
+      const raw =
+        typeof questsOrFn === "function"
+          ? questsOrFn(state.quests)
+          : questsOrFn;
+      const quests = dedupeQuestsById(raw);
+      if (quests === state.quests) return state;
+      scheduleQuestSync();
+      return { quests };
+    });
   },
 
   addQuest: (input) => {
@@ -96,7 +112,8 @@ export const useQuestStore = create<QuestState>((set, get) => ({
   editQuest: (id, updates) => {
     set(state => {
       const quest = state.quests.find(q => q.id === id);
-      if(!quest || quest.status !== "available") return state;
+      if (!quest || quest.status !== "available") return state;
+      if (isSystemGeneratedQuest(quest)) return state;
       const updatedQuest = {...quest, ...updates };
       const next = state.quests.map(q => q.id === id ? updatedQuest: q);
       scheduleQuestSync();
@@ -105,15 +122,21 @@ export const useQuestStore = create<QuestState>((set, get) => ({
   },
 
   deleteQuest: (id) => {
+    const quest = get().quests.find((q) => q.id === id);
+    if (!quest) return;
+    if (isTutorial(quest)) {
+      showToast("info", "tutorial quests can't be deleted");
+      return;
+    }
     set((state) => {
-      const quest = state.quests.find((q) => q.id === id);
-      if (!quest) return state;
+      const q = state.quests.find((x) => x.id === id);
+      if (!q) return state;
       const next =
-        quest.isTemplate === true
+        q.isTemplate === true
           ? state.quests.filter(
-              (q) => q.id !== id && q.parentQuestId !== id
+              (x) => x.id !== id && x.parentQuestId !== id
             )
-          : state.quests.filter((q) => q.id !== id);
+          : state.quests.filter((x) => x.id !== id);
       scheduleQuestSync();
       return { quests: next };
     });
@@ -147,8 +170,30 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     const now = Date.now();
 
     try {
-      set(state => {
-        const q = state.quests.find(x => x.id === id);
+      if (isTutorial(quest)) {
+        const tid = quest.generationCriteria?.skillTarget;
+        if (
+          typeof tid === "string" &&
+          !useTutorialStore.getState().canCompleteTutorialQuestForTemplate(tid)
+        ) {
+          showToast(
+            "info",
+            "finish the highlighted steps for this tutorial before completing the quest",
+          );
+          return;
+        }
+        try {
+          grantQuestRewards(quest);
+          applyTutorialRewards(quest);
+        } catch (error) {
+          showToast("error", "failed to complete quest");
+          devError("quest", "tutorial rewards failed", error);
+          return;
+        }
+      }
+
+      set((state) => {
+        const q = state.quests.find((x) => x.id === id);
         if (!q) return state;
         const completed: Quest = {
           ...q,
@@ -163,24 +208,29 @@ export const useQuestStore = create<QuestState>((set, get) => ({
             q.customFrequency
           );
         }
-        const next: Quest[] = state.quests.map(x =>
+        const next: Quest[] = state.quests.map((x) =>
           x.id === id ? completed : x
         );
         scheduleQuestSync();
         return { quests: next };
       });
+
+      if (isTutorial(quest)) {
+        return;
+      }
+
       useStreakStore.getState().registerCompletion(new Date());
       grantQuestRewards(quest);
       const quests = get().quests;
       const newlyEarned = getBadges(SYSTEM_BADGES, {
         currentStreakDays: useStreakStore.getState().currentDays,
         quests,
-        unlockedBadges: usePlayerStore.getState().player.badges.unlockedBadges,
+        unlockedBadges: useUserStore.getState().user.badges.unlockedBadges,
         xpEvents: useXPEventStore.getState().getAll(),
       });
-      newlyEarned.forEach((badgeId) => usePlayerStore.getState().unlockBadge(badgeId));
-      devLog('quest', 'quest completed', { id, title: quest.title });
-      devLog('player', `quest completed: "${quest.title}"`);
+      newlyEarned.forEach((badgeId) => useUserStore.getState().unlockBadge(badgeId));
+      devLog("quest", "quest completed", { id, title: quest.title });
+      devLog("user", `quest completed: "${quest.title}"`);
       onQuestComplete(quest, {
         evidenceStore,
         clusterStore,
@@ -190,8 +240,8 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         showToast("success", `quest "${quest.title}" completed`);
       }
     } catch (error) {
-      showToast('error', `failed to complete quest`);
-      devError('quest', 'quest complete failed', error);
+      showToast("error", "failed to complete quest");
+      devError("quest", "quest complete failed", error);
     } finally {
       get().setOperationLoading(`complete-${id}`, false);
     }
@@ -199,6 +249,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
 
   failQuest: (id) => {
     const quest = get().quests.find((q) => q.id === id);
+    if (quest && isTutorial(quest)) return;
     set((state) => {
       const now = Date.now();
       const next: Quest[] = state.quests.map((q) =>
@@ -214,12 +265,13 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       scheduleQuestSync();
       return { quests: next };
     });
-    if (quest) devLog("player", `quest failed: "${quest.title}"`);
+    if (quest) devLog("user", `quest failed: "${quest.title}"`);
   },
 
     duplicateQuest: (id) => {
       const originalQuest = get().quests.find(q => q.id === id);
       if (!originalQuest) return null;
+      if (originalQuest.isSystemGenerated) return null;
 
       const duplicatedQuest: Quest = withComputedReward({
         ...originalQuest,
@@ -229,6 +281,11 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         acceptedAt: undefined,
         completedAt: undefined,
         pinned: false,
+        isSystemGenerated: false,
+        systemType: undefined,
+        generationCriteria: undefined,
+        expiresAt: undefined,
+        expiresAfterDays: undefined,
       });
 
       set(state => {
@@ -388,11 +445,14 @@ export const useQuestStore = create<QuestState>((set, get) => ({
   },
 
   processAutoFail: () => {
-    if (!useQuestboardSettings.getState().autoFailOverdueQuests) return;
+    if (!useSettingsStore.getState().autoFailOverdueQuests) return;
     const state = get();
     const now = Date.now();
     const overdueAccepted = state.quests.filter(
-      (q) => q.status === "accepted" && isQuestOverdue(q)
+      (q) =>
+        q.status === "accepted" &&
+        isQuestOverdue(q) &&
+        !isTutorial(q),
     );
     if (overdueAccepted.length === 0) return;
     const next = state.quests.map(q => {

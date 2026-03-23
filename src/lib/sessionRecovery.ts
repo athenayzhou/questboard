@@ -1,4 +1,4 @@
-import { clearLocalQuestboardState } from "@/lib/clearLocalQuestboardState";
+import { clearLocalState } from "@/lib/clearLocalState";
 
 export class SessionExpiredError extends Error {
   constructor() {
@@ -19,7 +19,6 @@ export function registerBootstrapRetry(fn: (() => void) | null) {
   bootstrapRetry = fn;
 }
 
-/** Called after a successful authenticated bootstrap/sign-in. */
 export function resetSessionExpiryState() {
   sessionExpiryHandled = false;
 }
@@ -34,13 +33,13 @@ async function clearHttpSessionCookie(): Promise<void> {
 async function setAllServerSyncSuppressed(suppressed: boolean): Promise<void> {
   const [q, p, sk, xp, ext] = await Promise.all([
     import("@/lib/apiQuests"),
-    import("@/lib/apiPlayer"),
+    import("@/lib/apiUser"),
     import("@/lib/apiSkills"),
     import("@/lib/apiXPEvents"),
     import("@/lib/apiExtension"),
   ]);
   q.setQuestSyncSuppressed(suppressed);
-  p.setPlayerSyncSuppressed(suppressed);
+  p.setUserSyncSuppressed(suppressed);
   sk.setSkillSyncSuppressed(suppressed);
   xp.setXPEventSyncSuppressed(suppressed);
   ext.setExtensionSyncSuppressed(suppressed);
@@ -53,7 +52,7 @@ async function runSessionTermination(): Promise<void> {
     await setAllServerSyncSuppressed(true);
     try {
       await clearHttpSessionCookie();
-      clearLocalQuestboardState({ quietWrites: true });
+      clearLocalState({ quietWrites: true });
       bootstrapRetry?.();
     } finally {
       await setAllServerSyncSuppressed(false);
@@ -66,7 +65,6 @@ async function runSessionTermination(): Promise<void> {
   return p;
 }
 
-/** 401 from API — cookie cleared, local state wiped, back to invite gate. */
 export function performSessionExpiryFlow(): Promise<void> {
   if (sessionExpiryHandled) {
     return recoveryInflight ?? Promise.resolve();
@@ -75,14 +73,10 @@ export function performSessionExpiryFlow(): Promise<void> {
   return runSessionTermination();
 }
 
-/** Settings — user chose sign out. */
 export function signOutFromApp(): Promise<void> {
   return runSessionTermination();
 }
 
-/**
- * Call from API save helpers when `Response.status === 401`.
- */
 export async function throwIfUnauthorized(res: Response): Promise<void> {
   if (res.status === 401) {
     if (!sessionExpiryHandled) {

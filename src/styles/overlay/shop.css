@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  /* Above pinned panel; below confirm dialogs */
+  /* Below tutorial spotlight layers; below confirm dialogs */
   z-index: 210;
 }
 
@@ -85,10 +85,50 @@
   font-size: 0.95rem;
 }
 
+.shop-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.shop-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.shop-section--mastery,
+.shop-section--gems {
+  padding-top: 1rem;
+  border-top: 2px dashed var(--path-shadow);
+}
+
+.shop-section-heading {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--grass-dark);
+  opacity: 0.92;
+}
+
+.shop-section--gems .shop-section-heading {
+  color: #1f4e5e;
+}
+
+.shop-item-price--gems {
+  color: #1f4e5e;
+}
+
 .shop-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 0.75rem;
+}
+
+.shop-starter-row + .shop-grid {
+  margin-top: 0.75rem;
 }
 
 .shop-item {

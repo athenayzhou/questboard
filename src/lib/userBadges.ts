@@ -1,6 +1,5 @@
-import type { BadgePlatePlacement, PlayerBadges } from "@/types/player";
+import type { BadgePlatePlacement, UserBadges } from "@/types/user";
 
-/** Ring around the plate so defaults stay off the centered name. */
 const GRID_SLOTS: Array<{ x: number; y: number }> = [
   { x: 0.1, y: 0.1 },
   { x: 0.35, y: 0.08 },
@@ -16,7 +15,6 @@ export function clamp01(n: number): number {
   return Math.min(1, Math.max(0, n));
 }
 
-/** Default grid position for the badge at `index` in the displayed list (0-based). */
 export function slotPlacementForIndex(
   index: number,
   id: string,
@@ -25,11 +23,7 @@ export function slotPlacementForIndex(
   return { id, x: s.x, y: s.y };
 }
 
-/**
- * Migrate server/local JSON: supports legacy `activeBadge` and fills missing placements.
- * Accepts either `badges` or legacy `achievements` blob (handled in `normalizePlayerData`).
- */
-export function migrateBadges(raw: unknown): PlayerBadges {
+export function migrateBadges(raw: unknown): UserBadges {
   const o = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
   const unlocked = Array.isArray(o.unlockedBadges)
     ? [...(o.unlockedBadges as string[])]

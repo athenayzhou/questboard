@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { hashSessionToken } from "@/lib/betaAuth";
-import { assignPlayerCodeIfMissing } from "@/lib/playerCode";
+import { assignUserCodeIfMissing } from "@/lib/userCode";
+import { DEFAULT_DISPLAY_NAME_PLACEHOLDER } from "@/lib/defaultUserData";
 
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME ?? "qb_session";
 
@@ -13,8 +14,8 @@ type JsonRow = {
   data: unknown;
 };
 
-const defaultPlayer = {
-  profile: { name: "player" },
+const defaultUser = {
+  profile: { name: DEFAULT_DISPLAY_NAME_PLACEHOLDER },
   badges: {
     unlockedBadges: [],
     displayedBadgeIds: [],
@@ -34,8 +35,15 @@ async function safeSelectData(
   try {
     const res = await query<JsonRow>(sql, params);
     return res.rows.map((r) => r.data);
-  } catch (err: any) {
-    if(err?.code === "42P01") return [];
+  } catch (err: unknown) {
+    if (
+      err &&
+      typeof err === "object" &&
+      "code" in err &&
+      (err as { code?: string }).code === "42P01"
+    ) {
+      return [];
+    }
     throw err;
   }
 }
@@ -97,7 +105,7 @@ export async function GET(req: Request) {
         ]),
       ]);
 
-    const player = (playerRows[0] as object | undefined) ?? defaultPlayer;
+    const user = (playerRows[0] as object | undefined) ?? defaultUser;
     const quests = questRows as object[];
     const skillsArray = skillRows as Array<{ id?: string } & Record<string, unknown>>;
     const xpEvents = eventRows as object[];
@@ -110,17 +118,17 @@ export async function GET(req: Request) {
     const clientGame =
       (extensionRows[0] as Record<string, unknown> | undefined) ?? {};
     
-    const playerCode = await assignPlayerCodeIfMissing(session.tester_id);
+    const userCode = await assignUserCodeIfMissing(session.tester_id);
 
     return NextResponse.json({
       ok: true,
       data: {
-        player,
+        user,
         quests,
         skills,
         xpEvents,
         clientGame,
-        playerCode,
+        userCode,
       },
     });
   } catch (error) {

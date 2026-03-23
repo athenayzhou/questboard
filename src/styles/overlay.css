@@ -27,7 +27,7 @@
 .overlay-backdrop {
   position: fixed;
   inset: 0;
-  /* Used for portaled AddQuest + Shop */
+  /* Portaled AddQuest + Shop + Feedback — below tutorial spotlight (500000+) */
   z-index: 200;
   background: rgba(20, 15, 10, 0.45);
   backdrop-filter: blur(2px);
@@ -458,4 +458,59 @@
   text-align: center;
   opacity: 1;
   white-space: nowrap;
+}
+
+.tutorial-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 500000;
+  /* Clicks must reach the UI below; inline styles in TutorialSpotlight also set none */
+  pointer-events: none;
+}
+
+/* Softer full-screen dim when the spotlight ring is unavailable */
+.tutorial-mask--dim {
+  background: rgba(12, 22, 14, 0.36);
+}
+
+/* Cutout: large spread shadow tints the scene without a harsh black slab */
+.tutorial-spotlight-dim-spread {
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 0 0 9999px rgba(10, 18, 12, 0.4);
+}
+
+.tutorial-spotlight {
+  position: absolute;
+  border-radius: 10px;
+  border: 2px solid var(--grass-light);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.14) inset,
+    0 0 20px rgba(90, 200, 95, 0.42),
+    0 0 36px rgba(74, 222, 128, 0.28),
+    0 0 14px rgba(45, 90, 39, 0.3);
+  z-index: 500001;
+  pointer-events: none;
+  animation: tutorial-pulse 2.4s infinite ease-in-out;
+}
+
+@keyframes tutorial-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+      0 0 0 4px rgba(90, 156, 78, 0.28),
+      0 0 22px rgba(90, 200, 95, 0.38),
+      0 0 40px rgba(74, 222, 128, 0.22),
+      0 0 16px rgba(45, 90, 39, 0.22);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.16) inset,
+      0 0 0 7px rgba(90, 156, 78, 0.36),
+      0 0 28px rgba(120, 220, 130, 0.48),
+      0 0 48px rgba(74, 222, 128, 0.3),
+      0 0 20px rgba(45, 90, 39, 0.28);
+  }
 }

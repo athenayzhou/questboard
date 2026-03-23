@@ -6,7 +6,7 @@ import {
 } from "../data/systemQuests";
 
 export class SystemQuestGenerator {
-  static generateSystemQuest(template: SystemQuestTemplate, _playerData?: unknown): Quest {
+  static generateSystemQuest(template: SystemQuestTemplate): Quest {
     const now = Date.now();
     return {
       id: `${template.id}-${now}`,
@@ -33,7 +33,7 @@ export class SystemQuestGenerator {
         t.systemType === "seasonal" && isDateInRange(now, t.generationCriteria.dateRange)
     );
     if (templates.length > 0) {
-      return this.generateSystemQuest(templates[0], {});
+      return this.generateSystemQuest(templates[0]);
     }
     return null;
   }

@@ -5,7 +5,7 @@ import { useNameStore } from "@/store/name";
 import { useMasteryStore } from "@/store/mastery";
 import { useStreakStore } from "@/store/streak";
 import { useFriendsStore } from "@/store/friends";
-import { useQuestboardSettings } from "@/store/questboardSettings";
+import { useSettingsStore } from "@/store/settings";
 import {
   getLearnedVerbsForExtension,
   hydrateLearnedVerbsFromExtension,
@@ -23,7 +23,7 @@ export function emptyClientGameBlob(): ClientGameBlobV1 {
     streak: { currentDays: 0, lastCompletion: "" },
     friends: [],
     settings: {
-      autoNameSkills: true,
+      autoNameSkills: false,
       autoFailOverdueQuests: false,
     },
   };
@@ -74,7 +74,7 @@ export function normalizeClientGameBlob(raw: unknown): ClientGameBlobV1 {
 
 export function buildClientGameBlob(): ClientGameBlobV1 {
   const { autoNameSkills, autoFailOverdueQuests } =
-    useQuestboardSettings.getState();
+    useSettingsStore.getState();
   const streak = useStreakStore.getState();
 
   return {
@@ -94,7 +94,7 @@ export function buildClientGameBlob(): ClientGameBlobV1 {
   };
 }
 
-/** Apply server snapshot to in-memory stores (caller should suppress extension sync). */
+
 export function applyClientGameBlob(blob: ClientGameBlobV1) {
   const data = normalizeClientGameBlob(blob);
 
@@ -109,5 +109,5 @@ export function applyClientGameBlob(blob: ClientGameBlobV1) {
   useMasteryStore.getState().reconcileAllMasteriesWithSkills();
   useStreakStore.getState().hydrate(data.streak);
   useFriendsStore.getState().hydrate(data.friends);
-  useQuestboardSettings.getState().hydrate(data.settings);
+  useSettingsStore.getState().hydrate(data.settings);
 }

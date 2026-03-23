@@ -1,0 +1,92 @@
+.tutorial-complete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(28, 22, 14, 0.52);
+  backdrop-filter: blur(3px);
+}
+
+.tutorial-complete-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 22rem;
+  padding: 1.5rem 1.35rem 1.35rem;
+  border-radius: var(--radius-xl, 18px);
+  border: 2px solid var(--path-light);
+  background: linear-gradient(
+    165deg,
+    rgba(255, 251, 240, 0.98) 0%,
+    rgba(250, 245, 235, 0.98) 50%,
+    rgba(240, 232, 215, 0.97) 100%
+  );
+  box-shadow:
+    0 4px 0 rgba(196, 165, 116, 0.35),
+    0 24px 48px rgba(92, 74, 50, 0.18),
+    var(--shadow-inset-warm, inset 0 1px 0 rgba(255, 255, 255, 0.65));
+  font-family: Georgia, "Times New Roman", ui-serif, serif;
+  text-align: center;
+  overflow: hidden;
+}
+
+.tutorial-complete-dialog__accent {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 90% 55% at 50% -25%,
+    rgba(255, 220, 120, 0.45) 0%,
+    transparent 55%
+  );
+}
+
+.tutorial-complete-dialog__title {
+  position: relative;
+  margin: 0 0 0.65rem;
+  font-size: clamp(1.25rem, 4vw, 1.45rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text-warm-dark);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.tutorial-complete-dialog__body {
+  position: relative;
+  margin: 0 0 1.25rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-warm-medium, #6b5a42);
+}
+
+.tutorial-complete-dialog__close {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0.72rem 1rem;
+  border-radius: var(--radius-md, 10px);
+  border: 2px solid var(--grass-dark);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  color: #fffef8;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+  background: linear-gradient(180deg, var(--grass-light) 0%, var(--grass) 45%, var(--grass-dark) 100%);
+  box-shadow:
+    0 3px 0 rgba(45, 90, 39, 0.45),
+    0 8px 20px rgba(45, 90, 39, 0.22);
+  transition:
+    filter var(--transition-fast, 0.15s ease),
+    transform var(--transition-fast, 0.15s ease);
+}
+
+.tutorial-complete-dialog__close:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.tutorial-complete-dialog__close:active {
+  transform: translateY(1px);
+}

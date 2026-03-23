@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getTesterIdFromRequest } from "@/lib/session";
+import { skillRowIdFromClientId } from "@/lib/questRowId";
 
 type SkillLike = {
   id?: string;
@@ -19,16 +20,23 @@ export async function PUT(req: Request) {
     }
 
     const skillValues = Object.values(body.skills as Record<string, SkillLike>);
+
+    const byRowId = new Map<string, SkillLike>();
+    for (const s of skillValues) {
+      if (!s?.id || typeof s.id !== "string") continue;
+      const rowId = skillRowIdFromClientId(s.id, testerId);
+      byRowId.set(rowId, s);
+    }
+
     await query(`delete from skills where tester_id = $1`, [testerId]);
 
-    for(const s of skillValues){
-      if (!s?.id || typeof s.id !== "string") continue;
+    for (const [rowId, s] of byRowId) {
       await query(
         `
         insert into skills (id, tester_id, data, updated_at)
         values ($1::uuid, $2::uuid, $3::jsonb, now())
         `,
-        [s.id, testerId, JSON.stringify(s)],
+        [rowId, testerId, JSON.stringify(s)],
       );
     }
 

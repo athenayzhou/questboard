@@ -1,9 +1,6 @@
 import { useXPEventStore } from "@/store/xpEvent";
 import { notifyDebouncedSyncFailure } from "@/lib/syncNotify";
-import {
-  isSessionExpiredError,
-  throwIfUnauthorized,
-} from "@/lib/sessionRecovery";
+import { isSessionExpiredError } from "@/lib/sessionRecovery";
 
 let suppressXPEventSync = false;
 let timer: ReturnType<typeof setTimeout> | null = null;

@@ -3,45 +3,39 @@ import { useSkillStore } from "@/store/skill";
 import { useNameStore } from "@/store/name";
 import { useMasteryStore } from "@/store/mastery";
 import { useXPEventStore } from "@/store/xpEvent";
-import { usePlayerStore } from "@/store/player";
+import { useUserStore } from "@/store/user";
 import { useOverlay } from "@/store/overlay";
 import { candidateStore, clusterStore, evidenceStore } from "@/store/bundledStores";
-import { createDefaultPlayerData } from "@/lib/defaultPlayerData";
-import { useQuestboardSettings } from "@/store/questboardSettings";
+import { createDefaultUserData } from "@/lib/defaultUserData";
+import { useSettingsStore } from "@/store/settings";
 import { useFriendsStore } from "@/store/friends";
 import { useStreakStore } from "@/store/streak";
 import { hydrateLearnedVerbsFromExtension } from "@/utils/format/text";
 import { useIdentityStore } from "@/store/identity";
+import { useTutorialStore } from "@/onboarding/tutorialStore";
 
-/**
- * Clears quests, skills, XP events, mastery, naming pipeline, bundled skill-gen stores,
- * and resets player to defaults.
- *
- * - Default: uses store actions so debounced server sync runs (logged-in reset).
- * - `quietWrites: true`: only Zustand `setState` — no PUT scheduling (session expiry / sign-out).
- */
-export function clearLocalQuestboardState(options?: {
+
+export function clearLocalState(options?: {
   clearStorageKeys?: boolean;
   closeOverlays?: boolean;
-  /** Skip setQuest / setPlayer / clear side effects that schedule server sync */
   quietWrites?: boolean;
 }) {
   const clearStorage = options?.clearStorageKeys ?? true;
   const closeOverlays = options?.closeOverlays ?? true;
   const quiet = options?.quietWrites ?? false;
 
-  const defaultPlayer = createDefaultPlayerData();
+  const defaultUser = createDefaultUserData();
 
   if (quiet) {
     useQuestStore.setState({ quests: [] });
     useSkillStore.setState({ skills: {} });
     useXPEventStore.setState({ events: [] });
-    usePlayerStore.setState({ player: defaultPlayer });
+    useUserStore.setState({ user: defaultUser });
   } else {
     useQuestStore.getState().setQuest([]);
     useSkillStore.setState({ skills: {} });
     useXPEventStore.getState().clear();
-    usePlayerStore.getState().setPlayer(defaultPlayer);
+    useUserStore.getState().setUser(defaultUser);
   }
 
   useNameStore.setState({
@@ -51,10 +45,12 @@ export function clearLocalQuestboardState(options?: {
     pendingSkills: [],
   });
 
+  useTutorialStore.getState().closeTutorialSkillNaming();
+
   useMasteryStore.setState({ masteries: [] });
 
-  useQuestboardSettings.setState({
-    autoNameSkills: true,
+  useSettingsStore.setState({
+    autoNameSkills: false,
     autoFailOverdueQuests: false,
   });
   useFriendsStore.setState({ friends: [] });
@@ -77,6 +73,7 @@ export function clearLocalQuestboardState(options?: {
       localStorage.setItem("clusters", "[]");
       localStorage.removeItem("evidence");
       localStorage.removeItem("learnedVerbs");
+      localStorage.removeItem("userData");
       localStorage.removeItem("playerData");
       localStorage.removeItem("quests");
       localStorage.removeItem("friends");
@@ -90,5 +87,9 @@ export function clearLocalQuestboardState(options?: {
 
   if (closeOverlays) {
     useOverlay.getState().closeAllQuests();
+  }
+
+  if (!quiet) {
+    useTutorialStore.getState().resetTutorial();
   }
 }

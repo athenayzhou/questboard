@@ -29,7 +29,6 @@ type SkillState = {
 export const useSkillStore = create<SkillState>((set, get) => ({
   skills: {},
 
-
   addSkill: (skill) => {
     set((state) => { 
       const next = {...state.skills, [skill.id]: skill };
@@ -45,7 +44,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
     const skill = get().skills[id];
     if(!skill) return;
 
-    devLog("player", `xp awarded: ${amount} xp`);
+    devLog("user", `xp awarded: ${amount} xp`);
 
     const updated: Skill = {
       ...skill,

@@ -127,8 +127,16 @@ export const VALIDATION_RULES = {
 
 export const CURRENCY = {
   LEVELUP_REWARD: 10,
-  /** `coins = clamp(floor(skillXP / QUEST_COINS_PER_XP), min, max)` — tied to {@link calculateXP}. */
   QUEST_COINS_PER_XP: 4,
   QUEST_COINS_MIN: 1,
   QUEST_COINS_MAX: 250,
-} as const;
+}
+
+export const TUTORIAL = {
+  BADGE_ID: "newbie",
+  COMPLETION_ITEM_ID: "lucky-coin",
+  SKILL_ID: "00000000-0000-4000-8000-000000000001",
+  SKILL_KEY: "tutorial:questboard",
+  SKILL_VERB: "questboard",
+  SKILL_NAME: "questboard",
+}

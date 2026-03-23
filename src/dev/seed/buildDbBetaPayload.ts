@@ -8,7 +8,7 @@ import type { Skill } from "@/types/skills";
 import type { Mastery } from "@/types/skills";
 import type { ClientGameBlobV1 } from "@/types/clientExtension";
 import {
-  buildRichDevPlayer,
+  buildRichDevUser,
   buildRichDevQuests,
   RICH_DEV_SKILLS,
   RICH_DEV_MASTERIES,
@@ -49,4 +49,4 @@ export function buildBetaSeedClientGameBlob(): ClientGameBlobV1 {
   };
 }
 
-export { buildRichDevPlayer as buildBetaSeedPlayer };
+export { buildRichDevUser as buildBetaSeedUser };

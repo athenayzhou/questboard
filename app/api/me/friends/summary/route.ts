@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getTesterIdFromRequest } from "@/lib/session";
-import { normalizePlayerCodeInput } from "@/utils/format/code";
+import { normalizeUserCodeInput } from "@/utils/format/code";
 import { statusFromSession } from "@/lib/statusServer";
-import type { BadgePlatePlacement } from "@/types/player";
+import type { BadgePlatePlacement } from "@/types/user";
 import type { FriendStatus, FriendActivity, FriendSummary } from "@/types/friend";
 
 const MAX_CODES = 50;
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "invalid_payload" }, { status: 400 });
     }
 
-    const raw = body.codes.map((c) => normalizePlayerCodeInput(String(c ?? "")));
+    const raw = body.codes.map((c) => normalizeUserCodeInput(String(c ?? "")));
     const codes = [...new Set(raw.filter(Boolean))].slice(0, MAX_CODES);
     if (codes.length === 0) {
       return NextResponse.json({ ok: true, data: { summaries: [] as FriendSummary[] } });
@@ -170,7 +170,7 @@ export async function POST(req: Request) {
       );
 
       summaries.push({
-        playerCode: row.player_code,
+        userCode: row.player_code,
         displayName: info.displayName,
         badges: {
           displayedBadgeIds: info.displayedBadgeIds,

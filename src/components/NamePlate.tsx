@@ -1,32 +1,27 @@
 import { useCallback, useRef } from "react";
-import type { BadgePlatePlacement } from "@/types/player";
-import { clamp01 } from "@/lib/playerBadges";
+import type { BadgePlatePlacement } from "@/types/user";
+import { clamp01 } from "@/lib/userBadges";
 import { SYSTEM_BADGES, getBadgeIconUrl } from "@/data/systemBadges";
 
-type PlayerNamePlateProps = {
-  /** Display name (ignored if `nameSlot` is set). */
-  playerName: string;
-  /** Optional custom name row (e.g. profile editing). */
+type UserNamePlateProps = {
+  userName: string;
   nameSlot?: React.ReactNode;
   placements: BadgePlatePlacement[];
-  /** Only placements whose ids exist in SYSTEM_BADGES are rendered. */
   interactive?: boolean;
   onPlacementChange?: (badgeId: string, x: number, y: number) => void;
-  /** Extra class on root .name-container */
   className?: string;
 };
 
-export function PlayerNamePlate({
-  playerName,
+export function UserNamePlate({
+  userName,
   nameSlot,
   placements,
   interactive = false,
   onPlacementChange,
   className = "",
-}: PlayerNamePlateProps) {
+}: UserNamePlateProps) {
   const layerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ id: string } | null>(null);
-
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
       const d = dragRef.current;
@@ -41,7 +36,7 @@ export function PlayerNamePlate({
     [onPlacementChange],
   );
 
-  const endDrag = useCallback(() => {
+  const endDrag = useCallback(function endDrag() {
     dragRef.current = null;
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", endDrag);
@@ -99,7 +94,7 @@ export function PlayerNamePlate({
           })}
         </div>
         <div className="name-plate-name-center">
-          {nameSlot ?? <div className="name-text">{playerName}</div>}
+          {nameSlot ?? <div className="name-text">{userName}</div>}
         </div>
       </div>
     </div>

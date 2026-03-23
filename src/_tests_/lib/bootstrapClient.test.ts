@@ -4,7 +4,7 @@ import {
   BootstrapNetworkError,
 } from "../../lib/bootstrapClient";
 import { useQuestStore } from "../../store/quest";
-import { usePlayerStore } from "../../store/player";
+import { useUserStore } from "../../store/user";
 import { useSkillStore } from "../../store/skill";
 import { useXPEventStore } from "../../store/xpEvent";
 
@@ -36,8 +36,8 @@ describe("fetchBootstrapOnce", () => {
     const payload = {
       ok: true,
       data: {
-        player: usePlayerStore.getState().player,
-        playerCode: "QB-00000000",
+        user: useUserStore.getState().user,
+        userCode: "QB-00000000",
         quests: [
           {
             id: "00000000-0000-4000-8000-000000000001",

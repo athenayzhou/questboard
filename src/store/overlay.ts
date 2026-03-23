@@ -1,6 +1,10 @@
 import { create } from "zustand";
+import { useTutorialStore } from "@/onboarding/tutorialStore";
+import { TUTORIAL_FIRST_LOOP_QUEST_ID } from "@/onboarding/tutorialConstants";
+import { isTutorialSpotlightAllowed } from "@/onboarding/tutorialGating";
+import { useQuestStore } from "@/store/quest";
 
-type OverlayType =
+export type OverlayType =
   | "profile"
   | "quests"
   | "logs"
@@ -47,11 +51,23 @@ type OverlayState = {
 
 export const useOverlay = create<OverlayState>((set) => ({
   activeOverlay: null,
-  openOverlay: (type) => 
-    set(() => ({ 
-      activeOverlay: type, 
-      openQuestPages: []
-    })),
+  openOverlay: (type) => {
+    set(() => ({
+      activeOverlay: type,
+      openQuestPages: [],
+    }));
+    if (type) {
+      const spotlight = `entry-${type}` as const;
+      const sub = useTutorialStore.getState().currentSubquest;
+      const quests = useQuestStore.getState().quests;
+      if (
+        sub?.spotlight === spotlight &&
+        isTutorialSpotlightAllowed(sub, quests)
+      ) {
+        useTutorialStore.getState().markSubquestComplete(sub.id);
+      }
+    }
+  },
   closeOverlay: () => 
     set((s) => ({
       activeOverlay: null,
@@ -59,9 +75,11 @@ export const useOverlay = create<OverlayState>((set) => ({
     })),
   
   openQuestPages: [],
-  openQuest: (id) => 
+  openQuest: (id) => {
+    let didAdd = false;
     set((s) => {
-      if(s.openQuestPages.some((q) => q.id === id)) return s;
+      if (s.openQuestPages.some((q) => q.id === id)) return s;
+      didAdd = true;
       const maxZ = Math.max(0, ...s.openQuestPages.map((q) => q.z));
       return {
         openQuestPages: [
@@ -74,7 +92,19 @@ export const useOverlay = create<OverlayState>((set) => ({
           },
         ],
       };
-    }),
+    });
+    if (!didAdd) return;
+    const sub = useTutorialStore.getState().currentSubquest;
+    const spot = sub?.spotlight;
+    if (
+      sub &&
+      id === TUTORIAL_FIRST_LOOP_QUEST_ID &&
+      (spot === "board-tutorial-card-available" ||
+        spot === "board-tutorial-card-accepted")
+    ) {
+      useTutorialStore.getState().markSubquestComplete(sub.id);
+    }
+  },
 
   closeAllQuests: () =>
     set(() => ({
