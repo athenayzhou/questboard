@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { query, withTransaction } from "@/lib/db";
 import { hashInviteKey, hashSessionToken, makeSessionToken } from "@/lib/betaAuth";
 import { assignUserCodeIfMissing } from "@/lib/userCode";
+import { consumeRateLimit, requestIp } from "@/lib/rateLimit";
+import { errorJson, parseJsonBody } from "@/lib/apiResponses";
+import { z } from "zod";
 
 type InviteRow = {
   id: string;
@@ -14,15 +17,33 @@ type InviteRow = {
 
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME ?? "qb_session";
 const SESSION_TTL_DAYS = Number(process.env.SESSION_TTL_DAYS ?? "30");
+const SESSION_ATTEMPT_LIMIT = 10;
+const SESSION_ATTEMPT_WINDOW_MS = 60_000;
+
+const sessionRequestSchema = z.object({
+  inviteKey: z.string().trim().min(1, "inviteKey_required"),
+});
 
 export async function POST(req: Request){
   try {
-    const body = (await req.json()) as { inviteKey?: string };
-    const inviteKey = body?.inviteKey?.trim();
-
-    if(!inviteKey){
-      return NextResponse.json({ ok: false, error: "inviteKey_required" }, { status: 400 });
+    const rateKey = `beta-session:${requestIp(req)}`;
+    const gate = consumeRateLimit({
+      key: rateKey,
+      limit: SESSION_ATTEMPT_LIMIT,
+      windowMs: SESSION_ATTEMPT_WINDOW_MS,
+    });
+    if (!gate.allowed) {
+      return errorJson("rate_limited", 429, {
+        "retry-after": String(gate.retryAfterSec),
+      });
     }
+    const parsedBody = await parseJsonBody(req);
+    if (!parsedBody.ok) return parsedBody.response;
+    const parsed = sessionRequestSchema.safeParse(parsedBody.data);
+    if (!parsed.success) {
+      return errorJson("inviteKey_required", 400);
+    }
+    const inviteKey = parsed.data.inviteKey;
 
     const codeHash = hashInviteKey(inviteKey);
     const inviteRes = await query<InviteRow>(
@@ -37,49 +58,49 @@ export async function POST(req: Request){
 
     const invite = inviteRes.rows[0];
     if(!invite){
-      return NextResponse.json({ ok: false, error: "invalid_invite" }, { status: 401 });
+      return errorJson("invalid_invite", 401);
     }
     if(invite.revoked_at){
-      return NextResponse.json({ ok: false, error: "invite_revoked" }, { status: 401 });
+      return errorJson("invite_revoked", 401);
     }
     if(invite.expires_at && new Date(invite.expires_at).getTime() <= Date.now()){
-      return NextResponse.json({ ok: false, error: "invite_expired" }, { status: 401 });
+      return errorJson("invite_expired", 401);
     }
     if(invite.max_uses !== null && invite.used_count >= invite.max_uses){
-      return NextResponse.json({ ok: false, error: "invite_max_uses_reached" }, { status: 401 });
+      return errorJson("invite_max_uses_reached", 401);
     }
-
-    // await query("begin");
-
-    let testerId = invite.assigned_tester_id;
-    if(!testerId){
-      const testerRes = await query<{ id: string }>(
-        `insert into testers default values returning id`,
-      );
-      testerId = testerRes.rows[0].id;
-      await query(
-        `update beta_invites set assigned_tester_id = $1 where id = $2`,
-        [testerId, invite.id],
-      );
-    }
-
-    await query(
-      `update beta_invites set used_count = used_count + 1 where id = $1`,
-      [invite.id],
-    );
 
     const rawToken = makeSessionToken();
     const tokenHash = hashSessionToken(rawToken);
 
-    await query(
-      `
-      insert into tester_sessions (tester_id, session_token_hash, expires_at)
-      values ($1, $2, now() + ($3 || ' days')::interval)
-      `,
-      [testerId, tokenHash, String(SESSION_TTL_DAYS)],
-    );
+    const testerId = await withTransaction(async (txQuery) => {
+      let nextTesterId = invite.assigned_tester_id;
+      if(!nextTesterId){
+        const testerRes = await txQuery<{ id: string }>(
+          `insert into testers default values returning id`,
+        );
+        nextTesterId = testerRes.rows[0].id;
+        await txQuery(
+          `update beta_invites set assigned_tester_id = $1 where id = $2`,
+          [nextTesterId, invite.id],
+        );
+      }
 
-    // await query("commit");
+      await txQuery(
+        `update beta_invites set used_count = used_count + 1 where id = $1`,
+        [invite.id],
+      );
+
+      await txQuery(
+        `
+        insert into tester_sessions (tester_id, session_token_hash, expires_at)
+        values ($1, $2, now() + ($3 || ' days')::interval)
+        `,
+        [nextTesterId, tokenHash, String(SESSION_TTL_DAYS)],
+      );
+
+      return nextTesterId;
+    });
 
     await assignUserCodeIfMissing(testerId);
 
@@ -96,8 +117,7 @@ export async function POST(req: Request){
 
     return res;
   } catch (error) {
-    // await query("rollback").catch(() => undefined);
     console.error("POST /api/beta/session failed:", error);
-    return NextResponse.json({ ok: false, error: "server_error" }, { status: 500 });
+    return errorJson("server_error", 500);
   }
 }

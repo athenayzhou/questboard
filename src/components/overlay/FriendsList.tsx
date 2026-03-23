@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useOverlay } from "../../store/overlay";
 import { useFriendsStore } from "../../store/friends";
 import { showToast } from "../../utils/toast";
@@ -65,7 +65,7 @@ export function FriendsList() {
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [summaries, setSummaries] = useState<Record<string, FriendSummary>>({});
 
-  const devUiTick = useMemo(() => Date.now(), [activeOverlay]);
+  const devUiTick = Date.now();
 
   useEffect(() => {
     if (activeOverlay !== "friends" || friends.length === 0) {

@@ -34,6 +34,11 @@
   pointer-events: auto;
 }
 
+.overlay-backdrop--clear {
+  background: transparent;
+  backdrop-filter: none;
+}
+
 .overlay > .header {
   flex-shrink: 0;
 }

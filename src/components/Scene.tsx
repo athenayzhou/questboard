@@ -1,6 +1,7 @@
 import { OrthographicCamera, OrbitControls, Environment } from "@react-three/drei"
 import { Model } from "./Model";
 import { useRef, useEffect } from "react";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
 const COLORS = {
   grass: "#5a9c4e",
@@ -17,7 +18,7 @@ export function Scene({
   orbitEnabled: boolean;
   resetCamera: boolean;
 }) {
-  const controlsRef = useRef<any>(null);
+  const controlsRef = useRef<OrbitControlsImpl | null>(null);
 
   useEffect(() => {
     if (!resetCamera || !controlsRef.current) return;

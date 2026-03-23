@@ -1,19 +1,18 @@
 import { NextResponse } from "next/server";
-import { getTesterIdFromRequest } from "@/lib/session";
+import { requireTesterId } from "@/lib/session";
 import { query } from "@/lib/db";
 import { normalizeUserCodeInput } from "@/utils/format/code";
+import { errorJson } from "@/lib/apiResponses";
 
 export async function GET(req: Request) {
   try{
-    const selfId = await getTesterIdFromRequest(req);
-    if(!selfId){
-      return NextResponse.json({ ok: false, error: "unauthroized" }, { status: 401 });
-    }
+    const auth = await requireTesterId(req);
+    if (!auth.ok) return auth.response;
 
     const url = new URL(req.url);
     const code = normalizeUserCodeInput(url.searchParams.get("code") ?? "");
     if(!code){
-      return NextResponse.json({ ok: false, error: "invalid_code" }, { status: 400 });
+      return errorJson("invalid_code", 400);
     }
 
     const res = await query<{
@@ -36,10 +35,10 @@ export async function GET(req: Request) {
 
     const row = res.rows[0];
     if(!row){
-      return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
+      return errorJson("not_found", 404);
     }
-    if(row.tester_id === selfId){
-      return NextResponse.json({ ok: false, error: "self" }, { status: 400 });
+    if(row.tester_id === auth.testerId){
+      return errorJson("self", 400);
     }
 
     return NextResponse.json({
@@ -51,6 +50,6 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     console.error("GET /api/me/friends/lookup failed:", error);
-    return NextResponse.json({ ok: false, error: "server_error" }, { status: 500 });
+    return errorJson("server_error", 500);
   }
 }

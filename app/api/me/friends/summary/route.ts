@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getTesterIdFromRequest } from "@/lib/session";
+import { requireTesterId } from "@/lib/session";
 import { normalizeUserCodeInput } from "@/utils/format/code";
 import { statusFromSession } from "@/lib/statusServer";
+import { errorJson, parseJsonBody } from "@/lib/apiResponses";
 import type { BadgePlatePlacement } from "@/types/user";
 import type { FriendStatus, FriendActivity, FriendSummary } from "@/types/friend";
+import { z } from "zod";
 
 const MAX_CODES = 50;
+const friendsSummaryBodySchema = z.object({
+  codes: z.array(z.string()),
+});
 
 type TesterRow = {
   tester_id: string;
@@ -79,17 +84,17 @@ function xpRowToActivity(row: { id: string; data: unknown }): FriendActivity | n
 
 export async function POST(req: Request) {
   try {
-    const selfId = await getTesterIdFromRequest(req);
-    if(!selfId){
-      return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+    const auth = await requireTesterId(req);
+    if (!auth.ok) return auth.response;
+
+    const parsedBody = await parseJsonBody(req);
+    if (!parsedBody.ok) return parsedBody.response;
+    const body = friendsSummaryBodySchema.safeParse(parsedBody.data);
+    if (!body.success) {
+      return errorJson("invalid_payload", 400);
     }
 
-    const body = (await req.json()) as { codes?: unknown };
-    if(!Array.isArray(body.codes)){
-      return NextResponse.json({ ok: false, error: "invalid_payload" }, { status: 400 });
-    }
-
-    const raw = body.codes.map((c) => normalizeUserCodeInput(String(c ?? "")));
+    const raw = body.data.codes.map((c) => normalizeUserCodeInput(c));
     const codes = [...new Set(raw.filter(Boolean))].slice(0, MAX_CODES);
     if (codes.length === 0) {
       return NextResponse.json({ ok: true, data: { summaries: [] as FriendSummary[] } });
@@ -184,6 +189,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, data: { summaries } });
   } catch (error) {
     console.error("POST /api/me/friends/summary failed:", error);
-    return NextResponse.json({ ok: false, error: "server_error" }, { status: 500 });
+    return errorJson("server_error", 500);
   }
 }

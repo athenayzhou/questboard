@@ -83,7 +83,7 @@ function BootstrapErrorShell(props: {
         <div className="bootstrap-shell-error-mark" aria-hidden>
           !
         </div>
-        <p className="bootstrap-shell-title">Could not load your data</p>
+        <p className="bootstrap-shell-title">could not load data</p>
         <p className="bootstrap-shell-detail">{props.error}</p>
         <div className="bootstrap-shell-actions">
           <button
@@ -92,7 +92,7 @@ function BootstrapErrorShell(props: {
             className="bootstrap-shell-btn bootstrap-shell-btn--primary"
             onClick={props.onRetry}
           >
-            Try again
+            try again :(
           </button>
         </div>
       </div>

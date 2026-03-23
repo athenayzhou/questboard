@@ -114,7 +114,7 @@ export function AddQuestOverlay() {
   return createPortal(
     <>
       <div
-        className="overlay-backdrop"
+        className="overlay-backdrop overlay-backdrop--clear"
         onMouseDown={(e) => {
           if (e.target === e.currentTarget) setOverlay("quests");
         }}

@@ -1,5 +1,7 @@
 import { query } from "./db";
 import { hashSessionToken } from "./betaAuth";
+import { errorJson } from "./apiResponses";
+import type { NextResponse } from "next/server";
 
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME ?? "qb_session";
 
@@ -37,4 +39,17 @@ export async function getTesterIdFromRequest(req: Request): Promise<string | nul
   );
 
   return sessionRes.rows[0]?.tester_id ?? null;
+}
+
+export async function requireTesterId(
+  req: Request,
+): Promise<
+  | { ok: true; testerId: string }
+  | { ok: false; response: NextResponse }
+> {
+  const testerId = await getTesterIdFromRequest(req);
+  if (!testerId) {
+    return { ok: false, response: errorJson("unauthorized", 401) };
+  }
+  return { ok: true, testerId };
 }

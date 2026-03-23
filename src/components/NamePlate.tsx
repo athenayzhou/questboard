@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { useCallback, useRef } from "react";
 import type { BadgePlatePlacement } from "@/types/user";
 import { clamp01 } from "@/lib/userBadges";

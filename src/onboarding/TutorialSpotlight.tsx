@@ -124,8 +124,14 @@ export function TutorialSpotlight({ activeSpotlight }: TutorialSpotlightProps) {
     targetRect.height > 0 &&
     (targetVisibleInViewport || ringIgnoresViewport);
 
+  const suppressDimForReadability =
+    Boolean(activeSpotlight) &&
+    (activeSpotlight?.startsWith("addq-") ||
+      activeSpotlight?.startsWith("qp-"));
+
   const showFullScreenDim =
     Boolean(activeSpotlight) &&
+    !suppressDimForReadability &&
     !showRing &&
     activeSpotlight != null &&
     !activeSpotlight.startsWith("entry-");
@@ -147,19 +153,21 @@ export function TutorialSpotlight({ activeSpotlight }: TutorialSpotlightProps) {
 
       {showRing && targetRect && activeSpotlight && (
         <>
-          <div
-            className="tutorial-spotlight-dim-spread"
-            aria-hidden
-            style={{
-              position: "fixed",
-              top: targetRect.top,
-              left: targetRect.left,
-              width: targetRect.width,
-              height: targetRect.height,
-              zIndex: TUTORIAL_Z_MASK,
-              pointerEvents: "none",
-            }}
-          />
+          {!suppressDimForReadability && (
+            <div
+              className="tutorial-spotlight-dim-spread"
+              aria-hidden
+              style={{
+                position: "fixed",
+                top: targetRect.top,
+                left: targetRect.left,
+                width: targetRect.width,
+                height: targetRect.height,
+                zIndex: TUTORIAL_Z_MASK,
+                pointerEvents: "none",
+              }}
+            />
+          )}
           <div
             className="tutorial-spotlight"
             style={{

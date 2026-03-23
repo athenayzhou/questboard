@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { useOverlay } from "../../store/overlay";
 import { useState, useEffect, useMemo } from "react";
 import { useUserStore } from "../../store/user";

@@ -1,17 +1,29 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getTesterIdFromRequest } from "@/lib/session";
+import { requireTesterId } from "@/lib/session";
+import { errorJson, parseJsonBody } from "@/lib/apiResponses";
+import { z } from "zod";
+
+const extensionPayloadSchema = z.object({
+  clientGame: z
+    .unknown()
+    .refine(
+      (v): v is Record<string, unknown> =>
+        !!v && typeof v === "object" && !Array.isArray(v),
+      "invalid_payload",
+    ),
+});
 
 export async function PUT(req: Request) {
   try {
-    const testerId = await getTesterIdFromRequest(req);
-    if (!testerId) {
-      return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
-    }
+    const auth = await requireTesterId(req);
+    if (!auth.ok) return auth.response;
 
-    const body = (await req.json()) as { clientGame?: unknown };
-    if (!body?.clientGame || typeof body.clientGame !== "object") {
-      return NextResponse.json({ ok: false, error: "invalid_payload" }, { status: 400 });
+    const parsedBody = await parseJsonBody(req);
+    if (!parsedBody.ok) return parsedBody.response;
+    const parsed = extensionPayloadSchema.safeParse(parsedBody.data);
+    if (!parsed.success) {
+      return errorJson("invalid_payload", 400);
     }
 
     await query(
@@ -21,12 +33,12 @@ export async function PUT(req: Request) {
       on conflict (tester_id)
       do update set data = excluded.data, updated_at = now()
       `,
-      [testerId, JSON.stringify(body.clientGame)],
+      [auth.testerId, JSON.stringify(parsed.data.clientGame)],
     );
 
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("PUT /api/me/extension failed:", error);
-    return NextResponse.json({ ok: false, error: "server_error" }, { status: 500 });
+    return errorJson("server_error", 500);
   }
 }

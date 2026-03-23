@@ -1,19 +1,22 @@
 import crypto from "crypto";
 
-const INVITE_HMAC_SECRET = process.env.INVITE_HMAC_SECRET!;
-if(!INVITE_HMAC_SECRET){
-  throw new Error("missing INVITE_HMAC_SECRET env var");
+function inviteHmacSecret(){
+  const secret = process.env.INVITE_HMAC_SECRET;
+  if (!secret) {
+    throw new Error("missing INVITE_HMAC_SECRET env var");
+  }
+  return secret;
 }
 
 export function hashInviteKey(inviteKey: string){
   return crypto
-    .createHmac("sha256", INVITE_HMAC_SECRET)
+    .createHmac("sha256", inviteHmacSecret())
     .update(inviteKey)
     .digest("hex");
 }
 
 export function hashSessionToken(token: string){
-  return crypto.createHmac("sha256", INVITE_HMAC_SECRET).update(token).digest("hex");
+  return crypto.createHmac("sha256", inviteHmacSecret()).update(token).digest("hex");
 }
 
 export function makeSessionToken(){
