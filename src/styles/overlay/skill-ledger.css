@@ -15,7 +15,6 @@
   gap: 12px;
 }
 
-/* Tabs aligned with quest board: rounded strip + green gradient active */
 .ledger-header-tabs {
   display: inline-flex;
   padding: 3px;
@@ -110,7 +109,7 @@
   min-height: 0;
 }
 
-/*  PENDING TAB (full-width notification view)  */
+/*  PENDING TAB  */
 
 .ledger-pending-body {
   flex: 1;
@@ -238,7 +237,7 @@
   margin-right: 8px;
 }
 
-/* Stacked masteries + skills — independent scroll */
+/* Stacked masteries + skills */
 .ledger-masteries-box {
   flex: 0 0 auto;
   display: flex;

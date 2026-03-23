@@ -1,4 +1,4 @@
-/*  Buttons — Green field + sandy path  */
+/*  Buttons  */
 
 button.close {
   display: inline-flex;
@@ -105,7 +105,6 @@ button.accept:hover {
   box-shadow: var(--shadow-soft);
 }
 
-/* Matches quest-btn / close — same header control family */
 .add-quest-btn {
   display: inline-flex;
   align-items: center;
@@ -173,7 +172,6 @@ button.accept:hover {
   box-shadow: var(--shadow-path);
 }
 
-/* Project-wide hover/active consistency (focus ring handled in base.css) */
 button:not(:disabled):not(.close):not(.accept):not(.quest-board-tab):not(.ledger-tab):hover {
   box-shadow: var(--shadow-soft);
 }
