@@ -20,7 +20,6 @@
   box-shadow: var(--shadow-path);
 }
 
-/* Keep dialog border neutral; only buttons convey intent. */
 .confirm-dialog--danger,
 .confirm-dialog--warning,
 .confirm-dialog--info {

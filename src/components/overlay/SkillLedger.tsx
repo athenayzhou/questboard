@@ -200,8 +200,6 @@ export function SkillLedger() {
                     >
                       <div className="ledger-header">
                         <div className="ledger-name ledger-path-name">
-                          {/* <span className="ledger-path-verb">{mastery.verb}</span>
-                          <span className="ledger-path-sep">·</span> */}
                           <span>{mastery.name}</span>
                         </div>
                       </div>

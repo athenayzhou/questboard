@@ -14,7 +14,6 @@ export type UseBootstrapResult = {
   status: BootstrapStatus;
   error: string | null;
   isAuthenticated: boolean;
-  /** Re-run bootstrap (e.g. after sign-in or transient network error). */
   retry: () => void;
 };
 

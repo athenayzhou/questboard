@@ -77,9 +77,7 @@
   outline-offset: 2px;
 }
 
-/* Gradient green — higher specificity so header-actions button doesn’t override */
 .quests-header-actions .quest-board-tabs button.quest-board-tab--active {
-  /* Light green gradient (less saturated) */
   background: linear-gradient(
     145deg,
     rgba(255, 252, 235, 0.65) 0%,
@@ -284,7 +282,7 @@
   pointer-events: none;
 }
 
-/*  BOARD CARD — Path tile in sunlight  */
+/*  BOARD CARD  */
 
 .quest-card {
   background: var(--bg-card);
@@ -414,7 +412,7 @@
   max-width: 28rem;
 }
 
-/*  QUEST PAGE — Sunlit panel on the path  */
+/*  QUEST PAGE  */
 
 .quest-page {
   display: flex;
@@ -615,7 +613,6 @@
 
 .quest-page-pill--action {
   cursor: pointer;
-  /* font: inherit; */
   font-weight: 700;
   letter-spacing: 0.03em;
   line-height: 1.7em;
@@ -686,7 +683,6 @@
   line-height: 1.25;
 }
 
-/* Edit, pin, close — same footprint and chrome */
 .quest-page-tool-btn {
   flex-shrink: 0;
   box-sizing: border-box;
@@ -1392,7 +1388,7 @@
   transform: scale(0.98);
 }
 
-/* Add quest modal — category chips stay path-themed (not edit-form green) */
+/* Add quest modal */
 .modal.quest-create .category-tag {
   background: var(--path-light);
   border: 2px solid var(--path);
@@ -1443,7 +1439,6 @@
 }
 
 .modal.quest-create .quest-edit-form .form-group textarea {
-  /* Edit form textarea is taller; Add quest can be more compact */
   min-height: 60px;
 }
 

@@ -24,7 +24,7 @@ export function generateSkillNames(candidate: Candidate): string[] {
   );
   return unique(base).slice(0,3);
 }
-/** Promotes ready candidates to skills. Returns keys of skills that were newly created (not existing). */
+
 export function autoNameSkill(
   candidates: Candidate[],
   candidateStore: CandidateStore

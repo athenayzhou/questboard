@@ -20,7 +20,6 @@ export function evaluateReadiness(candidate: Candidate, clusterConfidence: numbe
     candidate.readiness = clamp(readiness, 0, 1);
   }
   
-
   if (candidate.readiness >= CANDIDATE.EMERGENT_THRESHOLD) return "ready";
   if (candidate.readiness >= CANDIDATE.LATENT_THRESHOLD) return "emergent";
   return "latent";

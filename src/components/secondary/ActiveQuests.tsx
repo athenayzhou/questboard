@@ -211,15 +211,8 @@ export function ActiveQuest() {
                       </div>
                     )}
                   <div className="quest-details">
-                    {/* {q.priority && (
-                      <div className="detail-row">
-                        <span className="label">priority:</span>
-                        <span className={`value priority-${q.priority}`}>{q.priority}</span>
-                      <d/iv>
-                    )} */}
                     {q.duration && (
                       <div className="detail-row">
-                        {/* <span className="label">duration:</span> */}
                         <span className={`value duration-${q.duration}`}>{q.duration}</span>
                       </div>
                     )}

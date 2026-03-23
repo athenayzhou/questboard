@@ -58,9 +58,7 @@ export type XPEvent = {
   source: "quest" | "habit" | "manual" | "decay";
   sourceId: string;
   skillId?: string;
-  /** Skill display name (badges, decay rows). */
   name?: string;
-  /** Quest title when XP came from a quest completion (per-completion label). */
   questTitle?: string;
   timestamp: number;
 }

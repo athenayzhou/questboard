@@ -1,4 +1,4 @@
-/*  ACTIVE QUEST — Sandy path strip + grass handle  */
+/*  ACTIVE QUEST  */
 
 .active-quest-panel {
   position: fixed;
@@ -207,7 +207,6 @@
   flex-wrap: wrap;
 }
 
-/* Category tags as labels only — distinct from clickable buttons */
 .active-quest-item .category-tag {
   padding: 3px 8px;
   border-radius: 6px;

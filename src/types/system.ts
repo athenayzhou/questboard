@@ -12,7 +12,6 @@ export type SystemItem = {
 export type SystemBadge = {
     id: string;
     display: string;
-    /** Shown in profile tooltip (like item descriptions). */
     description?: string;
     icon?: string;
 }

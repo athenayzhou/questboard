@@ -29,7 +29,7 @@
   box-shadow: none;
 }
 
-/*  LOG CARD — Path tiles  */
+/*  LOG CARD */
 
 .log-item {
   border: 2px solid var(--path-shadow);
@@ -97,7 +97,6 @@
   align-items: center;
 }
 
-/* Log entry header category "pills" (summary.tags -> <span className="tag">) */
 .log-tags .tag {
   padding: 3px 10px;
   border-radius: var(--radius-pill);
@@ -177,7 +176,6 @@
   color: var(--text-path);
   border: 1px solid var(--path-shadow);
   box-shadow: var(--shadow-inset-warm);
-  /* Pill/label only — not interactive */
   cursor: default;
   pointer-events: auto;
 }

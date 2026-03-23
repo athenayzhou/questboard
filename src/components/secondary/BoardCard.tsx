@@ -7,7 +7,6 @@ import { IconRefreshCw, IconClock, IconAlertTriangle } from "../ui/icons"
 type BoardCardProps = {
   quest: Quest;
   onSelect: () => void;
-  /** Tutorial (or tests): only the targeted card carries `data-spotlight`. */
   dataSpotlight?: string;
 };
 

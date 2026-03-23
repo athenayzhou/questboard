@@ -3,7 +3,6 @@
 .profile-overlay {
   display: flex;
   flex-direction: column;
-  /* gap: 0.75rem; */
 }
 
 .character-information {
@@ -43,7 +42,6 @@
   width: 100%;
   max-width: 100%;
   text-align: center;
-  /* Match width of .player-preview below (equip column → character column) */
   align-self: stretch;
 }
 
@@ -68,7 +66,6 @@
   pointer-events: auto;
 }
 
-/* Full row width: override global .name-container fixed width so plate aligns with equip → character */
 .profile-overlay .profile-name-plate.name-container {
   width: 100%;
   max-width: none;
@@ -76,7 +73,6 @@
   box-sizing: border-box;
 }
 
-/* Center the name on the plate (matches scene); pencil sits just to the right */
 .profile-name-plate .name-plate-name-center {
   display: flex;
   flex-wrap: nowrap;
@@ -355,7 +351,6 @@
   justify-items: stretch;
   width: 100%;
   min-height: 0;
-  /* Align with coins row (same panel inset, flush left) */
   padding-left: 0;
   box-sizing: border-box;
 }
@@ -586,7 +581,6 @@
   box-shadow: inset 0 0 24px var(--sunbeam);
 }
 .title-banner:disabled {
-  /* Prevent the browser's default "disabled/invalid" cursor glyph. */
   cursor: pointer;
 }
 

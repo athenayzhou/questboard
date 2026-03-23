@@ -1,6 +1,5 @@
 import type { XPEvent } from "@/types/skills";
 
-/** Primary line for activity / path logs: quest title when present, else skill name or id. */
 export function xpEventActivityLabel(e: XPEvent): string {
   if (e.source === "quest") {
     const t = e.questTitle?.trim();

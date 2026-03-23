@@ -7,7 +7,6 @@ export type SettingsPersisted = {
   autoFailOverdueQuests: boolean;
 };
 
-/** Stored in `client_game_state.data` (full replace on PUT). */
 export type ClientGameBlobV1 = {
   v: 1;
   evidence: Evidence[];

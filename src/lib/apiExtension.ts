@@ -49,7 +49,6 @@ export function scheduleExtensionSync() {
   }, DELAY_MS);
 }
 
-/** Manual flush — no debounce. */
 export async function flushExtensionSyncNow(): Promise<void> {
   if (suppressExtensionSync) return;
   const clientGame = buildClientGameBlob();

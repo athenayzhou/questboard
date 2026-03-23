@@ -10,7 +10,6 @@ type Props = {
   skill: SkillLedgerEntry;
   onClose: () => void;
   onRename?: () => void;
-  /** Open another skill from “often practiced with” (same as path contributing skills). */
   onSelectRelatedSkill?: (skillId: string) => void;
 };
 

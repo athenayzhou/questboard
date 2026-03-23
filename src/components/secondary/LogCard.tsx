@@ -9,7 +9,6 @@ import { tryCompleteTutorialSpotlight } from "@/onboarding/tutorialProgress";
 
 type LogCardProps = {
   group: QuestGroup;
-  /** First row: tutorial spotlight for “browse” step */
   tutorialSpotlightBrowse?: boolean;
 };
 

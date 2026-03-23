@@ -2,12 +2,10 @@ import type { Quest } from "@/types/quest";
 import { calculateXP } from "@/utils/skill/analysis/experience";
 import { CURRENCY } from "@/utils/constants";
 
-/** System-generated quests (seasonal, etc.) keep template `reward` (e.g. gems). */
 export function isSystemGeneratedQuest(quest: Quest): boolean {
   return Boolean(quest.isSystemGenerated && quest.systemType);
 }
 
-/** Coins scale with the same inputs as skill XP (`calculateXP`). */
 export function calculateQuestCoinReward(quest: Quest): number {
   const xp = calculateXP(quest);
   const raw = Math.floor(xp / CURRENCY.QUEST_COINS_PER_XP);
@@ -20,7 +18,6 @@ export function calculateQuestCoinReward(quest: Quest): number {
   );
 }
 
-/** Player / non-system quests: XP + coins only (gems come from system templates). */
 export function computePlayerQuestReward(
   quest: Quest
 ): NonNullable<Quest["reward"]> {
@@ -30,7 +27,6 @@ export function computePlayerQuestReward(
   };
 }
 
-/** Attach computed `reward` for player quests; leave system quests unchanged. */
 export function withComputedReward(quest: Quest): Quest {
   if (isSystemGeneratedQuest(quest)) {
     return quest;
