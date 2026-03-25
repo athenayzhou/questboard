@@ -1,5 +1,8 @@
 import type { UserData } from "@/types/user";
-import { DEFAULT_DISPLAY_NAME_PLACEHOLDER } from "./defaultUserData";
+import {
+  DEFAULT_CHARACTER_IMAGE,
+  DEFAULT_DISPLAY_NAME_PLACEHOLDER,
+} from "./defaultUserData";
 import { migrateBadges } from "@/lib/userBadges";
 
 export function normalizeUserData(raw: unknown): UserData {
@@ -22,9 +25,7 @@ export function normalizeUserData(raw: unknown): UserData {
         typeof profile.name === "string" && profile.name.trim()
           ? profile.name
           : DEFAULT_DISPLAY_NAME_PLACEHOLDER,
-      ...(typeof profile.character === "string" && profile.character
-        ? { character: profile.character }
-        : {}),
+      character: DEFAULT_CHARACTER_IMAGE,
     },
     badges: migrateBadges(badgesRaw),
     equipment:

@@ -14,6 +14,7 @@ import { APP, CANDIDATE } from "../../utils/constants";
 import { useIdentityStore } from "../../store/identity";
 import { IconX, IconCloudUpload, IconLogOut, IconTrash2, IconMessage } from "../ui/icons";
 import { autoNameSkill, generateSkillNames } from "../../utils/skill/generation/name";
+import { Guide } from "../secondary/Guide";
 
 export function Settings() {
   const closeOverlay = useOverlay((s) => s.closeOverlay);
@@ -31,6 +32,7 @@ export function Settings() {
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [activeTab, setActiveTab] = useState<"preferences" | "guide">("preferences")
 
   const handleAutoNameToggle = (enabled: boolean) => {
     setAutoNameSkillsStore(enabled);
@@ -82,6 +84,17 @@ export function Settings() {
   const handleSignOut = async () => {
     setSigningOut(true);
     try {
+      const synced = await flushAllServerSyncs({
+        suppressSuccessToast: true,
+        suppressErrorToast: true,
+      });
+      if (!synced) {
+        showToast(
+          "warning",
+          "couldn’t save everything to the server; this device will still be cleared when you sign out.",
+          { duration: 8000 },
+        );
+      }
       await signOutFromApp();
       setShowSignOutConfirm(false);
       closeOverlay();
@@ -95,6 +108,26 @@ export function Settings() {
       <div className="header settings-header">
         <h2>settings</h2>
         <div className="header-actions">
+          <div className="quest-board-tabs" role="tablist" aria-label="Settings tabs">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "preferences"}
+              className={`quest-board-tab${activeTab === "preferences" ? " quest-board-tab--active" : ""}`}
+              onClick={() => setActiveTab("preferences")}
+            >
+              preferences
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "guide"}
+              className={`quest-board-tab${activeTab === "guide" ? " quest-board-tab--active" : ""}`}
+              onClick={() => setActiveTab("guide")}
+            >
+              guide
+            </button>
+          </div>
           <button
             type="button"
             className="close"
@@ -106,6 +139,8 @@ export function Settings() {
           </button>
         </div>
       </div>
+
+      {activeTab === "preferences" ? (
       <div className="settings-content">
         <div className="settings-main">
           <label className="setting-toggle">
@@ -189,7 +224,7 @@ export function Settings() {
               <span>{signingOut ? "signing out…" : "sign out"}</span>
             </button>
             <p className="settings-cloud-sync-hint">
-              make sure to save before leaving or risk clearing unsaved changes in this session
+              we save to the server automatically before signing out when possible
             </p>
           </div>
         </div>
@@ -210,6 +245,10 @@ export function Settings() {
           </div>
         </div>
       </div>
+      ) : (
+        <Guide />
+      )}
+
       <ConfirmDialog
         isOpen={showResetConfirm}
         options={{
@@ -227,7 +266,7 @@ export function Settings() {
         options={{
           title: "sign out",
           message:
-            "sign out and clear local data? you’ll need your invite code to sign back in",
+            "save to the server when possible, then sign out and clear this device? you’ll need your invite code to sign back in",
           confirmText: "sign out",
           type: "warning",
         }}

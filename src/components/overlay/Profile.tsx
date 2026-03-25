@@ -452,14 +452,46 @@ export function Profile(){
               maxHeight: equipStackHeightPx,
             }}
           >
-            <div className="character-image">
-              {user.profile.character ? (
-                <img
-                  src={user.profile.character}
-                  alt="character"
-                  className="character-img"
-                />
-              ) : null}
+            <div className="character-composite">
+              <div className="character-image">
+                {user.profile.character ? (
+                  <img
+                    src={user.profile.character}
+                    alt="character"
+                    className="character-img"
+                  />
+                ) : null}
+              </div>
+              <div className="character-equipment-layers" aria-hidden>
+                {equippedItems.body ? (
+                  <img
+                    src={getItemIconUrl(equippedItems.body.id)}
+                    alt=""
+                    className="character-equip-overlay character-equip-overlay--body"
+                  />
+                ) : null}
+                {equippedItems.head ? (
+                  <img
+                    src={getItemIconUrl(equippedItems.head.id)}
+                    alt=""
+                    className="character-equip-overlay character-equip-overlay--head"
+                  />
+                ) : null}
+                {equippedItems.accessory ? (
+                  <img
+                    src={getItemIconUrl(equippedItems.accessory.id)}
+                    alt=""
+                    className="character-equip-overlay character-equip-overlay--accessory"
+                  />
+                ) : null}
+                {equippedItems.weapon ? (
+                  <img
+                    src={getItemIconUrl(equippedItems.weapon.id)}
+                    alt=""
+                    className="character-equip-overlay character-equip-overlay--weapon"
+                  />
+                ) : null}
+              </div>
             </div>
           </div>
         </div>

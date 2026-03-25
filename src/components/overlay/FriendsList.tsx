@@ -7,7 +7,10 @@ import { showToast } from "../../utils/toast";
 import { normalizeUserCodeInput } from "../../utils/format/code";
 import { fetchFriendSummaries } from "@/lib/apiFriendsSummary";
 import type { FriendActivity, FriendSummary } from "@/types/friend";
-import { getDevFriendUiDetail } from "@/dev/friendsUiDemo";
+import {
+  getSystemFriendUiDetail,
+  GOLDIE_FRIEND_ID,
+} from "@/data/systemFriends";
 import { IconUserPlus, IconX } from "../ui/icons";
 import { UserNamePlate } from "../NamePlate";
 
@@ -65,7 +68,7 @@ export function FriendsList() {
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [summaries, setSummaries] = useState<Record<string, FriendSummary>>({});
 
-  const devUiTick = Date.now();
+  const builtinUiTick = Date.now();
 
   useEffect(() => {
     if (activeOverlay !== "friends" || friends.length === 0) {
@@ -252,10 +255,13 @@ export function FriendsList() {
       <div className="friends-list">
         {friends.map((friend) => {
           const summary = summaries[friend.id];
-          const status = summary?.status ?? friend.status;
+          const status =
+            friend.id === GOLDIE_FRIEND_ID
+              ? "online"
+              : (summary?.status ?? friend.status);
           const displayName = summary?.displayName ?? friend.name;
 
-          const devUi = getDevFriendUiDetail(friend.id, devUiTick);
+          const builtinUi = getSystemFriendUiDetail(friend.id, builtinUiTick);
 
           const shown = summary
             ? new Set(summary.badges.displayedBadgeIds)
@@ -266,18 +272,31 @@ export function FriendsList() {
               : [];
 
           const platePlacements =
-            devUi && devUi.badgePlacements.length > 0
-              ? devUi.badgePlacements
+            builtinUi && builtinUi.badgePlacements.length > 0
+              ? builtinUi.badgePlacements
               : plateFromSummary;
 
           const activityItems: FriendActivity[] =
-            devUi && devUi.activity.length > 0
-              ? devUi.activity
+            builtinUi && builtinUi.activity.length > 0
+              ? builtinUi.activity
               : summary?.recentActivity?.slice(0, 3) ?? [];
+
+          const portraitUrl = builtinUi?.portraitUrl;
 
           return (
             <div key={friend.id} className="friend-card">
               <div className="friend-card__ribbon" aria-hidden />
+              {portraitUrl ? (
+                <div className="friend-card__portrait-wrap">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- friend portrait from static URL */}
+                  <img
+                    src={portraitUrl}
+                    alt=""
+                    className="friend-card__portrait"
+                    draggable={false}
+                  />
+                </div>
+              ) : null}
               <div className="friend-card__head">
                 <div
                   className="friend-status friend-status--labeled"

@@ -370,6 +370,17 @@
   flex-direction: column;
   overflow: hidden;
 }
+
+.character-composite {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
 .character-image {
   background: transparent;
   flex: 1;
@@ -389,6 +400,61 @@
   object-fit: contain;
   object-position: center bottom;
   display: block;
+}
+
+/* Item icon copies composited over the portrait (percentages tuned for upright bust/full-body art). */
+.character-equipment-layers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.character-equip-overlay {
+  position: absolute;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(45, 40, 30, 0.35));
+}
+
+/* Torso / cloak — behind head so hats read on top */
+.character-equip-overlay--body {
+  z-index: 1;
+  top: 26%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 46%;
+  height: auto;
+  max-height: 40%;
+}
+
+.character-equip-overlay--head {
+  z-index: 2;
+  top: 2%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30%;
+  height: auto;
+  max-height: 24%;
+}
+
+/* Viewer’s right side ≈ character’s left hand */
+.character-equip-overlay--accessory {
+  z-index: 3;
+  top: 36%;
+  right: 6%;
+  width: 26%;
+  height: auto;
+  max-height: 30%;
+}
+
+/* Viewer’s left side ≈ character’s right hand */
+.character-equip-overlay--weapon {
+  z-index: 4;
+  top: 34%;
+  left: 6%;
+  width: 28%;
+  height: auto;
+  max-height: 34%;
 }
 .equip-slots {
   display: flex;

@@ -11,6 +11,7 @@ vi.mock("../../utils/toast", () => ({
 
 describe("flushAllServerSyncs", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.useFakeTimers();
     vi.stubGlobal(
       "fetch",
@@ -54,6 +55,31 @@ describe("flushAllServerSyncs", () => {
 
     await expect(flushAllServerSyncs()).resolves.toBe(false);
     expect(showToast).toHaveBeenCalledWith(
+      "error",
+      expect.stringContaining("failed"),
+      expect.any(Object),
+    );
+  });
+
+  it("skips error toast when suppressErrorToast is true", async () => {
+    let n = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(() => {
+        n += 1;
+        if (n === 1) {
+          return Promise.resolve(new Response("fail", { status: 500 }));
+        }
+        return Promise.resolve(
+          new Response(JSON.stringify({ ok: true }), { status: 200 }),
+        );
+      }),
+    );
+
+    await expect(
+      flushAllServerSyncs({ suppressErrorToast: true }),
+    ).resolves.toBe(false);
+    expect(showToast).not.toHaveBeenCalledWith(
       "error",
       expect.stringContaining("failed"),
       expect.any(Object),

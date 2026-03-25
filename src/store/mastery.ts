@@ -74,7 +74,9 @@ export const useMasteryStore = create<MasteryState>((set, get) => ({
     const granted: Mastery[] = [];
     for (const { verb, skills: verbSkills } of eligible) {
       const verbNorm = normalizeVerb(verb);
-      if (existing.some((m) => normalizeVerb(m.verb) === verbNorm)) continue;
+      if (get().masteries.some((m) => normalizeVerb(m.verb) === verbNorm)) {
+        continue;
+      }
 
       const verbLabel = (verb ?? "").trim();
       const mastery: Mastery = {

@@ -6,6 +6,7 @@ vi.mock("../../store/xpEvent", () => ({
   useXPEventStore: {
     getState: () => ({
       recordXP: vi.fn(),
+      getAll: () => [],
     }),
   },
 }));

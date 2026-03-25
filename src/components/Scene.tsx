@@ -1,5 +1,7 @@
 import { OrthographicCamera, OrbitControls, Environment } from "@react-three/drei"
 import { Model } from "./Model";
+import { Figure } from "./Figure";
+import NamePlate from "./NamePlate";
 import { useRef, useEffect } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
@@ -110,6 +112,9 @@ export function Scene({
         overlay="friends"
         label="Friends List"
       />
+
+      <Figure position={[5, 1, 1.5]} />
+      <NamePlate position={[-7, 5, 5]} />
 
       <Model
         src="/model/bonsai.glb"

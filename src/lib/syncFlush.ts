@@ -12,12 +12,14 @@ import { useXPEventStore } from "@/store/xpEvent";
 
 export type FlushAllServerSyncsOptions = {
   suppressSuccessToast?: boolean;
+  suppressErrorToast?: boolean;
 };
 
 export async function flushAllServerSyncs(
   options?: FlushAllServerSyncsOptions,
 ): Promise<boolean> {
   const suppressSuccessToast = options?.suppressSuccessToast ?? false;
+  const suppressErrorToast = options?.suppressErrorToast ?? false;
   const results = await Promise.allSettled([
     saveQuestsToServer(useQuestStore.getState().quests),
     saveUserToServer(useUserStore.getState().user),
@@ -32,11 +34,13 @@ export async function flushAllServerSyncs(
 
   const failed = results.filter((r) => r.status === "rejected");
   if (failed.length > 0) {
-    showToast(
-      "error",
-      `${failed.length} of 5 saves failed. check connection and try again`,
-      { duration: 8000 },
-    );
+    if (!suppressErrorToast) {
+      showToast(
+        "error",
+        `${failed.length} of 5 saves failed. check connection and try again`,
+        { duration: 8000 },
+      );
+    }
     return false;
   }
 

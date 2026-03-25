@@ -15,9 +15,14 @@ export function isReservedDisplayName(name: string): boolean {
 }
 
 
+export const DEFAULT_CHARACTER_IMAGE = "/character/donna.png";
+
 export function createDefaultUserData(): UserData {
   return {
-    profile: { name: DEFAULT_DISPLAY_NAME_PLACEHOLDER },
+    profile: {
+      name: DEFAULT_DISPLAY_NAME_PLACEHOLDER,
+      character: DEFAULT_CHARACTER_IMAGE,
+    },
     badges: {
       unlockedBadges: [],
       displayedBadgeIds: [],

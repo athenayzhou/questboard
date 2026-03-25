@@ -77,7 +77,8 @@
   outline-offset: 2px;
 }
 
-.quests-header-actions .quest-board-tabs button.quest-board-tab--active {
+.quests-header-actions .quest-board-tabs button.quest-board-tab--active,
+.settings-overlay .quest-board-tabs button.quest-board-tab--active {
   background: linear-gradient(
     145deg,
     rgba(255, 252, 235, 0.65) 0%,
@@ -94,7 +95,8 @@
   border-color: var(--grass-light);
 }
 
-.quests-header-actions .quest-board-tabs button.quest-board-tab--active:hover {
+.quests-header-actions .quest-board-tabs button.quest-board-tab--active:hover,
+.settings-overlay .quest-board-tabs button.quest-board-tab--active:hover {
   color: var(--grass-dark);
   filter: brightness(1.03);
   background: linear-gradient(

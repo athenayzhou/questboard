@@ -17,8 +17,7 @@ import { useUserStore } from "@/store/user";
 import { useSkillStore } from "@/store/skill";
 import { useXPEventStore } from "@/store/xpEvent";
 import { useIdentityStore } from "@/store/identity";
-import { applyDevFriendsSeed } from "@/dev/applyDevFriendsSeed";
-import { applyDevMasterySeed } from "@/dev/applyDevMasterySeed";
+import { ensureGoldieFriend } from "@/lib/ensureGoldieFriend";
 
 export type BootstrapStatus =
   | "idle"
@@ -89,8 +88,7 @@ function applyBootstrapData(data: BootstrapData) {
     useSkillStore.setState({ skills });
     useXPEventStore.setState({ events });
     applyClientGameBlob(normalizeClientGameBlob(data.clientGame));
-    applyDevFriendsSeed();
-    applyDevMasterySeed();
+    ensureGoldieFriend();
     useIdentityStore.getState().setUserCode(typeof data.userCode === "string" ? data.userCode : null)
   } finally {
     setQuestSyncSuppressed(false);

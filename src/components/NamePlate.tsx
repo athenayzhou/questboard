@@ -1,18 +1,23 @@
 /* eslint-disable @next/next/no-img-element */
-import { useCallback, useRef } from "react";
+"use client";
+
+import { Html } from "@react-three/drei";
+import { useCallback, useMemo, useRef, type ReactNode } from "react";
 import type { BadgePlatePlacement } from "@/types/user";
 import { clamp01 } from "@/lib/userBadges";
 import { SYSTEM_BADGES, getBadgeIconUrl } from "@/data/systemBadges";
+import { useUserStore } from "../store/user";
 
 type UserNamePlateProps = {
   userName: string;
-  nameSlot?: React.ReactNode;
+  nameSlot?: ReactNode;
   placements: BadgePlatePlacement[];
   interactive?: boolean;
   onPlacementChange?: (badgeId: string, x: number, y: number) => void;
   className?: string;
 };
 
+/** Name + badge plate (profile, friends, and shared layout). */
 export function UserNamePlate({
   userName,
   nameSlot,
@@ -37,12 +42,15 @@ export function UserNamePlate({
     [onPlacementChange],
   );
 
-  const endDrag = useCallback(function endDrag() {
-    dragRef.current = null;
-    window.removeEventListener("pointermove", handlePointerMove);
-    window.removeEventListener("pointerup", endDrag);
-    window.removeEventListener("pointercancel", endDrag);
-  }, [handlePointerMove]);
+  const endDrag = useCallback(
+    function endDrag() {
+      dragRef.current = null;
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", endDrag);
+      window.removeEventListener("pointercancel", endDrag);
+    },
+    [handlePointerMove],
+  );
 
   const startDrag = useCallback(
     (badgeId: string, e: React.PointerEvent) => {
@@ -99,5 +107,42 @@ export function UserNamePlate({
         </div>
       </div>
     </div>
+  );
+}
+
+type NameProps = {
+  position?: [number, number, number];
+};
+
+/** Floating nameplate in the 3D scene. */
+export default function NamePlate({ position = [0, 1.5, 0] }: NameProps) {
+  const name = useUserStore((s) => s.user.profile.name);
+  const badges = useUserStore((s) => s.user.badges);
+
+  const placements = useMemo(() => {
+    const unlocked = new Set(badges.unlockedBadges);
+    return badges.badgePlacements.filter(
+      (p) =>
+        unlocked.has(p.id) && badges.displayedBadgeIds.includes(p.id),
+    );
+  }, [badges]);
+
+  const htmlPortal = useMemo(
+    () => document.getElementById("html-layer"),
+    [],
+  );
+  if (!htmlPortal) return null;
+
+  return (
+    <Html
+      position={position}
+      transform
+      className="name"
+      wrapperClass="name-wrapper"
+      portal={{ current: htmlPortal }}
+      center
+    >
+      <UserNamePlate userName={name} placements={placements} />
+    </Html>
   );
 }

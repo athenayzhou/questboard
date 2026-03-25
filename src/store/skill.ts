@@ -38,6 +38,9 @@ export const useSkillStore = create<SkillState>((set, get) => ({
     void import("@/store/mastery").then((m) =>
       m.useMasteryStore.getState().syncSkillsForVerb(skill.verb ?? ""),
     );
+    void import("@/lib/masteryGrant").then((mg) =>
+      mg.scheduleMasteryEligibilityCheck(),
+    );
   },
 
   gainXP: (id, amount, questId, questTitle) => {
@@ -71,6 +74,9 @@ export const useSkillStore = create<SkillState>((set, get) => ({
      devLog(
       "skill-gen",
       `XPEvent recorded from quest: "${questId ?? "unidentified"}" (+${amount} xp)${questTitle ? ` — ${questTitle}` : ""}`
+    );
+    void import("@/lib/masteryGrant").then((mg) =>
+      mg.scheduleMasteryEligibilityCheck(),
     );
   },
 

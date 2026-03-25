@@ -62,13 +62,19 @@ button.accept:hover {
   color: var(--sand-bright);
 }
 
-.header-actions button:not(.active):not(.close):not(.quest-board-tab):not(.ledger-tab) {
+.header-actions
+  button:not(.active):not(.close):not(.quest-board-tab):not(.ledger-tab):not(
+    .settings-guide-row-trigger
+  ) {
   background: var(--path-light);
   border: 2px solid var(--path);
   color: var(--text-path);
 }
 
-.header-actions button:not(.active):not(.close):not(.quest-board-tab):not(.ledger-tab):hover {
+.header-actions
+  button:not(.active):not(.close):not(.quest-board-tab):not(.ledger-tab):not(
+    .settings-guide-row-trigger
+  ):hover {
   background: var(--grass-pale);
   border-color: var(--grass-light);
 }
@@ -172,10 +178,14 @@ button.accept:hover {
   box-shadow: var(--shadow-path);
 }
 
-button:not(:disabled):not(.close):not(.accept):not(.quest-board-tab):not(.ledger-tab):hover {
+button:not(:disabled):not(.close):not(.accept):not(.quest-board-tab):not(
+    .ledger-tab
+  ):not(.settings-guide-row-trigger):hover {
   box-shadow: var(--shadow-soft);
 }
 
-button:not(:disabled):not(.close):not(.accept):not(.quest-board-tab):not(.ledger-tab):active {
+button:not(:disabled):not(.close):not(.accept):not(.quest-board-tab):not(
+    .ledger-tab
+  ):not(.settings-guide-row-trigger):active {
   transform: scale(0.99);
 }

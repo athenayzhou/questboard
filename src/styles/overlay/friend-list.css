@@ -198,6 +198,26 @@
   opacity: 0.95;
 }
 
+.friend-card__portrait-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 10px 16px 0;
+  flex-shrink: 0;
+}
+
+.friend-card__portrait {
+  width: 72px;
+  height: 96px;
+  object-fit: contain;
+  object-position: center bottom;
+  border-radius: 12px;
+  border: 2px solid var(--path);
+  background: var(--path-light);
+  box-shadow:
+    var(--shadow-soft),
+    inset 0 0 12px rgba(255, 252, 235, 0.45);
+}
+
 .friend-card__head {
   display: flex;
   align-items: center;

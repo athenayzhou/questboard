@@ -8,8 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "db:seed-beta": "tsx scripts/seed-beta-user.ts"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -35,7 +34,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.0",
     "jsdom": "^26.1.0",
-    "tsx": "^4.19.3",
     "typescript": "^5",
     "vitest": "^3.2.4"
   }
