@@ -195,7 +195,7 @@ export function FilterQuest() {
         <button
           ref={buttonRef}
           type="button"
-          className="quest-filter-toggle"
+          className="add-quest-btn quest-filter-toggle"
           aria-expanded={open}
           aria-controls="quest-filter-panel"
           aria-label="Filter quests"

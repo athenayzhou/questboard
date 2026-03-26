@@ -101,6 +101,14 @@ function applyBootstrapData(data: BootstrapData) {
         id: typeof b.id === "string" ? b.id : "",
         name: typeof b.name === "string" ? b.name : "board",
         createdAt: typeof b.createdAt === "number" ? b.createdAt : Date.now(),
+        memberNames:
+          b.memberNames && typeof b.memberNames === "object"
+            ? Object.fromEntries(
+                Object.entries(b.memberNames as Record<string, unknown>).filter(
+                  ([k, v]) => typeof k === "string" && typeof v === "string",
+                ),
+              )
+            : {},
       }))
       .filter((b) => b.id.length > 0);
 

@@ -16,6 +16,9 @@ type MemberRow = {
 const inviteSchema = z.object({
   userCode: z.string().min(1),
 });
+const removeSchema = z.object({
+  userCode: z.string().min(1),
+});
 
 export async function GET(
   req: Request,
@@ -103,32 +106,86 @@ export async function POST(
         return errorJson("invalid_code", 400);
       }
 
-      // Display name snapshot from player state, fallback to code.
-      const psRes = await tx<{ data: unknown }>(
-        `select data from player_states where tester_id = $1 limit 1`,
-        [targetTesterId],
+      const existingMemberRes = await tx<{ tester_id: string }>(
+        `
+        select tester_id::text as tester_id
+        from shared_board_memberships
+        where board_id = $1::uuid and tester_id = $2::uuid
+        limit 1
+        `,
+        [boardId, targetTesterId],
       );
-      const raw = psRes.rows?.[0]?.data;
-      const displayName =
-        raw && typeof raw === "object" && "profile" in raw
-          ? String(
-              (raw as { profile?: { name?: unknown } }).profile?.name ?? wanted,
-            )
-          : wanted;
+      if (existingMemberRes.rows[0]) {
+        return NextResponse.json({ ok: true, alreadyMember: true });
+      }
 
       await tx(
         `
-        insert into shared_board_memberships (board_id, tester_id, user_code, display_name, role)
-        values ($1::uuid, $2::uuid, $3, $4, 'member')
-        on conflict (board_id, tester_id) do nothing
+        insert into shared_board_invites (board_id, inviter_tester_id, invitee_tester_id, status)
+        values ($1::uuid, $2::uuid, $3::uuid, 'pending')
+        on conflict (board_id, invitee_tester_id)
+        do update set
+          inviter_tester_id = excluded.inviter_tester_id,
+          status = 'pending',
+          created_at = now()
         `,
-        [boardId, targetTesterId, wanted, displayName],
+        [boardId, auth.testerId, targetTesterId],
       );
 
       return NextResponse.json({ ok: true });
     });
   } catch (e) {
     console.error("POST /api/boards/:boardId/members failed:", e);
+    return errorJson("server_error", 500);
+  }
+}
+
+export async function DELETE(
+  req: Request,
+  ctx: { params: Promise<{ boardId: string }> },
+) {
+  const auth = await requireTesterId(req);
+  if (!auth.ok) return auth.response;
+  const { boardId } = await ctx.params;
+
+  const parsedBody = await parseJsonBody(req);
+  if (!parsedBody.ok) return parsedBody.response;
+  const parsed = removeSchema.safeParse(parsedBody.data);
+  if (!parsed.success) return errorJson("invalid_payload", 400);
+
+  const wanted = normalizeUserCodeInput(parsed.data.userCode);
+  if (!wanted) return errorJson("invalid_code", 400);
+
+  try {
+    return await withTransaction(async (tx) => {
+      await ensureSharedBoardsSchema(tx);
+
+      const meRes = await tx<{ role: string; user_code: string }>(
+        `
+        select role, user_code
+        from shared_board_memberships
+        where board_id = $1::uuid and tester_id = $2::uuid
+        limit 1
+        `,
+        [boardId, auth.testerId],
+      );
+      const me = meRes.rows[0];
+      if (!me) return errorJson("unauthorized", 403);
+      if (me.role !== "admin") return errorJson("unauthorized", 403);
+      if (me.user_code === wanted) return errorJson("unauthorized", 403);
+
+      await tx(
+        `
+        delete from shared_board_memberships
+        where board_id = $1::uuid and user_code = $2
+        `,
+        [boardId, wanted],
+      );
+
+      return NextResponse.json({ ok: true });
+    });
+  } catch (e) {
+    console.error("DELETE /api/boards/:boardId/members failed:", e);
     return errorJson("server_error", 500);
   }
 }

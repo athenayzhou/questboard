@@ -5,7 +5,21 @@ import {
   throwIfUnauthorized,
 } from "@/lib/sessionRecovery";
 
-export async function fetchMyBoards(): Promise<SharedBoard[]> {
+export type BoardMember = {
+  user_code: string;
+  display_name: string;
+  role: string;
+};
+
+export type BoardActivityEvent = {
+  id: number;
+  boardId: string;
+  type: string;
+  payload: Record<string, unknown>;
+  createdAt: number;
+}
+
+export async function fetchBoards(): Promise<SharedBoard[]> {
   const res = await fetch("/api/me/boards", { credentials: "include" });
   await throwIfUnauthorized(res);
   if (!res.ok) throw new Error(`boards fetch failed: ${res.status}`);
@@ -27,6 +41,18 @@ export async function fetchBoardQuests(boardId: string): Promise<Quest[]> {
   return Array.isArray(quests) ? (quests as Quest[]) : [];
 }
 
+export async function fetchBoardMembers(boardId: string): Promise<BoardMember[]> {
+  const res = await fetch(`/api/boards/${boardId}/members`, {
+    credentials: "include",
+  });
+  await throwIfUnauthorized(res);
+  if (!res.ok) throw new Error(`members fetch failed: ${res.status}`);
+  const json = (await res.json().catch(() => null)) as unknown;
+  if (!json || typeof json !== "object") return [];
+  const members = (json as { members?: unknown }).members;
+  return Array.isArray(members) ? (members as BoardMember[]) : [];
+}
+
 export async function inviteBoardMember(
   boardId: string,
   userCode: string,
@@ -45,6 +71,24 @@ export async function inviteBoardMember(
         ? String((json as { error?: unknown }).error ?? "")
         : "";
     throw new Error(err || `invite failed: ${res.status}`);
+  }
+}
+
+export async function removeBoardMember(boardId: string, userCode: string): Promise<void> {
+  const res = await fetch(`/api/boards/${boardId}/members`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userCode }),
+  });
+  await throwIfUnauthorized(res);
+  if (!res.ok) {
+    const json = (await res.json().catch(() => null)) as unknown;
+    const err =
+      json && typeof json === "object" && "error" in json
+        ? String((json as { error?: unknown }).error ?? "")
+        : "";
+    throw new Error(err || `remove member failed: ${res.status}`);
   }
 }
 
@@ -92,6 +136,10 @@ export async function createBoardQuest(
   if (!json || typeof json !== "object") throw new Error("invalid_response");
   return (json as { quest?: Quest }).quest as Quest;
 }
+
+
+
+
 
 async function postAction(
   url: string,
@@ -153,3 +201,84 @@ export async function reorderSharedPins(
   return postAction(`/api/boards/${boardId}/pins`, { orderedQuestIds });
 }
 
+export async function fetchBoardActivity(
+  boardId: string,
+  params?: { beforeId?: number | null; limit?: number },
+): Promise<{ events: BoardActivityEvent[]; nextBeforeId: number | null }> {
+  const beforeId = params?.beforeId ?? null;
+  const limit = params?.limit ?? 30;
+  const search = new URLSearchParams();
+  search.set("limit", String(limit));
+  if (beforeId !== null) search.set("beforeId", String(beforeId));
+
+  const res = await fetch(`/api/boards/${boardId}/activity?${search.toString()}`, {
+    credentials: "include",
+  });
+  await throwIfUnauthorized(res);
+  if (!res.ok) throw new Error(`activity fetch failed: ${res.status}`);
+
+  const json = (await res.json().catch(() => null)) as unknown;
+  if (!json || typeof json !== "object") return { events: [], nextBeforeId: null };
+  const obj = json as { events?: unknown; nextBeforeId?: unknown; ok?: unknown };
+  const events = Array.isArray(obj.events) ? (obj.events as unknown[]) : [];
+
+  const normalized: BoardActivityEvent[] = events
+    .map((e) => {
+      if (!e || typeof e !== "object") return null;
+      const ev = e as {
+        id?: unknown;
+        boardId?: unknown;
+        type?: unknown;
+        payload?: unknown;
+        createdAt?: unknown;
+      };
+      const id = typeof ev.id === "number" ? ev.id : Number(ev.id);
+      if (!Number.isFinite(id)) return null;
+
+      return {
+        id,
+        boardId: typeof ev.boardId === "string" ? ev.boardId : boardId,
+        type: typeof ev.type === "string" ? ev.type : "unknown",
+        payload: (ev.payload && typeof ev.payload === "object"
+          ? ev.payload
+          : {}) as Record<string, unknown>,
+        createdAt: Number(ev.createdAt),
+      };
+    })
+    .filter(Boolean) as BoardActivityEvent[];
+
+  const nextBeforeId =
+    obj.nextBeforeId === null || obj.nextBeforeId === undefined
+      ? null
+      : typeof obj.nextBeforeId === "number"
+        ? obj.nextBeforeId
+        : Number(obj.nextBeforeId);
+
+  return { events: normalized, nextBeforeId: Number.isFinite(nextBeforeId as number) ? (nextBeforeId as number) : null };
+}
+
+export async function getBoardInvites(){
+  const res = await fetch("/api/me/board-invites", { credentials: "include" });
+  await throwIfUnauthorized(res);
+  if(!res.ok) throw new Error(`invites fetch failed: ${res.status}`);
+  const json = await res.json();
+  return json.invites || [];
+}
+
+export async function acceptBoardInvite(inviteId: string){
+  const res = await fetch(`/api/me/board-invites/${inviteId}/accept`, {
+    method: "POST",
+    credentials: "include",
+  });
+  await throwIfUnauthorized(res);
+  if(!res.ok) throw new Error(`accept invite failed: ${res.status}`);
+}
+
+export async function declineBoardInvite(inviteId: string){
+  const res = await fetch(`/api/me/board-invites/${inviteId}/decline`, {
+    method: "POST",
+    credentials: "include",
+  });
+  await throwIfUnauthorized(res);
+  if(!res.ok) throw new Error(`decline invite failed: ${res.status}`);
+}

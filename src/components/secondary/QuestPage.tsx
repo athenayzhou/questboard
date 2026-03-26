@@ -31,6 +31,7 @@ import { useBoardStore } from "@/store/board";
 import { useFriendsStore } from "@/store/friends";
 import { sendQuestToFriend } from "@/lib/apiQuests";
 import { showToast } from "@/utils/toast";
+import { PromptDialog } from "../ui/PromptDialog";
 
 type QuestPageProps = {
   quest: Quest;
@@ -90,6 +91,8 @@ export function QuestPage({
     : sharedQuestPinned;
 
   const [sendMenuOpen, setSendMenuOpen] = useState(false);
+  const [sendNoteDialogOpen, setSendNoteDialogOpen] = useState(false);
+  const [sendTargetFriend, setSendTargetFriend] = useState<{ id: string; name: string } | null>(null);
   const sendMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -289,14 +292,9 @@ export function QuestPage({
                         role="menuitem"
                         className="quest-board-invite-menu__item"
                         onClick={() => {
-                          const note = window.prompt("optional note (leave blank for none):") ?? "";
-                          sendQuestToFriend({ toUserCode: f.id, quest, note })
-                            .then(() => showToast("success", `sent to ${f.name}`))
-                            .catch((e) => {
-                              console.error(e);
-                              showToast("error", "send failed");
-                            })
-                            .finally(() => setSendMenuOpen(false));
+                          setSendTargetFriend({ id: f.id, name: f.name });
+                          setSendMenuOpen(false);
+                          setSendNoteDialogOpen(true);
                         }}
                       >
                         {f.name}
@@ -427,10 +425,16 @@ export function QuestPage({
           <h3 className="quest-page-block-title">rewards</h3>
           <ul>
             {getRewardCoins(rewardForDisplay) > 0 && (
-              <li>{getRewardCoins(rewardForDisplay)} coins</li>
+              <li>
+                {getRewardCoins(rewardForDisplay)}{" "}
+                {getRewardCoins(rewardForDisplay) === 1 ? "coin" : "coins"}
+              </li>
             )}
             {getRewardGems(rewardForDisplay) > 0 && (
-              <li>{getRewardGems(rewardForDisplay)} gems</li>
+              <li>
+                {getRewardGems(rewardForDisplay)}{" "}
+                {getRewardGems(rewardForDisplay) === 1 ? "gem" : "gems"}
+              </li>
             )}
             {rewardForDisplay.xp != null && rewardForDisplay.xp > 0 && (
               <li>{rewardForDisplay.xp} xp</li>
@@ -500,6 +504,37 @@ export function QuestPage({
         </footer>
       )}
       </div>
+      <PromptDialog
+        isOpen={sendNoteDialogOpen}
+        title="send quest"
+        message={
+          sendTargetFriend
+            ? `optional note for ${sendTargetFriend.name}`
+            : "optional note"
+        }
+        placeholder="add a note (optional)"
+        multiline
+        maxLength={500}
+        confirmText="send"
+        cancelText="cancel"
+        onCancel={() => {
+          setSendNoteDialogOpen(false);
+          setSendTargetFriend(null);
+        }}
+        onConfirm={(value) => {
+          const target = sendTargetFriend;
+          setSendNoteDialogOpen(false);
+          setSendTargetFriend(null);
+          if (!target) return;
+          const note = value.trim();
+          sendQuestToFriend({ toUserCode: target.id, quest, note })
+            .then(() => showToast("success", `sent to ${target.name}`))
+            .catch((e) => {
+              console.error(e);
+              showToast("error", "send failed");
+            });
+        }}
+      />
     </div>,
     document.getElementById("windows")!
   );

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireTesterId } from "@/lib/session";
 import { errorJson } from "@/lib/apiResponses";
 import { withTransaction } from "@/lib/db";
-import { ensureSharedBoardsSchema } from "@/lib/sharedBoardsDb";
+import { ensureSharedBoardsSchema, emitBoardEvent } from "@/lib/sharedBoardsDb";
 import { assignUserCodeIfMissing } from "@/lib/userCode";
 
 type QuestRow = { data: unknown; status: string };
@@ -61,6 +61,15 @@ export async function POST(
         `update shared_board_quests set data = $3::jsonb, status = $4, updated_at = now() where id = $1::uuid and board_id = $2::uuid`,
         [questId, boardId, JSON.stringify(updated), "accepted"],
       );
+
+      await emitBoardEvent(tx, boardId, "quest_accepted", {
+        questId: typeof updated.id === "string" ? updated.id : questId,
+        acceptedByUserId: userCode,
+        questTitle:
+          typeof updated.title === "string" && updated.title.trim()
+            ? updated.title.trim()
+            : "quest",
+      });
 
       return NextResponse.json({ ok: true, quest: updated });
     });

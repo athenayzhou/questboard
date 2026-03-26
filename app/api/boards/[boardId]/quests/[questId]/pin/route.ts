@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { requireTesterId } from "@/lib/session";
 import { errorJson, parseJsonBody } from "@/lib/apiResponses";
 import { withTransaction } from "@/lib/db";
-import { ensureSharedBoardsSchema } from "@/lib/sharedBoardsDb";
+import { ensureSharedBoardsSchema, emitBoardEvent } from "@/lib/sharedBoardsDb";
 import { assignUserCodeIfMissing } from "@/lib/userCode";
 import { z } from "zod";
 
-type QuestRow = { data: unknown; status: string };
+type QuestRow = { id: string; data: unknown; status: string };
 
 const pinSchema = z.object({ pinned: z.boolean() });
 
@@ -34,12 +34,30 @@ export async function POST(
       );
       if ((memRes.rows?.length ?? 0) === 0) return errorJson("unauthorized", 403);
 
-      const res = await tx<QuestRow>(
-        `select data, status from shared_board_quests where id = $1::uuid and board_id = $2::uuid limit 1`,
+      let rowId = questId;
+      let row: QuestRow | undefined;
+      const byPkRes = await tx<QuestRow>(
+        `select id::text as id, data, status
+        from shared_board_quests
+        where id = $1::uuid and board_id = $2::uuid
+        limit 1`,
         [questId, boardId],
       );
-      const row = res.rows[0];
+      row = byPkRes.rows[0];
+
+      if (!row) {
+        // Backward-compatible lookup for rows whose data.id is the client-facing id.
+        const byDataIdRes = await tx<QuestRow>(
+          `select id::text as id, data, status
+          from shared_board_quests
+          where board_id = $2::uuid and (data->>'id') = $1
+          limit 1`,
+          [questId, boardId],
+        );
+        row = byDataIdRes.rows[0];
+      }
       if (!row) return errorJson("not_found", 404);
+      rowId = row.id;
 
       const q = (row.data && typeof row.data === "object" ? row.data : {}) as Record<
         string,
@@ -72,8 +90,21 @@ export async function POST(
       const updated = { ...(q as Record<string, unknown>), sharedQuestPins: pins };
       await tx(
         `update shared_board_quests set data = $3::jsonb, updated_at = now() where id = $1::uuid and board_id = $2::uuid`,
-        [questId, boardId, JSON.stringify(updated)],
+        [rowId, boardId, JSON.stringify(updated)],
       );
+
+      const pinned = parsed.data.pinned;
+      const questTitle =
+        typeof q["title"] === "string" && q["title"].trim() ? q["title"].trim() : "quest";
+      const questIdFromData =
+        typeof q["id"] === "string" && q["id"].trim() ? q["id"].trim() : questId;
+
+      await emitBoardEvent(tx, boardId, "quest_pinned", {
+        questId: questIdFromData,
+        pinned,
+        pinnedByUserId: userCode,
+        questTitle,
+      });
 
       return NextResponse.json({ ok: true, quest: updated });
     });

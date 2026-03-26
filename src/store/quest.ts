@@ -143,38 +143,79 @@ export const useQuestStore = create<QuestState>((set, get) => ({
   },
 
   editQuest: (id, updates) => {
-    set(state => {
-      const quest = state.quests.find(q => q.id === id);
-      if (!quest || quest.status !== "available") return state;
-      if (quest.boardId) return state;
-      if (isSystemGeneratedQuest(quest)) return state;
-      const updatedQuest = {...quest, ...updates };
-      const next = state.quests.map(q => q.id === id ? updatedQuest: q);
+    const quest = get().quests.find((q) => q.id === id);
+    if(!quest) return;
+
+    if(quest.boardId){
+      get().setOperationLoading(`edit-${id}`, true);
+      fetch(`/api/boards/${quest.boardId}/quests/${id}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      })
+        .then((res) => {
+          if(!res.ok) throw new Error("edit failed");
+          return res.json();
+        })
+        .then(({ quest: updated }) => {
+          if(!updated) return;
+          set((s) => ({ quests: replaceQuestById(s.quests, updated as Quest) }));
+          showToast("success", `quest "${updated.title}" updated`);
+        })
+        .catch((e) => {
+          console.error(e);
+          showToast("error", "failed to edit shared quest");
+        })
+        .finally(() => get().setOperationLoading(`edit-${id}`, false));
+      return;
+    }
+
+    set((state) => {
+      if(quest.status !== "available" || isSystemGeneratedQuest(quest)) return state;
+      const updatedQuest = { ...quest, ...updates };
+      const next = state.quests.map((q) => (q.id === id ? updatedQuest : q));
       scheduleQuestSync();
       return { quests: next };
-    })
+    });
   },
 
   deleteQuest: (id) => {
     const quest = get().quests.find((q) => q.id === id);
     if (!quest) return;
     if (quest.boardId) {
-      showToast("info", "shared quests can't be deleted yet");
+      if(!confirm(`delete shared quest "${quest.title}"?`)) return;
+      get().setOperationLoading(`delete-${id}`, true);
+      fetch(`/api/boards/${quest.boardId}/quests/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      })
+        .then((res) => {
+          if(!res.ok) throw new Error("delete failed");
+          return res.json();
+        })
+        .then(() => {
+          set((state) => ({
+            quests: state.quests.filter((q) => q.id !== id),
+          }));
+          showToast("success", `shared quest "${quest.title}" deleted`);
+        })
+        .catch((e) => {
+          console.error(e);
+          showToast("error", "failed to delete shared quest");
+        })
+        .finally(() => get().setOperationLoading(`delete-${id}`, false));
       return;
     }
     if (isTutorial(quest)) {
       showToast("info", "tutorial quests can't be deleted");
       return;
     }
+    if(quest.isSystemGenerated === true){
+      showToast("info", "system quests cannto be deleted");
+    }
     set((state) => {
-      const q = state.quests.find((x) => x.id === id);
-      if (!q) return state;
-      const next =
-        q.isTemplate === true
-          ? state.quests.filter(
-              (x) => x.id !== id && x.parentQuestId !== id
-            )
-          : state.quests.filter((x) => x.id !== id);
+      const next = state.quests.filter((q) => q.id !== id);
       scheduleQuestSync();
       return { quests: next };
     });

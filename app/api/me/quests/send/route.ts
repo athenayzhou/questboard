@@ -6,13 +6,16 @@ import { questRowIdFromClientId } from "@/lib/questRowId";
 import { z } from "zod";
 import type { Quest } from "@/types/quest";
 import { normalizeUserCodeInput } from "@/utils/format/code";
+import { consumeRateLimit, requestIp } from "@/lib/rateLimit";
 
 const questSchema = z.object({}).passthrough();
+const MAX_NOTE_LEN = 500;
+const MAX_SENT_QUEST_BYTES = 64_000;
 
 const payloadSchema = z.object({
-  toUserCode: z.string(),
+  toUserCode: z.string().max(64),
   quest: questSchema,
-  note: z.string().nullish(),
+  note: z.string().max(MAX_NOTE_LEN).nullish(),
 });
 
 type RecipientRow = {
@@ -44,7 +47,25 @@ export async function POST(req: Request) {
     if (!rawQuest?.title || typeof rawQuest.title !== "string") {
       return errorJson("invalid_quest", 400);
     }
+    if (rawQuest.title.length > 200) return errorJson("invalid_quest", 400);
+    if ((rawQuest.description?.length ?? 0) > 5_000) {
+      return errorJson("invalid_quest", 400);
+    }
+    if ((rawQuest.subquests?.length ?? 0) > 100) {
+      return errorJson("invalid_quest", 400);
+    }
 
+    const rate = consumeRateLimit({
+      key: `send-quest:${auth.testerId}:${requestIp(req)}`,
+      limit: 20,
+      windowMs: 60_000,
+    });
+    if (!rate.allowed){
+      return NextResponse.json(
+        { ok: false, error: "rate_limited", retryAfterSec: rate.retryAfterSec },
+        { status: 429, headers: { "Retry-After": String(rate.retryAfterSec) } },
+      );
+    }
     const now = Date.now();
 
     const result = await withTransaction(async (tx) => {
@@ -77,6 +98,20 @@ export async function POST(req: Request) {
       const sender = senderRes.rows[0];
       const senderCode = sender?.player_code ?? null;
       const senderName = sender?.display_name?.trim() || null;
+      const duplicateWindowStart = Date.now() - 10 * 60 * 1000;
+
+      const recent = await tx(
+        `select 1 from quests
+        where tester_id = $1
+          and (data->>'sourceQuestId') = $2
+          and (data->>'sentByUserId') = $3
+          and (data->>'sentAt')::bigint > $4
+        limit 1`,
+        [recipient.tester_id, rawQuest.id, senderCode, duplicateWindowStart],
+      );
+      if (recent.rows.length > 0) {
+        return { ok: false as const, error: "duplicate_send" as const };
+      }
 
       const newQuest: Quest = {
         ...rawQuest,
@@ -100,6 +135,9 @@ export async function POST(req: Request) {
         sentAt: now,
         sourceQuestId: rawQuest.id,
       };
+      if (JSON.stringify(newQuest).length > MAX_SENT_QUEST_BYTES) {
+        return { ok: false as const, error: "invalid_quest" as const };
+      }
 
       const rowId = questRowIdFromClientId(newQuest.id, recipient.tester_id);
 
@@ -121,6 +159,8 @@ export async function POST(req: Request) {
     if (!result.ok) {
       if (result.error === "not_found") return errorJson("not_found", 404);
       if (result.error === "self") return errorJson("self", 400);
+      if (result.error === "duplicate_send") return errorJson("duplicate_send", 409);
+      if (result.error === "invalid_quest") return errorJson("invalid_quest", 400);
       return errorJson("server_error", 500);
     }
 

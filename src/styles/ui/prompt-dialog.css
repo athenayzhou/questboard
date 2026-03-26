@@ -1,0 +1,82 @@
+.prompt-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10055;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 15, 10, 0.55);
+  backdrop-filter: blur(2px);
+  padding: 1rem;
+}
+
+.prompt-dialog {
+  background: var(--bg-panel);
+  border-radius: 14px;
+  padding: 1.25rem;
+  max-width: 430px;
+  width: 100%;
+  border: 3px solid var(--path-shadow);
+  box-shadow: var(--shadow-path);
+}
+
+.prompt-dialog-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.05rem;
+  color: var(--grass-dark);
+}
+
+.prompt-dialog-message {
+  margin: 0 0 0.9rem 0;
+  color: var(--text-path);
+  line-height: 1.45;
+}
+
+.prompt-dialog-input {
+  width: 100%;
+  border: 2px solid var(--path);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--text-path);
+  padding: 0.65rem 0.8rem;
+  font-size: 0.95rem;
+}
+
+.prompt-dialog-input--textarea {
+  min-height: 92px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.prompt-dialog-input:focus {
+  outline: none;
+  border-color: var(--grass-light);
+  box-shadow: 0 0 0 3px rgba(90, 156, 78, 0.22);
+}
+
+.prompt-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+}
+
+.prompt-dialog-cancel,
+.prompt-dialog-confirm {
+  padding: 0.5rem 0.95rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.prompt-dialog-cancel {
+  border: 2px solid rgba(196, 165, 116, 0.65);
+  background: rgba(255, 255, 255, 0.45);
+  color: var(--text-path);
+}
+
+.prompt-dialog-confirm {
+  border: 2px solid var(--grass-dark);
+  background: var(--bg-field);
+  color: var(--sand-bright);
+}

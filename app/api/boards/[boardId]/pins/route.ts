@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireTesterId } from "@/lib/session";
 import { errorJson, parseJsonBody } from "@/lib/apiResponses";
 import { withTransaction } from "@/lib/db";
-import { ensureSharedBoardsSchema } from "@/lib/sharedBoardsDb";
+import { ensureSharedBoardsSchema, emitBoardEvent } from "@/lib/sharedBoardsDb";
 import { assignUserCodeIfMissing } from "@/lib/userCode";
 import { z } from "zod";
 
@@ -79,6 +79,13 @@ export async function POST(
           `update shared_board_quests set data = $3::jsonb, updated_at = now() where id = $1::uuid and board_id = $2::uuid`,
           [String(q["id"]), boardId, JSON.stringify(q)],
         );
+      }
+
+      if (ids.length > 0) {
+        await emitBoardEvent(tx, boardId, "quests_pins_reordered", {
+          orderedQuestIds: ids,
+          pinnedByUserId: userCode,
+        });
       }
 
       return NextResponse.json({ ok: true, quests: updatedQuests });

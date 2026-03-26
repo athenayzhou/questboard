@@ -125,7 +125,15 @@ export async function GET(req: Request) {
       select jsonb_build_object(
         'id', b.id,
         'name', b.name,
-        'createdAt', extract(epoch from b.created_at) * 1000
+        'createdAt', extract(epoch from b.created_at) * 1000,
+        'memberNames', coalesce(
+          (
+            select jsonb_object_agg(sm.user_code, sm.display_name)
+            from shared_board_memberships sm
+            where sm.board_id = b.id
+          ),
+          '{}'::jsonb
+        )
       ) as data
       from shared_boards b
       join shared_board_memberships m on m.board_id = b.id
