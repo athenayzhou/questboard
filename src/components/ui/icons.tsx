@@ -62,6 +62,15 @@ export function IconUserPlus({ size = 18, className, ...rest }: IconProps) {
   );
 }
 
+export function IconSend({ size = 18, className, ...rest }: IconProps) {
+  return (
+    <svg {...base(size)} className={className} aria-hidden {...rest}>
+      <path d="m22 2-7 20-4-9-9-4Z" />
+      <path d="M22 2 11 13" />
+    </svg>
+  );
+}
+
 export function IconX({ size = 18, className, ...rest }: IconProps) {
   return (
     <svg {...base(size)} className={className} aria-hidden {...rest}>

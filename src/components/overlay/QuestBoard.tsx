@@ -1,4 +1,12 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useLayoutEffect,
+  useCallback,
+} from "react";
+import { createPortal } from "react-dom";
 import { useOverlay } from "../../store/overlay";
 import type { Quest } from "../../types/quest";
 import { BoardCard } from "../secondary/BoardCard";
@@ -6,11 +14,15 @@ import { UI } from "../../utils/constants";
 import { FilterQuest } from "../secondary/FilterQuest";
 import { useQuestStore } from "../../store/quest";
 import { QuestCardSkeleton } from "../ui/SkeletonLoader";
-import { IconPlus, IconX } from "../ui/icons";
+import { IconPlus, IconX, IconChevronRight, IconUserPlus } from "../ui/icons";
 import { useTutorialStore } from "@/onboarding/tutorialStore";
 import { TUTORIAL_FIRST_LOOP_QUEST_ID } from "@/onboarding/tutorialConstants";
 import { templateIdForTutorialSubquestId } from "@/onboarding/tutorialGating";
 import { TUTORIAL_QUEST_TEMPLATES } from "@/onboarding/tutorialTemplates";
+import { useBoardStore } from "@/store/board";
+import { createBoard, fetchBoardQuests, fetchMyBoards, inviteBoardMember } from "@/lib/apiBoards";
+import { useIdentityStore } from "@/store/identity";
+import { useFriendsStore } from "@/store/friends";
 
 type QuestBoardProps = {
   quests: Quest[];
@@ -25,9 +37,47 @@ export function QuestBoard({
   const openOverlay = useOverlay(s => s.openOverlay);
   const closeOverlay = useOverlay(s => s.closeOverlay);
   const closeAllQuests = useOverlay(s => s.closeAllQuests);
+  const questTopTab = useOverlay((s) => s.questTopTab);
+  const setQuestTopTab = useOverlay((s) => s.setQuestTopTab);
   const tab = useOverlay(s => s.boardTab);
   const setTab = useOverlay(s => s.setBoardTab);
   const openQuestPages = useOverlay(s => s.openQuestPages);
+  const boardScope = useOverlay((s) => s.boardScope);
+  const setBoardScope = useOverlay((s) => s.setBoardScope);
+  const setAddQuestTargetId = useOverlay((s) => s.setAddQuestTargetId);
+  const boards = useBoardStore((s) => s.boards);
+  const activeBoardId = useBoardStore((s) => s.activeBoardId);
+  const setBoards = useBoardStore((s) => s.setBoards);
+  const setActiveBoardId = useBoardStore((s) => s.setActiveBoardId);
+  const userCode = useIdentityStore((s) => s.userCode);
+  const friends = useFriendsStore((s) => s.friends);
+  const [boardMenuOpen, setBoardMenuOpen] = useState(false);
+  const [inviteMenuOpen, setInviteMenuOpen] = useState(false);
+  const boardMenuRef = useRef<HTMLDivElement>(null);
+  const boardMenuPortalRef = useRef<HTMLDivElement>(null);
+  const boardTriggerRef = useRef<HTMLButtonElement>(null);
+  const [boardMenuRect, setBoardMenuRect] = useState<DOMRect | null>(null);
+  const inviteMenuRef = useRef<HTMLDivElement>(null);
+
+  const updateBoardMenuPosition = useCallback(() => {
+    if (!boardMenuOpen || !boardTriggerRef.current) return;
+    setBoardMenuRect(boardTriggerRef.current.getBoundingClientRect());
+  }, [boardMenuOpen]);
+
+  useLayoutEffect(() => {
+    if (!boardMenuOpen) {
+      setBoardMenuRect(null);
+      return;
+    }
+    updateBoardMenuPosition();
+    const onReposition = () => updateBoardMenuPosition();
+    window.addEventListener("scroll", onReposition, true);
+    window.addEventListener("resize", onReposition);
+    return () => {
+      window.removeEventListener("scroll", onReposition, true);
+      window.removeEventListener("resize", onReposition);
+    };
+  }, [boardMenuOpen, updateBoardMenuPosition]);
 
   const { questSearch, questFilters } = useOverlay();
   const { isLoading } = useQuestStore();
@@ -38,6 +88,66 @@ export function QuestBoard({
     Boolean(firstLoopTemplateId) &&
     templateIdForTutorialSubquestId(currentSubquest?.id ?? "") ===
       firstLoopTemplateId;
+
+  // Shared boards: hydrate boards list when switching into shared scope.
+  useEffect(() => {
+    if (activeOverlay !== "quests") return;
+    if (boardScope !== "shared") return;
+    if (boards.length > 0) return;
+    fetchMyBoards()
+      .then((b) => setBoards(b))
+      .catch((e) => console.error(e));
+  }, [activeOverlay, boardScope, boards.length, setBoards]);
+
+  useEffect(() => {
+    if (!boardMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (boardMenuRef.current?.contains(t)) return;
+      if (boardMenuPortalRef.current?.contains(t)) return;
+      setBoardMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [boardMenuOpen]);
+
+  useEffect(() => {
+    if (!inviteMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (inviteMenuRef.current?.contains(t)) return;
+      setInviteMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [inviteMenuOpen]);
+
+  // Shared boards: load quests for the active board into the quest store.
+  useEffect(() => {
+    if (activeOverlay !== "quests") return;
+    if (boardScope !== "shared") return;
+    if (!activeBoardId) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const qs = await fetchBoardQuests(activeBoardId);
+        if (cancelled) return;
+        useQuestStore.getState().setQuest((prev) => {
+          const keep = prev.filter((q) => !q.boardId);
+          return [...keep, ...qs];
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    void load();
+    const id = window.setInterval(load, 5_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [activeOverlay, boardScope, activeBoardId]);
 
   const dragEnabled = openQuestPages.length === 0;
   const boardRef = useRef<HTMLDivElement>(null);
@@ -52,8 +162,18 @@ export function QuestBoard({
   const didDragRef = useRef<string | null>(null);
 
   const tabbed = useMemo(() => {
-    return quests.filter(q => q.status === tab);
-  }, [quests, tab]);
+    if (questTopTab === "collab") {
+      if (!activeBoardId) return [];
+      return quests.filter((q) => q.boardId === activeBoardId && q.status === tab);
+    }
+    if (questTopTab === "accepted") {
+      return quests.filter((q) => {
+        if (!q.boardId) return q.status === "accepted";
+        return q.status === "accepted" && q.acceptedByUserId === userCode;
+      });
+    }
+    return quests.filter((q) => !q.boardId && q.status === questTopTab);
+  }, [quests, tab, questTopTab, activeBoardId, userCode]);
   function handleTabSwitch(newTab: "available" | "accepted") {
     if (newTab === tab) return;
     closeAllQuests();
@@ -219,6 +339,7 @@ export function QuestBoard({
 
   const lockBoardChrome =
     isFirstTutorialChain &&
+    questTopTab !== "collab" &&
     (tutorialSpotlight === "board-tutorial-card-available" ||
       tutorialSpotlight === "board-tutorial-card-accepted" ||
       tutorialSpotlight === "qp-accept" ||
@@ -246,48 +367,128 @@ export function QuestBoard({
 
   if (activeOverlay !== "quests") return null;
 
+  const boardDropdownPortal =
+    boardMenuOpen &&
+    boardMenuRect &&
+    typeof document !== "undefined" &&
+    createPortal(
+      <div
+        ref={boardMenuPortalRef}
+        className="quest-board-dropdown__menu quest-board-dropdown__menu--portal"
+        role="menu"
+        style={{
+          top: boardMenuRect.bottom + 8,
+          left: boardMenuRect.left,
+          minWidth: Math.max(boardMenuRect.width, 220),
+        }}
+      >
+        {boards.map((b) => (
+          <button
+            key={b.id}
+            type="button"
+            role="menuitem"
+            className={`quest-board-dropdown__item${b.id === activeBoardId ? " is-active" : ""}`}
+            onClick={() => {
+              setActiveBoardId(b.id);
+              setBoardMenuOpen(false);
+            }}
+          >
+            {b.name}
+          </button>
+        ))}
+        <div className="quest-board-dropdown__sep" aria-hidden />
+        <button
+          type="button"
+          role="menuitem"
+          className="quest-board-dropdown__item quest-board-dropdown__item--create"
+          onClick={() => {
+            const name = window.prompt("new board name:");
+            if (!name?.trim()) return;
+            createBoard(name.trim())
+              .then(() => fetchMyBoards().then((b) => setBoards(b)))
+              .finally(() => setBoardMenuOpen(false))
+              .catch((e) => console.error(e));
+          }}
+        >
+          + add new board
+        </button>
+      </div>,
+      document.body,
+    );
+
   return (
     <div className="overlay quests-overlay">
       <div className="header quests-header">
         <h2>quest board</h2>
-        <div className="header-actions quests-header-actions">
-          <div className="quest-board-tabs" role="tablist" aria-label="Quest list">
+        <div className="quest-board-header__tabsWrap">
+          <div className="quest-board-tabs" role="tablist" aria-label="Quest board tabs">
             <button
               type="button"
               role="tab"
-              aria-selected={tab === "available"}
-              data-spotlight="board-tab-available"
-              disabled={disableAvailableTab}
-              className={`quest-board-tab${tab === "available" ? " quest-board-tab--active" : ""}`}
-              onClick={() => handleTabSwitch("available")}
+              aria-selected={questTopTab === "available"}
+              className={`quest-board-tab${questTopTab === "available" ? " quest-board-tab--active" : ""}`}
+              onClick={() => {
+                if (questTopTab === "available") return;
+                closeAllQuests();
+                setQuestTopTab("available");
+                setBoardScope("personal");
+                setTab("available");
+              }}
             >
               available
             </button>
             <button
               type="button"
               role="tab"
-              aria-selected={tab === "accepted"}
-              data-spotlight="board-tab-accepted"
-              disabled={disableAcceptedTab}
-              className={`quest-board-tab${tab === "accepted" ? " quest-board-tab--active" : ""}`}
-              onClick={() => handleTabSwitch("accepted")}
+              aria-selected={questTopTab === "accepted"}
+              className={`quest-board-tab${questTopTab === "accepted" ? " quest-board-tab--active" : ""}`}
+              onClick={() => {
+                if (questTopTab === "accepted") return;
+                closeAllQuests();
+                setQuestTopTab("accepted");
+                setBoardScope("personal");
+                setTab("accepted");
+              }}
             >
               accepted
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={questTopTab === "collab"}
+              className={`quest-board-tab${questTopTab === "collab" ? " quest-board-tab--active" : ""}`}
+              onClick={() => {
+                if (questTopTab === "collab") return;
+                closeAllQuests();
+                setQuestTopTab("collab");
+                setBoardScope("shared");
+                setTab("available");
+              }}
+            >
+              collab
+            </button>
           </div>
+        </div>
+
+        <div className="quest-board-header__actions">
           <FilterQuest />
           <div className="quest-board-trailing">
             <button
               type="button"
               className="add-quest-btn"
               data-spotlight="board-add-quest"
-              disabled={lockBoardChrome}
-              onClick={() => openOverlay("addQuest")}
+              disabled={lockBoardChrome || (questTopTab === "collab" && !activeBoardId)}
+              onClick={() => {
+                setAddQuestTargetId(questTopTab === "collab" ? activeBoardId : null);
+                openOverlay("addQuest");
+              }}
               aria-label="Add quest"
               title={
                 lockBoardChrome
                   ? "Finish this tutorial step on the quest board first"
-                  : "Add quest"
+                  : questTopTab === "collab" && !activeBoardId
+                    ? "Select a shared board first"
+                    : "Add quest"
               }
             >
               <IconPlus size={16} />
@@ -303,7 +504,113 @@ export function QuestBoard({
             </button>
           </div>
         </div>
+
+        {questTopTab === "collab" && (
+            <div className="quest-board-header__bottom">
+              <div className="quest-board-header__bottomLeft" aria-hidden />
+              <div className="quest-board-header__subtabs">
+                <div
+                  className="quest-board-tabs quest-board-tabs--compact"
+                  role="tablist"
+                  aria-label="Collab quest list"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === "available"}
+                    data-spotlight="board-tab-available"
+                    disabled={disableAvailableTab}
+                    className={`quest-board-tab${tab === "available" ? " quest-board-tab--active" : ""}`}
+                    onClick={() => handleTabSwitch("available")}
+                  >
+                    available
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === "accepted"}
+                    data-spotlight="board-tab-accepted"
+                    disabled={disableAcceptedTab}
+                    className={`quest-board-tab${tab === "accepted" ? " quest-board-tab--active" : ""}`}
+                    onClick={() => handleTabSwitch("accepted")}
+                  >
+                    accepted
+                  </button>
+                </div>
+              </div>
+
+              <div className="quest-board-header__collabRight">
+                <div className="quest-board-collab-controls">
+                  <div className="quest-board-dropdown" ref={boardMenuRef}>
+                    <button
+                      ref={boardTriggerRef}
+                      type="button"
+                      className="quest-board-dropdown__trigger"
+                      onClick={() => setBoardMenuOpen((v) => !v)}
+                      aria-haspopup="menu"
+                      aria-expanded={boardMenuOpen}
+                      title="Select a shared board"
+                    >
+                      <span className="quest-board-dropdown__label">
+                        {activeBoardId
+                          ? (boards.find((b) => b.id === activeBoardId)?.name ?? "board")
+                          : "select board"}
+                      </span>
+                      <IconChevronRight
+                        size={18}
+                        className={`quest-board-dropdown__chev${boardMenuOpen ? " is-open" : ""}`}
+                        aria-hidden
+                      />
+                    </button>
+                  </div>
+
+                  <div className="quest-board-invite-wrap" ref={inviteMenuRef}>
+                    <button
+                      type="button"
+                      className="add-friend-btn quest-board-invite"
+                      disabled={!activeBoardId}
+                      onClick={() => setInviteMenuOpen((v) => !v)}
+                      title={activeBoardId ? "Invite" : "Select a shared board first"}
+                      aria-haspopup="menu"
+                      aria-expanded={inviteMenuOpen}
+                    >
+                      <IconUserPlus size={16} />
+                    </button>
+
+                    {inviteMenuOpen && activeBoardId && (
+                      <div className="quest-board-invite-menu" role="menu">
+                        {friends.length > 0 ? (
+                          <>
+                            <div className="quest-board-invite-menu__cap">invite a friend</div>
+                            {friends.slice(0, 12).map((f) => (
+                              <button
+                                key={f.id}
+                                type="button"
+                                role="menuitem"
+                                className="quest-board-invite-menu__item"
+                                onClick={() => {
+                                  inviteBoardMember(activeBoardId, f.id)
+                                    .then(() => fetchMyBoards().then((b) => setBoards(b)))
+                                    .finally(() => setInviteMenuOpen(false))
+                                    .catch((e) => console.error(e));
+                                }}
+                              >
+                                {f.name}
+                              </button>
+                            ))}
+                          </>
+                        ) : (
+                          <div className="quest-board-invite-menu__empty">no friends yet</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
       </div>
+      {boardDropdownPortal}
 
       <div className="quest-board-body">
         <div ref={boardRef} className="quest-board">

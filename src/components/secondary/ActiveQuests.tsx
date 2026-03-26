@@ -12,6 +12,8 @@ import {
   IconGripVertical,
 } from "../ui/icons";
 import { tryCompleteTutorialSpotlight } from "@/onboarding/tutorialProgress";
+import { isPersonalQuest, userHasPin } from "@/lib/boardScope";
+import { useIdentityStore } from "@/store/identity";
 
 export function ActiveQuest() {
   const activeOverlay = useOverlay(s => s.activeOverlay);
@@ -26,17 +28,37 @@ export function ActiveQuest() {
   const toggleSubquest = useQuestStore((s) => s.toggleSubquest);
 
   const quests = useQuestStore(s => s.quests);
-  const active = useMemo(
-    () => quests.filter(q => q.status === "accepted" && q.pinned)
-      .sort((a,b) => (a.order ?? 0) - (b.order ?? 0)),
-    [quests]
-  );
+  // const active = useMemo(
+  //   () => quests.filter(q => q.status === "accepted" && q.pinned)
+  //     .sort((a,b) => (a.order ?? 0) - (b.order ?? 0)),
+  //   [quests]
+  // );
 
   const [collapsed, setCollapsed] = useState(true);
   const [expandedQuestId, setExpandedQuestId] = useState<string | null>(null);
   const [draggedQuestId, setDraggedQuestId] = useState<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const isDraggingRef = useRef(false);
+
+  const userCode = useIdentityStore((s) => s.userCode);
+  const active = useMemo(() => {
+    return quests
+      .filter((q) => {
+        if(q.status !== "accepted") return false;
+        if(isPersonalQuest(q)) return q.pinned === true;
+        if(!userCode || q.acceptedByUserId !== userCode) return false;
+        return userHasPin(q, userCode);
+      })
+      .sort((a, b) => {
+        const oa = isPersonalQuest(a)
+          ? (a.order ?? 0)
+          : (a.sharedQuestPins?.[userCode!]?.order ?? 0);
+        const ob = isPersonalQuest(b)
+          ? (b.order ?? 0)
+          : (b.sharedQuestPins?.[userCode!]?.order ?? 0);
+        return oa-ob;
+      });
+  }, [quests, userCode]);
 
   useEffect(() => {
     if (activeOverlay) {
@@ -115,7 +137,10 @@ export function ActiveQuest() {
           <div className="active-quest-list">
             {active.map((q, index)=> {
             const progress = questProgress(q);
-            const isPinned = q.pinned;
+            const isPinned = isPersonalQuest(q)
+              ? q.pinned
+              : Boolean(userCode && userHasPin(q, userCode));
+            const canAct = !q.boardId || q.acceptedByUserId === userCode;
             const isExpanded = expandedQuestId === q.id;
             const isDragging = draggedQuestId === q.id;
             const isDragOver = dragOverIndex === index;
@@ -156,6 +181,7 @@ export function ActiveQuest() {
                     aria-label={isPinned ? "Unpin quest" : "Pin quest"}
                     onClick={(e) => {
                       e.stopPropagation();
+                      if(!canAct) return;
                       togglePin(q.id);
                     }}
                   >
@@ -169,8 +195,7 @@ export function ActiveQuest() {
                     aria-label="Complete quest"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Advance tutorial before completeQuest — canCompleteTutorialQuestForTemplate
-                      // requires the last spotlight step to already be marked done.
+                      if(!canAct) return;
                       tryCompleteTutorialSpotlight("active-complete");
                       completeQuest(q.id);
                     }}
@@ -184,6 +209,7 @@ export function ActiveQuest() {
                     aria-label="Fail quest"
                     onClick={(e) => {
                       e.stopPropagation();
+                      if(!canAct) return;
                       failQuest(q.id);
                     }}
                   >
@@ -238,8 +264,11 @@ export function ActiveQuest() {
                               <input 
                                 type="checkbox" 
                                 checked={task.completed} 
-                                onChange={() => toggleSubquest(q.id, task.id)} 
-                                disabled={q.status !== "accepted"}
+                                onChange={() => {
+                                  if(!canAct) return;
+                                  toggleSubquest(q.id, task.id);
+                                }} 
+                                disabled={q.status !== "accepted" || !canAct}
                               />
                               <span>{task.title}</span>
                             </li>

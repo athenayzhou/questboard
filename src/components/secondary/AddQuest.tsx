@@ -9,12 +9,14 @@ import type { Quest } from "../../types/quest";
 import { IconPlus } from "../ui/icons";
 import { tryCompleteTutorialSpotlight } from "@/onboarding/tutorialProgress";
 import { useTutorialStore } from "@/onboarding/tutorialStore";
+import { createBoardQuest } from "@/lib/apiBoards";
 
 export function AddQuestOverlay() {
   const setOverlay = useOverlay((s) => s.openOverlay);
   const addQuest = useQuestStore((s) => s.addQuest);
   const acceptQuest = useQuestStore((s) => s.acceptQuest);
   const togglePin = useQuestStore((s) => s.togglePin);
+  const setQuest = useQuestStore((s) => s.setQuest);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -31,6 +33,8 @@ export function AddQuestOverlay() {
 
   const { errors, setError, hasErrors } = useValidation();
   const [isCreating, setIsCreating] = useState(false);
+  
+  const boardId = useOverlay((s) => s.addQuestTargetId);
 
   const addCategory = () => {
     if(currentCategory.trim() && !categories.includes(currentCategory.trim())){
@@ -71,7 +75,10 @@ export function AddQuestOverlay() {
     setIsCreating(true);
     
     try {
-      const created = addQuest({
+      const payload: Omit<
+        Quest,
+        "id" | "createdAt" | "status" | "acceptedAt" | "acceptedByUserId"
+      > = {
         title,
         description,
         category: categories.length > 0 ? categories : undefined,
@@ -82,7 +89,16 @@ export function AddQuestOverlay() {
         deadline,
         duration: duration === "" ? undefined : Number(duration),
         subquests: subquests.length > 0 ? subquests : undefined,
-      });
+      };
+
+      const created = boardId
+        ? await createBoardQuest(boardId, payload)
+        : addQuest(payload);
+
+      if (boardId) {
+        // Merge shared quest into store; personal is handled by addQuest.
+        setQuest((prev) => [...prev, created]);
+      }
       if (
         useTutorialStore.getState().currentSubquest?.spotlight === "addq-submit"
       ) {
@@ -99,6 +115,7 @@ export function AddQuestOverlay() {
       setCurrentSubquest("");
       useOverlay.getState().setBoardTab("available");
       setOverlay("quests");
+      useOverlay.getState().setAddQuestTargetId(null);
     } finally {
       setIsCreating(false);
     }

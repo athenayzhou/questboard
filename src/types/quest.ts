@@ -62,6 +62,17 @@ export type Quest = {
   };
   expiresAfterDays?: number;
   expiresAt?: number;
+
+  boardId?: string | null;
+  acceptedByUserId?: string | null;
+  completedByUserId?: string | null;
+  sharedQuestPins?: Record<string, { pinned: boolean; order?: number }>;
+
+  sentByUserId?: string | null;
+  sentByName?: string | null;
+  sentNote?: string | null;
+  sentAt?: number | null;
+  sourceQuestId?: string | null;
 }
 
 export type CompletedQuest = Quest & {

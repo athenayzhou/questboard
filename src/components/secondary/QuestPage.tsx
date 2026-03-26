@@ -21,9 +21,16 @@ import {
   IconX,
   IconRefreshCw,
   IconClipboard,
+  IconSend,
 } from "../ui/icons";
 import { tryCompleteTutorialSpotlight } from "@/onboarding/tutorialProgress";
 import { isTutorial } from "@/onboarding/tutorialTypes";
+import { useIdentityStore } from "@/store/identity";
+import { isPersonalQuest, userHasPin } from "@/lib/boardScope";
+import { useBoardStore } from "@/store/board";
+import { useFriendsStore } from "@/store/friends";
+import { sendQuestToFriend } from "@/lib/apiQuests";
+import { showToast } from "@/utils/toast";
 
 type QuestPageProps = {
   quest: Quest;
@@ -63,6 +70,46 @@ export function QuestPage({
   const fail = useQuestStore((s) => s.failQuest);
   const pin = useQuestStore((s) => s.togglePin);
   const toggleSubquest = useQuestStore((s) => s.toggleSubquest);
+
+  const userCode = useIdentityStore((s) => s.userCode);
+  const friends = useFriendsStore((s) => s.friends);
+  const isShared = Boolean(quest.boardId);
+  const boardName = useBoardStore((s) =>
+    quest.boardId ? s.boards.find((b) => b.id === quest.boardId)?.name ?? null : null,
+  );
+  const acceptedByName = useBoardStore((s) => {
+    if (!quest.boardId || !quest.acceptedByUserId) return null;
+    const b = s.boards.find((bb) => bb.id === quest.boardId);
+    return b?.memberNames?.[quest.acceptedByUserId] ?? null;
+  });
+  const isAccepter =
+    !isShared || !quest.acceptedByUserId || quest.acceptedByUserId === userCode;
+  const sharedQuestPinned = Boolean(userCode) && userHasPin(quest, userCode);
+  const pinMarked = isPersonalQuest(quest)
+    ? Boolean(quest.pinned)
+    : sharedQuestPinned;
+
+  const [sendMenuOpen, setSendMenuOpen] = useState(false);
+  const sendMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!sendMenuOpen) return;
+    function onDocDown(e: MouseEvent) {
+      const el = sendMenuRef.current;
+      if (!el) return;
+      if (e.target instanceof Node && el.contains(e.target)) return;
+      setSendMenuOpen(false);
+    }
+    function onEsc(e: KeyboardEvent) {
+      if (e.key === "Escape") setSendMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onDocDown);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onDocDown);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [sendMenuOpen]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [animationState, setAnimationState] = useState<"entering" | "entered" | "exiting">("entering");
@@ -167,6 +214,19 @@ export function QuestPage({
         <div className="quest-page-header-top">
           <h2 className="quest-page-title">{quest.title}</h2>
           <div className="quest-page-header-meta">
+            {(quest.sentByUserId || quest.sentByName) && (
+              <span
+                className="quest-page-pill"
+                title={quest.sentByUserId ?? undefined}
+              >
+                from {quest.sentByName ?? quest.sentByUserId}
+              </span>
+            )}
+            {quest.boardId ? (
+              <span className="quest-page-pill quest-page-pill--collab" title={boardName ?? quest.boardId}>
+                collab{boardName ? ` · ${boardName}` : ""}
+              </span>
+            ) : null}
             {isQuestOverdue(quest) && (quest.status === "available" || quest.status === "accepted") && (() => {
               const dueBy = getQuestDueBy(quest);
               const daysAgo = dueBy != null ? Math.floor((now - dueBy) / (1000 * 60 * 60 * 24)) : 0;
@@ -206,6 +266,46 @@ export function QuestPage({
             )}
           </div>
           <div className="quest-page-actions">
+            {!isShared && !isSystemGeneratedQuest(quest) && friends.length > 0 && (
+              <div className="quest-board-invite-wrap" ref={sendMenuRef}>
+                <button
+                  type="button"
+                  className="quest-page-tool-btn"
+                  onClick={() => setSendMenuOpen((v) => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={sendMenuOpen}
+                  aria-label="Send quest to friend"
+                  title="Send quest…"
+                >
+                  <IconSend size={18} />
+                </button>
+                {sendMenuOpen && (
+                  <div className="quest-board-invite-menu" role="menu">
+                    <div className="quest-board-invite-menu__cap">send to a friend</div>
+                    {friends.slice(0, 12).map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        role="menuitem"
+                        className="quest-board-invite-menu__item"
+                        onClick={() => {
+                          const note = window.prompt("optional note (leave blank for none):") ?? "";
+                          sendQuestToFriend({ toUserCode: f.id, quest, note })
+                            .then(() => showToast("success", `sent to ${f.name}`))
+                            .catch((e) => {
+                              console.error(e);
+                              showToast("error", "send failed");
+                            })
+                            .finally(() => setSendMenuOpen(false));
+                        }}
+                      >
+                        {f.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             {canEdit && !isEditing && (
               <button
                 type="button"
@@ -217,19 +317,19 @@ export function QuestPage({
                 <IconPencil size={18} />
               </button>
             )}
-            {quest.status === "accepted" && (
+            {quest.status === "accepted" && isAccepter && (
               <button
                 type="button"
-                className={`quest-page-tool-btn${quest.pinned ? " quest-page-tool-btn--pinned" : ""}`}
+                className={`quest-page-tool-btn${pinMarked ? " quest-page-tool-btn--pinned" : ""}`}
                 data-spotlight="qp-pin"
                 onClick={() => {
                   pin(quest.id);
                   tryCompleteTutorialSpotlight("qp-pin");
                 }}
-                aria-label={quest.pinned ? "Unpin quest" : "Pin quest"}
-                title={quest.pinned ? "Unpin" : "Pin"}
+                aria-label={pinMarked ? "Unpin quest" : "Pin quest"}
+                title={pinMarked ? "Unpin" : "Pin"}
               >
-                <IconBookmark marked={quest.pinned} size={18} />
+                <IconBookmark marked={pinMarked} size={18} />
               </button>
             )}
             <button
@@ -308,8 +408,8 @@ export function QuestPage({
                 <input
                   type="checkbox"
                   checked={action.completed}
-                  onChange={() => quest.status === "accepted" && toggleSubquest(quest.id, action.id)}
-                  disabled={quest.status !== "accepted"}
+                  onChange={() => quest.status === "accepted" && isAccepter && toggleSubquest(quest.id, action.id)}
+                  disabled={quest.status !== "accepted" || !isAccepter}
                 />
                 <span>{action.title}</span>
               </li>
@@ -351,16 +451,33 @@ export function QuestPage({
             type="button"
             className="accept"
             data-spotlight="qp-accept"
-            disabled={isEditing}
+            disabled={
+              isEditing ||
+              (isShared &&
+                !!quest.acceptedByUserId &&
+                quest.acceptedByUserId !== userCode)
+            }
+            title={
+              isShared &&
+              quest.acceptedByUserId &&
+              quest.acceptedByUserId !== userCode
+                ? "already accepted by someone else"
+                : undefined
+            }
             onClick={handleAccept}
           >
             accept quest
           </button>
         </footer>
       )}
+      {isShared && quest.status === "accepted" && quest.acceptedByUserId && (
+        <span className="quest-page-pill" title="who claimed this">
+          accepted by {acceptedByName ?? quest.acceptedByUserId}
+        </span>
+      )}
       {quest.status === "accepted" && (
         <footer className="quest-actions">
-          {!isEditing && (
+          {!isEditing && isAccepter && (
             <>
               <button
                 type="button"

@@ -35,6 +35,11 @@ type OverlayState = {
   bringToFront: (id: string) => void;
   moveQuest: (id: string, x: number, y: number) => void;
 
+  /** Top-level quest overlay view. */
+  questTopTab: "available" | "accepted" | "collab";
+  setQuestTopTab: (tab: "available" | "accepted" | "collab") => void;
+
+  /** Inner board tab (used by personal view and collab sub-tabs). */
   boardTab: "available" | "accepted";
   setBoardTab: (tab: "available" | "accepted") => void;
 
@@ -47,6 +52,11 @@ type OverlayState = {
   };
   setQuestFilters: (filters: Partial<OverlayState['questFilters']>) => void;
   clearQuestFilters: () => void;
+
+  boardScope: "personal" | "shared";
+  setBoardScope: (scope: "personal" | "shared") => void;
+  addQuestTargetId: string | null;
+  setAddQuestTargetId: (id: string | null) => void;
 }
 
 export const useOverlay = create<OverlayState>((set) => ({
@@ -72,6 +82,9 @@ export const useOverlay = create<OverlayState>((set) => ({
     set((s) => ({
       activeOverlay: null,
       openQuestPages: s.activeOverlay === "quests" ? [] : s.openQuestPages,
+      questTopTab: "available",
+      boardScope: "personal",
+      addQuestTargetId: null,
     })),
   
   openQuestPages: [],
@@ -130,6 +143,9 @@ export const useOverlay = create<OverlayState>((set) => ({
       )
     })),
 
+  questTopTab: "available",
+  setQuestTopTab: (questTopTab) => set({ questTopTab }),
+
   boardTab: "available",
   setBoardTab: (tab) => set({boardTab: tab}),
 
@@ -141,5 +157,11 @@ export const useOverlay = create<OverlayState>((set) => ({
       questFilters: { ...state.questFilters, ...filters }
     })),
   clearQuestFilters: () => set({ questFilters: {} }),
+
+  boardScope: "personal",
+  setBoardScope: (boardScope) => set({ boardScope }),
+  addQuestTargetId: null,
+  setAddQuestTargetId: (addQuestTargetId) =>
+    set({ addQuestTargetId }),
 
 }));

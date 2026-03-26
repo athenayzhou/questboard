@@ -120,6 +120,21 @@ export async function GET(req: Request) {
     
     const userCode = await assignUserCodeIfMissing(session.tester_id);
 
+    const boards = await safeSelectData(
+      `
+      select jsonb_build_object(
+        'id', b.id,
+        'name', b.name,
+        'createdAt', extract(epoch from b.created_at) * 1000
+      ) as data
+      from shared_boards b
+      join shared_board_memberships m on m.board_id = b.id
+      where m.tester_id = $1
+      order by b.created_at desc
+      `,
+      [session.tester_id],
+    );
+
     return NextResponse.json({
       ok: true,
       data: {
@@ -129,6 +144,7 @@ export async function GET(req: Request) {
         xpEvents,
         clientGame,
         userCode,
+        boards,
       },
     });
   } catch (error) {

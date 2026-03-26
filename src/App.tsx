@@ -106,6 +106,7 @@ function QuestboardMain({ bootstrapReady }: { bootstrapReady: boolean }) {
   const boardTab = useOverlay((s) => s.boardTab);
   const openOverlay = useOverlay((s) => s.openOverlay);
   const setBoardTab = useOverlay((s) => s.setBoardTab);
+  const setQuestTopTab = useOverlay((s) => s.setQuestTopTab);
   const overlayOpen = activeOverlay !== null;
   const orbitEnabled = orbitUser && !overlayOpen;
   const { isActive, currentSubquest } = useTutorialStore();
@@ -164,6 +165,7 @@ function QuestboardMain({ bootstrapReady }: { bootstrapReady: boolean }) {
     const tab = boardTabForSpotlight(spot);
     if (tab && boardTab !== tab) {
       setBoardTab(tab);
+      setQuestTopTab(tab);
     }
   }, [
     isActive,
@@ -172,6 +174,7 @@ function QuestboardMain({ bootstrapReady }: { bootstrapReady: boolean }) {
     boardTab,
     openOverlay,
     setBoardTab,
+    setQuestTopTab,
   ]);
 
   useEffect(() => {

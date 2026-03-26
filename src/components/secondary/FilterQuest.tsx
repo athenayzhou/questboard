@@ -10,6 +10,7 @@ import { useOverlay } from "../../store/overlay";
 import { useQuestStore } from "../../store/quest";
 import { useDebounce } from "../../hooks/useDebounce";
 import { IconFilter, IconEraser } from "../ui/icons";
+import { useBoardStore } from "@/store/board";
 
 const DROPDOWN_MIN_W = 280;
 const DROPDOWN_MAX_W = 400;
@@ -24,11 +25,20 @@ export function FilterQuest() {
     setQuestFilters,
     clearQuestFilters,
     boardTab,
+    questTopTab,
   } = useOverlay();
 
   const quests = useQuestStore((s) => s.quests);
+  const activeBoardId = useBoardStore((s) => s.activeBoardId);
   const categories = useMemo(() => {
-    const byTab = quests.filter((q) => q.status === boardTab);
+    const byTab =
+      questTopTab === "collab" && activeBoardId
+        ? quests.filter(
+            (q) => q.boardId === activeBoardId && q.status === boardTab,
+          )
+        : quests.filter(
+            (q) => !q.boardId && q.status === questTopTab,
+          );
     const set = new Set<string>();
     for (const q of byTab) {
       for (const cat of q.category ?? []) {
@@ -36,7 +46,7 @@ export function FilterQuest() {
       }
     }
     return [...set].sort((a, b) => a.localeCompare(b));
-  }, [quests, boardTab]);
+  }, [quests, boardTab, questTopTab, activeBoardId]);
 
   const [localSearch, setLocalSearch] = useState(questSearch);
   const debouncedSearch = useDebounce(localSearch, 300);

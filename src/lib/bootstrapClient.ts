@@ -18,6 +18,7 @@ import { useSkillStore } from "@/store/skill";
 import { useXPEventStore } from "@/store/xpEvent";
 import { useIdentityStore } from "@/store/identity";
 import { ensureGoldieFriend } from "@/lib/ensureGoldieFriend";
+import { useBoardStore } from "@/store/board";
 
 export type BootstrapStatus =
   | "idle"
@@ -40,6 +41,7 @@ type BootstrapData = {
   xpEvents: unknown;
   clientGame?: unknown;
   userCode?: unknown;
+  boards?: unknown;
 };
 
 type BootstrapOkResponse = {
@@ -76,6 +78,7 @@ function applyBootstrapData(data: BootstrapData) {
   const user = normalizeUser(data.user);
   const skills = normalizeSkills(data.skills);
   const events = normalizeXPEvents(data.xpEvents);
+  const rawBoards = Array.isArray(data.boards) ? (data.boards as unknown[]) : [];
 
   setQuestSyncSuppressed(true);
   setUserSyncSuppressed(true);
@@ -90,6 +93,20 @@ function applyBootstrapData(data: BootstrapData) {
     applyClientGameBlob(normalizeClientGameBlob(data.clientGame));
     ensureGoldieFriend();
     useIdentityStore.getState().setUserCode(typeof data.userCode === "string" ? data.userCode : null)
+
+    const normalizedBoards = rawBoards
+      .map((b) => (b && typeof b === "object" ? (b as Record<string, unknown>) : null))
+      .filter((b): b is Record<string, unknown> => b !== null)
+      .map((b) => ({
+        id: typeof b.id === "string" ? b.id : "",
+        name: typeof b.name === "string" ? b.name : "board",
+        createdAt: typeof b.createdAt === "number" ? b.createdAt : Date.now(),
+      }))
+      .filter((b) => b.id.length > 0);
+
+    if (normalizedBoards.length > 0) {
+      useBoardStore.getState().setBoards(normalizedBoards);
+    }
   } finally {
     setQuestSyncSuppressed(false);
     setUserSyncSuppressed(false);
