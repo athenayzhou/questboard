@@ -33,7 +33,6 @@ export function OverlayManager(){
         v !== null
     );
   }, [openQuestPages, quests]);
-
   switch (activeOverlay) {
     case "profile":
       return <Profile />

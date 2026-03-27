@@ -10,6 +10,7 @@ import { flushAllServerSyncs } from "../../lib/syncFlush";
 import { clearLocalState } from "../../lib/clearLocalState";
 import { scheduleSkillSync } from "../../lib/apiSkills";
 import { signOutFromApp } from "../../lib/sessionRecovery";
+import { resetDataOnServer } from "../../lib/apiReset";
 import { APP, CANDIDATE } from "../../utils/constants";
 import { useIdentityStore } from "../../store/identity";
 import { IconX, IconCloudUpload, IconLogOut, IconTrash2, IconMessage } from "../ui/icons";
@@ -67,6 +68,14 @@ export function Settings() {
   };
 
   const handleResetData = async () => {
+    try {
+      await resetDataOnServer();
+    } catch (e) {
+      console.error(e);
+      showToast("error", "failed to clear server friendships; try again");
+      return;
+    }
+
     clearLocalState({ closeOverlays: true });
     scheduleSkillSync();
     setShowResetConfirm(false);

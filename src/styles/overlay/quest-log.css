@@ -214,6 +214,52 @@
   color: var(--grass-dark);
 }
 
+.log-subquest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.log-subquest-item {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  align-items: start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--path-light);
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.log-subquest-item.is-complete {
+  background: rgba(184, 220, 176, 0.25);
+  border-color: var(--grass-light);
+}
+
+.log-subquest-check {
+  font-size: 0.8rem;
+  font-weight: 900;
+  line-height: 1.2;
+  color: var(--text-warm-medium);
+  margin-top: 1px;
+}
+
+.log-subquest-item.is-complete .log-subquest-check {
+  color: var(--grass-dark);
+}
+
+.log-subquest-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-path);
+  line-height: 1.3;
+}
+
+.log-subquest-item.is-complete .log-subquest-title {
+  text-decoration: line-through;
+  opacity: 0.88;
+}
+
 .log-timeline {
   width: 100%;
   min-width: 0;

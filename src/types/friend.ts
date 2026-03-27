@@ -20,6 +20,8 @@ export type FriendActivity = {
 export type FriendSummary = {
   userCode: string;
   displayName: string;
+  /** Profile character image URL (e.g. /character/…). */
+  characterImageUrl?: string | null;
   badges: {
     displayedBadgeIds: string[];
     badgePlacements: BadgePlatePlacement[];

@@ -3,6 +3,7 @@ import { DifficultyBadge } from "../ui/DifficultyBadge"
 import { isQuestOverdue, formatDeadlineMDY } from "../../utils/recurrence"
 import { memo } from "react"
 import { IconRefreshCw, IconClock, IconAlertTriangle } from "../ui/icons"
+import { useBoardStore } from "@/store/board";
 
 type BoardCardProps = {
   quest: Quest;
@@ -15,6 +16,9 @@ export const BoardCard = memo(function BoardCard({
   onSelect,
   dataSpotlight,
 }: BoardCardProps) {
+  const boardName = useBoardStore((s) =>
+    quest.boardId ? s.boards.find((b) => b.id === quest.boardId)?.name ?? null : null,
+  );
 
   return (
     <div
@@ -28,6 +32,27 @@ export const BoardCard = memo(function BoardCard({
       </div>
 
       <div className="quest-card-meta">
+        {quest.sentByUserId || quest.sentByName ? (
+          <span
+            className="quest-from-pill"
+            title={quest.sentByUserId ?? undefined}
+          >
+            from {quest.sentByName ?? quest.sentByUserId}
+          </span>
+        ) : null}
+        {quest.boardId ? (
+          <span className="quest-collab-pill" title={boardName ?? quest.boardId}>
+            collab{boardName ? ` · ${boardName}` : ""}
+          </span>
+        ) : null}
+        {quest.collabQuest ? (
+          <span
+            className="quest-collab-pill"
+            title={quest.collabInvitePending ? "Invitation pending" : "Quest collaboration"}
+          >
+            {quest.collabInvitePending ? "invite pending" : "quest collab"}
+          </span>
+        ) : null}
         {isQuestOverdue(quest) && (quest.status === "available" || quest.status === "accepted") && (
           <span className="quest-late-badge" title="Past due">late</span>
         )}

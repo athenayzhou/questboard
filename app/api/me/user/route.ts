@@ -28,9 +28,9 @@ export async function PUT(req: Request) {
 
     await query(
       `
-      insert into player_states (tester_id, data, updated_at)
+      insert into user_states (user_id, data, updated_at)
       values ($1, $2::jsonb, now())
-      on conflict (tester_id)
+      on conflict (user_id)
       do update set data = excluded.data, updated_at = now()
       `,
       [auth.testerId, JSON.stringify(parsed.data.user)],

@@ -15,7 +15,7 @@ const friendsSummaryBodySchema = z.object({
 
 type TesterRow = {
   tester_id: string;
-  player_code: string;
+  user_code: string;
   last_seen_at: string | null;
   has_session: boolean;
   player_data: unknown;
@@ -25,6 +25,7 @@ function parsePublicBadgeInfo(data: unknown): {
   displayName: string;
   displayedBadgeIds: string[];
   badgePlacements: BadgePlatePlacement[];
+  characterImageUrl: string | null;
 } {
   const o = data && typeof data === "object" ? (data as Record<string, unknown>) : {};
   const profile = o.profile && typeof o.profile === "object" ? (o.profile as Record<string, unknown>) : {};
@@ -38,6 +39,11 @@ function parsePublicBadgeInfo(data: unknown): {
     typeof profile.name === "string" && profile.name.trim()
       ? profile.name.trim()
       : "friend";
+
+  const characterImageUrl =
+    typeof profile.character === "string" && profile.character.trim()
+      ? profile.character.trim()
+      : null;
 
   let displayedBadgeIds: string[] = [];
   if (Array.isArray(badgeBlob.displayedBadgeIds)) {
@@ -60,7 +66,7 @@ function parsePublicBadgeInfo(data: unknown): {
       .map((p) => ({ id: p.id, x: p.x, y: p.y }));
   }
   
-  return { displayName, displayedBadgeIds, badgePlacements };
+  return { displayName, displayedBadgeIds, badgePlacements, characterImageUrl };
 }
 
 function xpRowToActivity(row: { id: string; data: unknown }): FriendActivity | null {
@@ -104,7 +110,7 @@ export async function POST(req: Request) {
       `
       select
         t.id as tester_id,
-        t.player_code,
+        t.user_code,
         t.last_seen_at::text,
         exists (
           select 1 from tester_sessions ts
@@ -112,15 +118,15 @@ export async function POST(req: Request) {
         ) as has_session,
         ps.data as player_data
       from testers t
-      left join player_states ps on ps.tester_id = t.id
-      where t.player_code = any($1::text[])
+      left join user_states ps on ps.user_id = t.id
+      where t.user_code = any($1::text[])
       `,
       [codes],
     );
 
     const byCode = new Map<string, TesterRow>();
     for(const row of testerRes.rows){
-      byCode.set(row.player_code, row);
+      byCode.set(row.user_code, row);
     }
 
     const testerIds = testerRes.rows.map((r) => r.tester_id);
@@ -175,8 +181,9 @@ export async function POST(req: Request) {
       );
 
       summaries.push({
-        userCode: row.player_code,
+        userCode: row.user_code,
         displayName: info.displayName,
+        characterImageUrl: info.characterImageUrl,
         badges: {
           displayedBadgeIds: info.displayedBadgeIds,
           badgePlacements: info.badgePlacements,

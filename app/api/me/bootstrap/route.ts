@@ -3,6 +3,7 @@ import { query } from "@/lib/db";
 import { hashSessionToken } from "@/lib/betaAuth";
 import { assignUserCodeIfMissing } from "@/lib/userCode";
 import { DEFAULT_DISPLAY_NAME_PLACEHOLDER } from "@/lib/defaultUserData";
+import { ensureFriendEdgesSchema } from "@/lib/friendsDb";
 
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME ?? "qb_session";
 
@@ -88,7 +89,7 @@ export async function GET(req: Request) {
 
     const [playerRows, questRows, skillRows, eventRows, extensionRows] =
       await Promise.all([
-        safeSelectData(`select data from player_states where tester_id = $1`, [
+        safeSelectData(`select data from user_states where user_id = $1`, [
           session.tester_id,
         ]),
         safeSelectData(`select data from quests where tester_id = $1`, [
@@ -120,6 +121,65 @@ export async function GET(req: Request) {
     
     const userCode = await assignUserCodeIfMissing(session.tester_id);
 
+    try {
+      await ensureFriendEdgesSchema(query);
+    } catch (e) {
+      console.error("ensureFriendEdgesSchema failed:", e);
+    }
+
+    let friendsNetwork: { id: string; name: string }[] = [];
+    try {
+      const frRes = await query<{ id: string; name: string }>(
+        `
+        select
+          t.user_code as id,
+          coalesce(nullif(trim(ps.data->'profile'->>'name'), ''), t.user_code) as name
+        from friend_edges fe
+        join testers t on t.id = (
+          case when fe.tester_low = $1::uuid then fe.tester_high else fe.tester_low end
+        )
+        left join user_states ps on ps.user_id = t.id
+        where fe.tester_low = $1::uuid or fe.tester_high = $1::uuid
+        `,
+        [session.tester_id],
+      );
+      friendsNetwork = frRes.rows;
+    } catch (e) {
+      if (
+        e &&
+        typeof e === "object" &&
+        "code" in e &&
+        (e as { code?: string }).code === "42P01"
+      ) {
+        friendsNetwork = [];
+      } else {
+        console.error("friend_edges list failed:", e);
+      }
+    }
+
+    const boards = await safeSelectData(
+      `
+      select jsonb_build_object(
+        'id', b.id,
+        'name', b.name,
+        'createdAt', extract(epoch from b.created_at) * 1000,
+        'memberNames', coalesce(
+          (
+            select jsonb_object_agg(sm.user_code, sm.display_name)
+            from shared_board_memberships sm
+            where sm.board_id = b.id
+          ),
+          '{}'::jsonb
+        )
+      ) as data
+      from shared_boards b
+      join shared_board_memberships m on m.board_id = b.id
+      where m.tester_id = $1
+      order by b.created_at desc
+      `,
+      [session.tester_id],
+    );
+
     return NextResponse.json({
       ok: true,
       data: {
@@ -129,6 +189,8 @@ export async function GET(req: Request) {
         xpEvents,
         clientGame,
         userCode,
+        boards,
+        friendsNetwork,
       },
     });
   } catch (error) {

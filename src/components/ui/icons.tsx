@@ -62,6 +62,24 @@ export function IconUserPlus({ size = 18, className, ...rest }: IconProps) {
   );
 }
 
+export function IconUser({ size = 18, className, ...rest }: IconProps) {
+  return (
+    <svg {...base(size)} className={className} aria-hidden {...rest}>
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
+export function IconSend({ size = 18, className, ...rest }: IconProps) {
+  return (
+    <svg {...base(size)} className={className} aria-hidden {...rest}>
+      <path d="m22 2-7 20-4-9-9-4Z" />
+      <path d="M22 2 11 13" />
+    </svg>
+  );
+}
+
 export function IconX({ size = 18, className, ...rest }: IconProps) {
   return (
     <svg {...base(size)} className={className} aria-hidden {...rest}>
@@ -103,6 +121,17 @@ export function IconGripVertical({ size = 18, className, ...rest }: IconProps) {
       <circle cx="15" cy="12" r="1" fill="currentColor" stroke="none" />
       <circle cx="9" cy="19" r="1" fill="currentColor" stroke="none" />
       <circle cx="15" cy="19" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/** Vertical ellipsis — friend card overflow menu, etc. */
+export function IconDotsVertical({ size = 18, className, ...rest }: IconProps) {
+  return (
+    <svg {...base(size)} className={className} aria-hidden {...rest}>
+      <circle cx="12" cy="5" r="1.25" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.25" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="19" r="1.25" fill="currentColor" stroke="none" />
     </svg>
   );
 }

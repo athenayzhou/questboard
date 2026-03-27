@@ -57,6 +57,12 @@ describe("fetchBootstrapOnce", () => {
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(JSON.stringify(payload), { status: 200 }),
     );
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ ok: true, invites: [], quests: [] }),
+        { status: 200 },
+      ),
+    );
 
     await expect(fetchBootstrapOnce()).resolves.toBe("ready");
     expect(useQuestStore.getState().quests).toHaveLength(1);

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withTransaction } from "@/lib/db";
+import { query, withTransaction } from "@/lib/db";
 import { requireTesterId } from "@/lib/session";
 import { questRowIdFromClientId } from "@/lib/questRowId";
 import { errorJson, parseJsonBody } from "@/lib/apiResponses";
@@ -22,6 +22,26 @@ const questSchema = z
 const questPayloadSchema = z.object({
   quests: z.array(questSchema),
 });
+
+type QuestDataRow = { data: unknown };
+
+export async function GET(_req: Request) {
+  try {
+    const auth = await requireTesterId(_req);
+    if (!auth.ok) return auth.response;
+
+    const res = await query<QuestDataRow>(
+      `select data from quests where tester_id = $1`,
+
+      [auth.testerId],
+    );
+    const quests = res.rows.map((r) => r.data);
+    return NextResponse.json({ ok: true, quests });
+  } catch (error) {
+    console.error("GET /api/me/quests failed:", error);
+    return errorJson("server_error", 500);
+  }
+}
 
 export async function PUT(req: Request) {
   try{
