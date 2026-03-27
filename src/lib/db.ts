@@ -3,10 +3,13 @@ import type { QueryResult, QueryResultRow } from "pg";
 
 const caRaw = process.env.DO_DB_CA_PEM?.trim() ?? "";
 const ca = caRaw.includes("\\n") ? caRaw.replace(/\\n/g, "\n") : caRaw;
+const hasValidCaPem =
+  ca.includes("-----BEGIN CERTIFICATE-----") &&
+  ca.includes("-----END CERTIFICATE-----");
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: ca
+  ssl: hasValidCaPem
     ? {
         ca,
         rejectUnauthorized: true,
@@ -15,6 +18,12 @@ const pool = new Pool({
         rejectUnauthorized: false,
       },
 });
+
+console.info(
+  `[db] SSL mode: ${hasValidCaPem ? "strict-ca" : "tls-no-verify"} (DO_DB_CA_PEM ${
+    caRaw ? "present" : "absent"
+  })`,
+);
 
 export async function query<T extends QueryResultRow = QueryResultRow>(
   text: string,
