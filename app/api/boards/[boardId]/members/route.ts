@@ -1,10 +1,10 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { requireTesterId } from "@/lib/session";
 import { errorJson, parseJsonBody } from "@/lib/apiResponses";
 import { withTransaction } from "@/lib/db";
 import { ensureSharedBoardsSchema } from "@/lib/sharedBoardsDb";
 import { normalizeUserCodeInput } from "@/lib/userCode";
-import { assignUserCodeIfMissing } from "@/lib/userCode";
 import { z } from "zod";
 
 type MemberRow = {
@@ -90,21 +90,14 @@ export async function POST(
       if (!myRole) return errorJson("unauthorized", 403);
       if (myRole !== "admin") return errorJson("unauthorized", 403);
 
-      // Resolve tester_id by player_code.
+      // Resolve tester_id by user_code.
       const targetRes = await tx<{ id: string }>(
-        `select id::text as id from testers where player_code = $1 limit 1`,
+        `select id::text as id from testers where user_code = $1 limit 1`,
         [wanted],
       );
       const targetTesterId = targetRes.rows?.[0]?.id;
       if (!targetTesterId) return errorJson("not_found", 404);
       if (targetTesterId === auth.testerId) return errorJson("self", 400);
-
-      // Ensure target has a code (should already, but safe).
-      const targetCode = await assignUserCodeIfMissing(targetTesterId);
-      if (targetCode !== wanted) {
-        // Extremely unlikely unless code normalization mismatch.
-        return errorJson("invalid_code", 400);
-      }
 
       const existingMemberRes = await tx<{ tester_id: string }>(
         `
@@ -121,15 +114,17 @@ export async function POST(
 
       await tx(
         `
-        insert into shared_board_invites (board_id, inviter_tester_id, invitee_tester_id, status)
-        values ($1::uuid, $2::uuid, $3::uuid, 'pending')
-        on conflict (board_id, invitee_tester_id)
-        do update set
-          inviter_tester_id = excluded.inviter_tester_id,
-          status = 'pending',
-          created_at = now()
+        delete from shared_board_invites
+        where board_id = $1::uuid and invitee_tester_id = $2::uuid
         `,
-        [boardId, auth.testerId, targetTesterId],
+        [boardId, targetTesterId],
+      );
+      await tx(
+        `
+        insert into shared_board_invites (id, board_id, inviter_tester_id, invitee_tester_id, status)
+        values ($1::uuid, $2::uuid, $3::uuid, $4::uuid, 'pending')
+        `,
+        [randomUUID(), boardId, auth.testerId, targetTesterId],
       );
 
       return NextResponse.json({ ok: true });

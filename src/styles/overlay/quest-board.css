@@ -876,6 +876,25 @@
   overflow: hidden;
 }
 
+.quest-page .quest-page-invite-menu {
+  width: min(200px, 56vw);
+  max-height: min(180px, 28vh);
+  padding: 4px;
+  top: calc(100% + 4px);
+  border-radius: 10px;
+}
+
+.quest-page .quest-page-invite-menu .quest-board-invite-menu__cap {
+  padding: 4px 8px 3px;
+  font-size: 0.62rem;
+}
+
+.quest-page .quest-page-invite-menu .quest-board-invite-menu__item {
+  padding: 5px 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .quest-page-body {
   flex: 1;
   min-height: 0;

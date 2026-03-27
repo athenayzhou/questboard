@@ -22,6 +22,7 @@ import {
   IconRefreshCw,
   IconClipboard,
   IconSend,
+  IconUser,
 } from "../ui/icons";
 import { tryCompleteTutorialSpotlight } from "@/onboarding/tutorialProgress";
 import { isTutorial } from "@/onboarding/tutorialTypes";
@@ -29,9 +30,24 @@ import { useIdentityStore } from "@/store/identity";
 import { isPersonalQuest, userHasPin } from "@/lib/boardScope";
 import { useBoardStore } from "@/store/board";
 import { useFriendsStore } from "@/store/friends";
-import { sendQuestToFriend } from "@/lib/apiQuests";
+import {
+  fetchPersonalQuestsFromServer,
+  sendQuestToFriend,
+} from "@/lib/apiQuests";
+import {
+  acceptQuestInvite,
+  declineQuestInvite,
+  fetchQuestCollabState,
+  fetchQuestCollabs,
+  invalidateQuestCollabStateInflight,
+  inviteQuestCollaborator,
+  mergeQuestStateFromServer,
+  subscribeQuestCollabEvents,
+} from "@/lib/apiQuestCollab";
+import { dedupeQuestsById } from "@/lib/questDedupe";
 import { showToast } from "@/utils/toast";
 import { PromptDialog } from "../ui/PromptDialog";
+import { GOLDIE_FRIEND_ID } from "@/data/systemFriends";
 
 type QuestPageProps = {
   quest: Quest;
@@ -71,10 +87,12 @@ export function QuestPage({
   const fail = useQuestStore((s) => s.failQuest);
   const pin = useQuestStore((s) => s.togglePin);
   const toggleSubquest = useQuestStore((s) => s.toggleSubquest);
+  const setQuestMerge = useQuestStore((s) => s.setQuest);
 
   const userCode = useIdentityStore((s) => s.userCode);
   const friends = useFriendsStore((s) => s.friends);
   const isShared = Boolean(quest.boardId);
+  const isCollabQuest = Boolean(quest.collabQuest);
   const boardName = useBoardStore((s) =>
     quest.boardId ? s.boards.find((b) => b.id === quest.boardId)?.name ?? null : null,
   );
@@ -83,17 +101,25 @@ export function QuestPage({
     const b = s.boards.find((bb) => bb.id === quest.boardId);
     return b?.memberNames?.[quest.acceptedByUserId] ?? null;
   });
+  const canInteractCollab =
+    isCollabQuest &&
+    quest.myState === "active" &&
+    quest.status === "accepted";
   const isAccepter =
-    !isShared || !quest.acceptedByUserId || quest.acceptedByUserId === userCode;
+    isCollabQuest
+      ? canInteractCollab
+      : !isShared || !quest.acceptedByUserId || quest.acceptedByUserId === userCode;
   const sharedQuestPinned = Boolean(userCode) && userHasPin(quest, userCode);
   const pinMarked = isPersonalQuest(quest)
     ? Boolean(quest.pinned)
     : sharedQuestPinned;
 
   const [sendMenuOpen, setSendMenuOpen] = useState(false);
+  const [inviteCollabOpen, setInviteCollabOpen] = useState(false);
   const [sendNoteDialogOpen, setSendNoteDialogOpen] = useState(false);
   const [sendTargetFriend, setSendTargetFriend] = useState<{ id: string; name: string } | null>(null);
   const sendMenuRef = useRef<HTMLDivElement | null>(null);
+  const inviteCollabRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!sendMenuOpen) return;
@@ -118,7 +144,8 @@ export function QuestPage({
   const [animationState, setAnimationState] = useState<"entering" | "entered" | "exiting">("entering");
   const canEdit =
     (quest.status === "available" || quest.isTemplate === true) &&
-    !isSystemGeneratedQuest(quest);
+    !isSystemGeneratedQuest(quest) &&
+    !isCollabQuest;
 
   const rewardForDisplay =
     isSystemGeneratedQuest(quest) && quest.reward
@@ -129,6 +156,53 @@ export function QuestPage({
     const t = requestAnimationFrame(() => setAnimationState("entered"));
     return () => cancelAnimationFrame(t);
   }, []);
+
+  useEffect(() => {
+    if (!quest.collabQuest) return;
+    const close = subscribeQuestCollabEvents({
+      questId: quest.id,
+      cursor: 0,
+      onEvent: (ev) => {
+        if (ev.type === "collab_invite_accepted") {
+          const accepter = ev.payload.accepterUserCode;
+          const name = String(ev.payload.accepterDisplayName ?? "").trim();
+          if (
+            typeof accepter === "string" &&
+            typeof userCode === "string" &&
+            accepter !== userCode &&
+            name
+          ) {
+            showToast("success", `${name} accepted collab quest`);
+          }
+        }
+        invalidateQuestCollabStateInflight();
+        void fetchQuestCollabs()
+          .then((list) => {
+            const u = list.find((x) => x.id === quest.id);
+            if (!u) return;
+            setQuestMerge((prev) =>
+              prev.some((p) => p.id === quest.id)
+                ? prev.map((p) => (p.id === quest.id ? u : p))
+                : dedupeQuestsById([...prev, u]),
+            );
+          })
+          .catch((e) => console.error(e));
+      },
+    });
+    return close;
+  }, [quest.id, quest.collabQuest, setQuestMerge, userCode]);
+
+  useEffect(() => {
+    if (!inviteCollabOpen) return;
+    function onDocDown(e: MouseEvent) {
+      const el = inviteCollabRef.current;
+      if (!el) return;
+      if (e.target instanceof Node && el.contains(e.target)) return;
+      setInviteCollabOpen(false);
+    }
+    document.addEventListener("mousedown", onDocDown);
+    return () => document.removeEventListener("mousedown", onDocDown);
+  }, [inviteCollabOpen]);
 
   const handleClose = () => {
     setAnimationState("exiting");
@@ -164,7 +238,63 @@ export function QuestPage({
     complete(quest.id);
     handleClose();
   }
+  async function resyncCollabQuests() {
+    invalidateQuestCollabStateInflight();
+    const [personal, { invites, collabs }] = await Promise.all([
+      fetchPersonalQuestsFromServer(),
+      fetchQuestCollabState(),
+    ]);
+    useQuestStore.getState().setQuest((prev) =>
+      mergeQuestStateFromServer(prev, personal, invites, collabs),
+    );
+  }
+
+  async function handleAcceptCollabInvite() {
+    if (!quest.collabInviteId) return;
+    try {
+      await acceptQuestInvite(quest.collabInviteId);
+      await resyncCollabQuests();
+      showToast("success", "joined collaboration");
+      handleClose();
+    } catch (e) {
+      console.error(e);
+      showToast("error", "failed to accept");
+    }
+  }
+
+  async function handleDeclineCollabInvite() {
+    if (!quest.collabInviteId) return;
+    try {
+      await declineQuestInvite(quest.collabInviteId);
+      await resyncCollabQuests();
+      showToast("info", "invite declined");
+      handleClose();
+    } catch (e) {
+      console.error(e);
+      showToast("error", "failed to decline");
+    }
+  }
+
+  function handleRejectSentQuest() {
+    deleteQuest(quest.id);
+    handleClose();
+  }
+
   function handleFail() {
+    if (quest.collabQuest) {
+      confirm({
+        title: "leave collab quest?",
+        message: `stop collaborating on "${quest.title}"? you'll stay able to view progress, but you won't be able to edit or complete it for the group.`,
+        confirmText: "leave",
+        cancelText: "stay",
+        type: "danger",
+      }).then((ok) => {
+        if (!ok) return;
+        fail(quest.id);
+        handleClose();
+      });
+      return;
+    }
     confirm({
       title: "give up quest?",
       message: `give up on "${quest.title}"? this will mark it as failed.`,
@@ -230,6 +360,20 @@ export function QuestPage({
                 collab{boardName ? ` · ${boardName}` : ""}
               </span>
             ) : null}
+            {isCollabQuest ? (
+              <span
+                className="quest-page-pill quest-page-pill--collab"
+                title={
+                  quest.collabInvitePending
+                    ? "Collaboration invite"
+                    : "Quest collaboration"
+                }
+              >
+                {quest.collabInvitePending
+                  ? "invite pending"
+                  : `quest collab${quest.myState === "left" ? " · left" : ""}`}
+              </span>
+            ) : null}
             {isQuestOverdue(quest) && (quest.status === "available" || quest.status === "accepted") && (() => {
               const dueBy = getQuestDueBy(quest);
               const daysAgo = dueBy != null ? Math.floor((now - dueBy) / (1000 * 60 * 60 * 24)) : 0;
@@ -269,7 +413,10 @@ export function QuestPage({
             )}
           </div>
           <div className="quest-page-actions">
-            {!isShared && !isSystemGeneratedQuest(quest) && friends.length > 0 && (
+            {!isShared &&
+              !isCollabQuest &&
+              !isSystemGeneratedQuest(quest) &&
+              friends.some((f) => f.id !== GOLDIE_FRIEND_ID) && (
               <div className="quest-board-invite-wrap" ref={sendMenuRef}>
                 <button
                   type="button"
@@ -283,9 +430,12 @@ export function QuestPage({
                   <IconSend size={18} />
                 </button>
                 {sendMenuOpen && (
-                  <div className="quest-board-invite-menu" role="menu">
+                  <div className="quest-board-invite-menu quest-page-invite-menu" role="menu">
                     <div className="quest-board-invite-menu__cap">send to a friend</div>
-                    {friends.slice(0, 12).map((f) => (
+                    {friends
+                      .filter((f) => f.id !== GOLDIE_FRIEND_ID)
+                      .slice(0, 12)
+                      .map((f) => (
                       <button
                         key={f.id}
                         type="button"
@@ -295,6 +445,56 @@ export function QuestPage({
                           setSendTargetFriend({ id: f.id, name: f.name });
                           setSendMenuOpen(false);
                           setSendNoteDialogOpen(true);
+                        }}
+                      >
+                        {f.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {!isShared &&
+              !isCollabQuest &&
+              !isSystemGeneratedQuest(quest) &&
+              friends.some((f) => f.id !== GOLDIE_FRIEND_ID) && (
+              <div className="quest-board-invite-wrap" ref={inviteCollabRef}>
+                <button
+                  type="button"
+                  className="quest-page-tool-btn"
+                  onClick={() => setInviteCollabOpen((v) => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={inviteCollabOpen}
+                  aria-label="Invite collaborator"
+                  title="Invite to collaborate…"
+                >
+                  <IconUser size={18} />
+                </button>
+                {inviteCollabOpen && (
+                  <div className="quest-board-invite-menu quest-page-invite-menu" role="menu">
+                    <div className="quest-board-invite-menu__cap">invite to collaborate</div>
+                    {friends
+                      .filter((f) => f.id !== GOLDIE_FRIEND_ID)
+                      .slice(0, 12)
+                      .map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        role="menuitem"
+                        className="quest-board-invite-menu__item"
+                        onClick={() => {
+                          setInviteCollabOpen(false);
+                          inviteQuestCollaborator({ questId: quest.id, toUserCode: f.id })
+                            .then(({ quest: cq }) => {
+                              setQuestMerge((prev) =>
+                                dedupeQuestsById([...prev, ...[cq]]),
+                              );
+                              showToast("success", `invited ${f.name}`);
+                            })
+                            .catch((e) => {
+                              console.error(e);
+                              showToast("error", "invite failed");
+                            });
                         }}
                       >
                         {f.name}
@@ -315,7 +515,7 @@ export function QuestPage({
                 <IconPencil size={18} />
               </button>
             )}
-            {quest.status === "accepted" && isAccepter && (
+            {quest.status === "accepted" && isAccepter && !isCollabQuest && (
               <button
                 type="button"
                 className={`quest-page-tool-btn${pinMarked ? " quest-page-tool-btn--pinned" : ""}`}
@@ -356,6 +556,15 @@ export function QuestPage({
       {quest.description?.trim() && (
         <section className="quest-page-description" aria-label="Description">
           <p>{quest.description.trim()}</p>
+        </section>
+      )}
+
+      {quest.sentNote?.trim() && (
+        <section className="quest-page-block quest-page-sent-note" aria-labelledby="qp-sent-note">
+          <h3 id="qp-sent-note" className="quest-page-block-title">
+            note from sender
+          </h3>
+          <p className="quest-page-sent-note-text">{quest.sentNote.trim()}</p>
         </section>
       )}
 
@@ -406,8 +615,17 @@ export function QuestPage({
                 <input
                   type="checkbox"
                   checked={action.completed}
-                  onChange={() => quest.status === "accepted" && isAccepter && toggleSubquest(quest.id, action.id)}
-                  disabled={quest.status !== "accepted" || !isAccepter}
+                  onChange={() =>
+                    quest.status === "accepted" &&
+                    isAccepter &&
+                    !quest.collabInvitePending &&
+                    toggleSubquest(quest.id, action.id)
+                  }
+                  disabled={
+                    quest.status !== "accepted" ||
+                    !isAccepter ||
+                    Boolean(quest.collabInvitePending)
+                  }
                 />
                 <span>{action.title}</span>
               </li>
@@ -449,7 +667,30 @@ export function QuestPage({
 
     </>
     )}
-      {quest.status === "available" && (
+      {quest.status === "available" &&
+        quest.collabQuest &&
+        quest.collabInvitePending &&
+        quest.collabInviteId && (
+          <footer className="quest-actions">
+            <button
+              type="button"
+              className="accept"
+              disabled={isEditing}
+              onClick={() => void handleAcceptCollabInvite()}
+            >
+              accept collaboration
+            </button>
+            <button
+              type="button"
+              className="quest-action-fail"
+              disabled={isEditing}
+              onClick={() => void handleDeclineCollabInvite()}
+            >
+              decline
+            </button>
+          </footer>
+        )}
+      {quest.status === "available" && !quest.collabInvitePending && (
         <footer className="quest-actions">
           <button
             type="button"
@@ -472,11 +713,26 @@ export function QuestPage({
           >
             accept quest
           </button>
+          {Boolean(quest.sentByUserId) && !quest.collabQuest && (
+            <button
+              type="button"
+              className="quest-action-fail"
+              disabled={isEditing}
+              onClick={handleRejectSentQuest}
+            >
+              reject
+            </button>
+          )}
         </footer>
       )}
       {isShared && quest.status === "accepted" && quest.acceptedByUserId && (
         <span className="quest-page-pill" title="who claimed this">
           accepted by {acceptedByName ?? quest.acceptedByUserId}
+        </span>
+      )}
+      {isCollabQuest && quest.status === "accepted" && (
+        <span className="quest-page-pill" title="collaboration">
+          {quest.myState === "left" ? "you left this collab" : "shared checklist"}
         </span>
       )}
       {quest.status === "accepted" && (
@@ -528,7 +784,11 @@ export function QuestPage({
           if (!target) return;
           const note = value.trim();
           sendQuestToFriend({ toUserCode: target.id, quest, note })
-            .then(() => showToast("success", `sent to ${target.name}`))
+            .then(() => {
+              showToast("success", `sent to ${target.name}`);
+              deleteQuest(quest.id);
+              handleClose();
+            })
             .catch((e) => {
               console.error(e);
               showToast("error", "send failed");

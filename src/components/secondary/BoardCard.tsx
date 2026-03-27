@@ -45,6 +45,14 @@ export const BoardCard = memo(function BoardCard({
             collab{boardName ? ` · ${boardName}` : ""}
           </span>
         ) : null}
+        {quest.collabQuest ? (
+          <span
+            className="quest-collab-pill"
+            title={quest.collabInvitePending ? "Invitation pending" : "Quest collaboration"}
+          >
+            {quest.collabInvitePending ? "invite pending" : "quest collab"}
+          </span>
+        ) : null}
         {isQuestOverdue(quest) && (quest.status === "available" || quest.status === "accepted") && (
           <span className="quest-late-badge" title="Past due">late</span>
         )}

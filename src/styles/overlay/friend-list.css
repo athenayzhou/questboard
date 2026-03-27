@@ -147,6 +147,7 @@
 
 /* --- Friend card (shared) --- */
 .friend-card {
+  position: relative;
   flex: 0 0 min(300px, calc(100vw - 48px));
   max-width: 320px;
   min-height: 0;
@@ -182,6 +183,73 @@
     var(--shadow-path),
     inset 0 1px 0 rgba(255, 255, 255, 0.85),
     inset 0 -24px 48px rgba(255, 230, 180, 0.18);
+}
+
+.friend-card__menu-wrap {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+}
+
+.friend-card__menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(92, 74, 50, 0.42);
+  cursor: pointer;
+  opacity: 0.72;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.friend-card:hover .friend-card__menu-trigger,
+.friend-card__menu-trigger:hover,
+.friend-card__menu-trigger[aria-expanded="true"] {
+  opacity: 1;
+  color: var(--text-warm-medium);
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(196, 165, 116, 0.35);
+}
+
+.friend-card__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 9.5rem;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(196, 165, 116, 0.45);
+  background: var(--sand-bright);
+  box-shadow:
+    var(--shadow-soft),
+    0 12px 28px rgba(45, 90, 39, 0.12);
+}
+
+.friend-card__menu-item {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(199, 91, 122, 0.95);
+  cursor: pointer;
+  letter-spacing: 0.02em;
+}
+
+.friend-card__menu-item:hover {
+  background: rgba(199, 91, 122, 0.1);
 }
 
 .friend-card__ribbon {
@@ -318,6 +386,14 @@
   color: var(--text-path);
   opacity: 0.75;
   margin-bottom: 8px;
+}
+
+.friend-activity__empty {
+  margin: 0 0 4px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--text-path);
+  opacity: 0.85;
 }
 
 .friend-activity {

@@ -17,17 +17,17 @@ export async function GET(req: Request) {
 
     const res = await query<{
       tester_id: string;
-      player_code: string;
+      user_code: string;
       display_name: string | null;
     }>(
       `
       select
         t.id as tester_id,
-        t.player_code,
+        t.user_code,
         ps.data->'profile'->>'name' as display_name
       from testers t
-      left join player_states ps on ps.tester_id = t.id
-      where t.player_code = $1
+      left join user_states ps on ps.user_id = t.id
+      where t.user_code = $1
       limit 1
       `,
       [code],
@@ -44,7 +44,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       ok: true,
       data: {
-        userCode: row.player_code,
+        userCode: row.user_code,
         displayName: row.display_name?.trim() || "friend",
       },
     });

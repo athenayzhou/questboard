@@ -35,6 +35,7 @@ export type Quest = {
   createdAt: number;
   acceptedAt?: number;
   completedAt?: number | null;
+  failedAt?: number | null;
 
   pinned?: boolean;
   order?: number;
@@ -73,6 +74,15 @@ export type Quest = {
   sentNote?: string | null;
   sentAt?: number | null;
   sourceQuestId?: string | null;
+
+  /** Pure quest-to-quest collaboration (not a shared board). */
+  collabQuest?: boolean;
+  /** Membership state for this user on a collab quest (`active` can edit; `left` is read-only). */
+  myState?: "active" | "left";
+  /** Invitee-only: card is a pending invite (not yet accepted). */
+  collabInvitePending?: boolean;
+  /** Row id in `shared_quest_invites` for accept/decline. */
+  collabInviteId?: string;
 }
 
 export type CompletedQuest = Quest & {

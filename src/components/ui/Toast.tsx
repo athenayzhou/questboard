@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import type { Toast } from "../../types/ui";
 import { cn } from "../../utils/format/cn";
 import { useToast } from "../../store/toast";
@@ -10,19 +9,22 @@ type ToastItemProps = {
 
 function ToastItem({ toast, onHide }: ToastItemProps) {
   const { id, type, message } = toast;
-
-  useEffect(() => {
-    const duration = toast.duration ?? 5000;
-    const timer = setTimeout(() => {
-      onHide(id);
-    }, duration);
-    return () => clearTimeout(timer);
-  }, [id, onHide, toast.duration]);
+  const iconByType: Record<Toast["type"], string> = {
+    success: "✨",
+    info: "💬",
+    warning: "⚠️",
+    error: "🌧️",
+  };
 
   return (
     <div className={cn('toast-item', type)}>
       <div className="toast-item-content">
-        <span>{message}</span>
+        <span className="toast-item-message">
+          <span className="toast-item-icon" aria-hidden>
+            {iconByType[type]}
+          </span>
+          <span>{message}</span>
+        </span>
         <button type="button" onClick={() => onHide(id)} className="toast-item-close">
           ×
         </button>

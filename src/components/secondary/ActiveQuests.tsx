@@ -140,7 +140,9 @@ export function ActiveQuest() {
             const isPinned = isPersonalQuest(q)
               ? q.pinned
               : Boolean(userCode && userHasPin(q, userCode));
-            const canAct = !q.boardId || q.acceptedByUserId === userCode;
+            const canAct = q.collabQuest
+              ? q.myState === "active"
+              : !q.boardId || q.acceptedByUserId === userCode;
             const isExpanded = expandedQuestId === q.id;
             const isDragging = draggedQuestId === q.id;
             const isDragOver = dragOverIndex === index;

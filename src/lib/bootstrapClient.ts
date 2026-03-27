@@ -1,4 +1,5 @@
 import type { Quest } from "@/types/quest";
+import { fetchQuestCollabState, mergeCollabQuestSlices } from "@/lib/apiQuestCollab";
 import type { UserData } from "@/types/user";
 import { normalizeUserData } from "@/lib/userData";
 import type { Skill, XPEvent } from "@/types/skills";
@@ -19,6 +20,9 @@ import { useXPEventStore } from "@/store/xpEvent";
 import { useIdentityStore } from "@/store/identity";
 import { ensureGoldieFriend } from "@/lib/ensureGoldieFriend";
 import { useBoardStore } from "@/store/board";
+import { useFriendsStore } from "@/store/friends";
+import type { Friend, FriendStatus } from "@/types/friend";
+import { mergeFriendLists } from "@/lib/mergeFriendLists";
 
 export type BootstrapStatus =
   | "idle"
@@ -42,6 +46,7 @@ type BootstrapData = {
   clientGame?: unknown;
   userCode?: unknown;
   boards?: unknown;
+  friendsNetwork?: unknown;
 };
 
 type BootstrapOkResponse = {
@@ -73,6 +78,24 @@ function normalizeXPEvents(raw: unknown): XPEvent[] {
   return raw as XPEvent[];
 }
 
+function normalizeFriendsNetwork(raw: unknown): Friend[] {
+  if (!Array.isArray(raw)) return [];
+  const out: Friend[] = [];
+  for (const row of raw) {
+    if (!row || typeof row !== "object") continue;
+    const o = row as Record<string, unknown>;
+    const id = typeof o.id === "string" ? o.id : "";
+    const name = typeof o.name === "string" ? o.name : "";
+    if (!id) continue;
+    out.push({
+      id,
+      name: name.trim() || id,
+      status: "offline" as FriendStatus,
+    });
+  }
+  return out;
+}
+
 function applyBootstrapData(data: BootstrapData) {
   const quests = normalizeQuests(data.quests);
   const user = normalizeUser(data.user);
@@ -91,6 +114,12 @@ function applyBootstrapData(data: BootstrapData) {
     useSkillStore.setState({ skills });
     useXPEventStore.setState({ events });
     applyClientGameBlob(normalizeClientGameBlob(data.clientGame));
+    const serverFriends = normalizeFriendsNetwork(data.friendsNetwork);
+    const mergedFriends = mergeFriendLists(
+      serverFriends,
+      useFriendsStore.getState().friends,
+    );
+    useFriendsStore.getState().hydrate(mergedFriends);
     ensureGoldieFriend();
     useIdentityStore.getState().setUserCode(typeof data.userCode === "string" ? data.userCode : null)
 
@@ -103,11 +132,11 @@ function applyBootstrapData(data: BootstrapData) {
         createdAt: typeof b.createdAt === "number" ? b.createdAt : Date.now(),
         memberNames:
           b.memberNames && typeof b.memberNames === "object"
-            ? Object.fromEntries(
+            ? (Object.fromEntries(
                 Object.entries(b.memberNames as Record<string, unknown>).filter(
                   ([k, v]) => typeof k === "string" && typeof v === "string",
                 ),
-              )
+              ) as Record<string, string>)
             : {},
       }))
       .filter((b) => b.id.length > 0);
@@ -115,6 +144,14 @@ function applyBootstrapData(data: BootstrapData) {
     if (normalizedBoards.length > 0) {
       useBoardStore.getState().setBoards(normalizedBoards);
     }
+
+    void fetchQuestCollabState()
+      .then(({ collabs: collabQuests, invites }) => {
+        useQuestStore.getState().setQuest((prev) =>
+          mergeCollabQuestSlices(prev, invites, collabQuests),
+        );
+      })
+      .catch((e) => console.error("fetch quest collab state failed:", e));
   } finally {
     setQuestSyncSuppressed(false);
     setUserSyncSuppressed(false);

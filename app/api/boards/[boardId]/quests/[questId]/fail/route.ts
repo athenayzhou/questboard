@@ -48,7 +48,7 @@ export async function POST(
       }
 
       const now = Date.now();
-      const updated = {
+      const updated: Record<string, unknown> = {
         ...(q as Record<string, unknown>),
         status: "failed",
         completedAt: now,
@@ -61,13 +61,15 @@ export async function POST(
         [questId, boardId, JSON.stringify(updated), "failed"],
       );
 
+      const titleRaw = q["title"];
+      const questTitle =
+        typeof titleRaw === "string" && titleRaw.trim() ? titleRaw.trim() : "quest";
+      const idRaw = q["id"];
+
       await emitBoardEvent(tx, boardId, "quest_failed", {
-        questId: typeof updated.id === "string" ? updated.id : questId,
+        questId: typeof idRaw === "string" ? idRaw : questId,
         failedByUserId: userCode,
-        questTitle:
-          typeof updated.title === "string" && updated.title.trim()
-            ? updated.title.trim()
-            : "quest",
+        questTitle,
       });
 
       return NextResponse.json({ ok: true, quest: updated });

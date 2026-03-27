@@ -27,7 +27,7 @@ import { applyTutorialRewards } from "@/onboarding/tutorialRewards";
 import { useTutorialStore } from "@/onboarding/tutorialStore";
 import { dedupeQuestsById } from "@/lib/questDedupe";
 
-import { isPersonalQuest } from "@/lib/boardScope";
+import { isPersonalQuest, isQuestCollab } from "@/lib/boardScope";
 import { useIdentityStore } from "./identity";
 import {
   acceptSharedQuest,
@@ -36,6 +36,11 @@ import {
   pinSharedQuest,
   reorderSharedPins,
 } from "@/lib/apiBoards";
+import {
+  completeQuestForAll,
+  giveUpQuest,
+  toggleQuestSubquest,
+} from "@/lib/apiQuestCollab";
 
 type QuestState = {
   quests: Quest[];
@@ -146,6 +151,11 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     const quest = get().quests.find((q) => q.id === id);
     if(!quest) return;
 
+    if (quest.collabQuest) {
+      showToast("info", "collab quests can't be edited here yet");
+      return;
+    }
+
     if(quest.boardId){
       get().setOperationLoading(`edit-${id}`, true);
       fetch(`/api/boards/${quest.boardId}/quests/${id}`, {
@@ -183,6 +193,10 @@ export const useQuestStore = create<QuestState>((set, get) => ({
   deleteQuest: (id) => {
     const quest = get().quests.find((q) => q.id === id);
     if (!quest) return;
+    if (quest.collabQuest) {
+      showToast("info", "collab quests can't be deleted from the board");
+      return;
+    }
     if (quest.boardId) {
       if(!confirm(`delete shared quest "${quest.title}"?`)) return;
       get().setOperationLoading(`delete-${id}`, true);
@@ -226,6 +240,8 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     const quest = get().quests.find(q => q.id === id);
     if(!quest) return;
 
+    if (quest.collabQuest) return;
+
     if(quest.boardId){
       acceptSharedQuest(quest.boardId, quest.id)
         .then(({ quest: updated }) => {
@@ -259,6 +275,25 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     const quest = get().quests.find(q => q.id === id);
     if (!quest || quest.status !== "accepted") return;
     const me = useIdentityStore.getState().userCode;
+    if (quest.collabQuest) {
+      if (quest.myState !== "active") {
+        showToast("info", "you left this collab quest");
+        return;
+      }
+      get().setOperationLoading(`complete-${id}`, true);
+      completeQuestForAll(quest.id)
+        .then(({ quest: updated }) => {
+          if (!updated) return;
+          set((s) => ({ quests: replaceQuestById(s.quests, updated as Quest) }));
+          showToast("success", `quest "${updated.title}" completed`);
+        })
+        .catch((e) => {
+          console.error(e);
+          showToast("error", "failed to complete collab quest");
+        })
+        .finally(() => get().setOperationLoading(`complete-${id}`, false));
+      return;
+    }
     if(quest.boardId && quest.acceptedByUserId !== me){
       showToast("info", "only whoever accepted this quest can mark it as complete");
       return;
@@ -366,6 +401,28 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     if (!quest) return;
     if (quest && isTutorial(quest)) return;
     const me = useIdentityStore.getState().userCode;
+    if (quest.collabQuest) {
+      if (quest.myState !== "active") return;
+      giveUpQuest(quest.id)
+        .then(() => {
+          const now = Date.now();
+          set((s) => ({
+            quests: replaceQuestById(s.quests, {
+              ...quest,
+              myState: "left",
+              status: "failed",
+              completedAt: now,
+              failedAt: now,
+            } as Quest),
+          }));
+          showToast("info", "you left this collab quest");
+        })
+        .catch((e) => {
+          console.error(e);
+          showToast("error", "failed to leave collab quest");
+        });
+      return;
+    }
     if(quest.boardId && quest.acceptedByUserId !== me){
       showToast("info", "only whoever accepted this quest can give it up");
       return;
@@ -407,6 +464,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       if (!originalQuest) return null;
       if (originalQuest.isSystemGenerated) return null;
       if (originalQuest.boardId) return null;
+      if (originalQuest.collabQuest) return null;
 
       const duplicatedQuest: Quest = withComputedReward({
         ...originalQuest,
@@ -437,6 +495,8 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       const me = useIdentityStore.getState().userCode;
       const q = state.quests.find((x) => x.id === id);
       if(!q || q.status !== "accepted") return state;
+
+      if (q.collabQuest) return state;
 
       if(isPersonalQuest(q)){
         const newPinned = !q.pinned;
@@ -522,7 +582,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       // Persist shared pin ordering server-side for this user (per board).
       if (me) {
         const sharedPinnedIds = reordered
-          .filter((q) => !isPersonalQuest(q))
+          .filter((q) => !isPersonalQuest(q) && !q.collabQuest)
           .map((q) => q.id);
         if (sharedPinnedIds.length > 0) {
           const boardId = reordered.find((q) => q.boardId)?.boardId;
@@ -547,17 +607,49 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       }),
 
   toggleSubquest: (questId, subquestId) => {
-    set(state => {
-      const quest = state.quests.find(q => q.id === questId);
+    const quest = get().quests.find((q) => q.id === questId);
+    if (!quest?.subquests) return;
+
+    if (quest.collabQuest) {
+      if (quest.myState !== "active" || quest.status !== "accepted") return;
+      const sub = quest.subquests.find((s) => s.id === subquestId);
+      if (!sub) return;
+      const nextCompleted = !sub.completed;
+      get().setOperationLoading(`sub-${questId}-${subquestId}`, true);
+      toggleQuestSubquest({
+        questId: quest.id,
+        subquestId,
+        completed: nextCompleted,
+      })
+        .then(({ quest: updated }) => {
+          if (!updated) return;
+          set((s) => ({
+            quests: replaceQuestById(s.quests, updated as Quest),
+          }));
+        })
+        .catch((e) => {
+          console.error(e);
+          showToast("error", "failed to update subquest");
+        })
+        .finally(() =>
+          get().setOperationLoading(`sub-${questId}-${subquestId}`, false),
+        );
+      return;
+    }
+
+    set((state) => {
+      const q = state.quests.find((qq) => qq.id === questId);
       const me = useIdentityStore.getState().userCode;
-      if (quest?.boardId) return state;
-      if(quest?.acceptedByUserId && quest.acceptedByUserId !== me) return state;
-      if(!quest || !quest.subquests) return state;
-      const updatedSubquests = quest.subquests.map(sub => 
-        sub.id === subquestId ? { ...sub, completed: !sub.completed } : sub
+      if (q?.boardId) return state;
+      if (q?.acceptedByUserId && q.acceptedByUserId !== me) return state;
+      if (!q || !q.subquests) return state;
+      const updatedSubquests = q.subquests.map((sub) =>
+        sub.id === subquestId ? { ...sub, completed: !sub.completed } : sub,
       );
-      const updatedQuest = { ...quest, subquests: updatedSubquests };
-      const next = state.quests.map(q => q.id === questId ? updatedQuest : q);
+      const updatedQuest = { ...q, subquests: updatedSubquests };
+      const next = state.quests.map((qq) =>
+        qq.id === questId ? updatedQuest : qq,
+      );
       scheduleQuestSync();
       return { quests: next };
     });
@@ -665,7 +757,8 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         q.status === "accepted" &&
         isQuestOverdue(q) &&
         !isTutorial(q) &&
-        isPersonalQuest(q),
+        isPersonalQuest(q) &&
+        !q.collabQuest,
     );
     if (overdueAccepted.length === 0) return;
     const next = state.quests.map(q => {
@@ -683,8 +776,12 @@ export const useQuestStore = create<QuestState>((set, get) => ({
   getAvailable: () =>
     get().quests.filter((q) => q.status === "available" && isPersonalQuest(q)),
 
-  getAccepted: () => 
-    get().quests.filter((q) => q.status === "accepted" && isPersonalQuest(q)),
+  getAccepted: () =>
+    get().quests.filter(
+      (q) =>
+        q.status === "accepted" &&
+        (isPersonalQuest(q) || isQuestCollab(q)),
+    ),
 
   getPinned: () => {
     const me = useIdentityStore.getState().userCode;

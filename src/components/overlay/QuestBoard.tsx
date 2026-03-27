@@ -38,6 +38,15 @@ import { useIdentityStore } from "@/store/identity";
 import { useFriendsStore } from "@/store/friends";
 import { showToast } from "@/utils/toast";
 import { PromptDialog } from "@/components/ui/PromptDialog";
+import {
+  fetchQuestCollabState,
+  invalidateQuestCollabStateInflight,
+  mergeCollabQuestSlices,
+  mergeQuestStateFromServer,
+  subscribeQuestCollabEvents,
+} from "@/lib/apiQuestCollab";
+import { fetchPersonalQuestsFromServer } from "@/lib/apiQuests";
+import { GOLDIE_FRIEND_ID } from "@/data/systemFriends";
 
 type QuestBoardProps = {
   quests: Quest[];
@@ -156,6 +165,132 @@ export function QuestBoard({
     const interval = setInterval(loadInvites, 10000);
     return () => clearInterval(interval);
   }, [activeOverlay, questTopTab]);
+
+  useEffect(() => {
+    if (activeOverlay !== "quests") return;
+    let cancelled = false;
+    const syncQuests = async () => {
+      try {
+        const [personal, { invites, collabs }] = await Promise.all([
+          fetchPersonalQuestsFromServer(),
+          fetchQuestCollabState(),
+        ]);
+        if (cancelled) return;
+        useQuestStore.getState().setQuest((prev) =>
+          mergeQuestStateFromServer(prev, personal, invites, collabs),
+        );
+      } catch (e) {
+        console.error("failed to sync quests from server", e);
+      }
+    };
+    void syncQuests();
+    const interval = setInterval(() => {
+      void syncQuests();
+    }, 20000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [activeOverlay]);
+
+  /** Stable string so quests array identity changes don't reconnect every SSE. */
+  const collabQuestIdsKey = useMemo(() => {
+    return Array.from(
+      new Set(
+        quests
+          .filter((q) => q.collabQuest && !q.collabInvitePending)
+          .map((q) => q.id),
+      ),
+    )
+      .sort()
+      .slice(0, 8)
+      .join("\0");
+  }, [quests]);
+
+  const openQuestPageIdsKey = useMemo(
+    () =>
+      [...openQuestPages]
+        .map((p) => p.id)
+        .sort()
+        .join(","),
+    [openQuestPages],
+  );
+
+  const openQuestPageIdSet = useMemo(
+    () => new Set(openQuestPageIdsKey.split(",").filter(Boolean)),
+    [openQuestPageIdsKey],
+  );
+
+  const collabSseRefreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (activeOverlay !== "quests") return;
+    const allIds = collabQuestIdsKey
+      ? collabQuestIdsKey.split("\0").filter(Boolean)
+      : [];
+    /** QuestPage already subscribes; avoid duplicate EventSources + duplicate fetches. */
+    const ids = allIds.filter((id) => !openQuestPageIdSet.has(id));
+    if (ids.length === 0) return;
+
+    const scheduleCollabRefresh = () => {
+      if (collabSseRefreshTimerRef.current) {
+        clearTimeout(collabSseRefreshTimerRef.current);
+      }
+        collabSseRefreshTimerRef.current = setTimeout(() => {
+        collabSseRefreshTimerRef.current = null;
+        void (async () => {
+          try {
+            invalidateQuestCollabStateInflight();
+            const { invites, collabs } = await fetchQuestCollabState();
+            useQuestStore.getState().setQuest((prev) =>
+              mergeCollabQuestSlices(prev, invites, collabs),
+            );
+          } catch (e) {
+            console.error("collab SSE sync failed", e);
+          }
+        })();
+      }, 550);
+    };
+
+    const closeFns: Array<() => void> = [];
+    for (const qid of ids) {
+      closeFns.push(
+        subscribeQuestCollabEvents({
+          questId: qid,
+          cursor: 0,
+          onEvent: (ev) => {
+            if (ev.type === "collab_invite_accepted") {
+              const questIdPayload = ev.payload.questId;
+              const accepter = ev.payload.accepterUserCode;
+              const name = String(ev.payload.accepterDisplayName ?? "").trim();
+              const pageOpenForQuest =
+                typeof questIdPayload === "string" &&
+                openQuestPageIdSet.has(questIdPayload);
+              if (
+                !pageOpenForQuest &&
+                typeof accepter === "string" &&
+                typeof userCode === "string" &&
+                accepter !== userCode &&
+                name
+              ) {
+                showToast("success", `${name} accepted collab quest`);
+              }
+            }
+            scheduleCollabRefresh();
+          },
+        }),
+      );
+    }
+    return () => {
+      if (collabSseRefreshTimerRef.current) {
+        clearTimeout(collabSseRefreshTimerRef.current);
+        collabSseRefreshTimerRef.current = null;
+      }
+      for (const c of closeFns) c();
+    };
+  }, [activeOverlay, collabQuestIdsKey, openQuestPageIdSet, userCode]);
 
   useEffect(() => {
     if (!boardMenuOpen) return;
@@ -383,11 +518,19 @@ export function QuestBoard({
     }
     if (questTopTab === "accepted") {
       return quests.filter((q) => {
+        if (q.collabQuest) return q.status === "accepted";
         if (!q.boardId) return q.status === "accepted";
         return q.status === "accepted" && q.acceptedByUserId === userCode;
       });
     }
-    return quests.filter((q) => !q.boardId && q.status === questTopTab);
+    return quests.filter((q) => {
+      if (q.boardId) return false;
+      if (q.collabQuest && q.collabInvitePending) {
+        return questTopTab === "available" && q.status === "available";
+      }
+      if (q.collabQuest) return false;
+      return q.status === questTopTab;
+    });
   }, [quests, tab, questTopTab, activeBoardId, userCode]);
   function handleTabSwitch(newTab: "available" | "accepted") {
     if (newTab === tab) return;
@@ -477,6 +620,7 @@ export function QuestBoard({
       showToast("error", "failed to decline invite");
     }
   };
+
   const myMember = boardMembers.find((m) => m.user_code === userCode);
   const isBoardAdmin = myMember?.role === "admin";
   const activeBoardMemberNames =
@@ -948,10 +1092,13 @@ export function QuestBoard({
                           invite friends
                         </button>
                         {inviteFriendsOpen ? (
-                          friends.length > 0 ? (
+                          friends.some((f) => f.id !== GOLDIE_FRIEND_ID) ? (
                             <>
                               <div className="quest-board-invite-menu__cap">friends</div>
-                              {friends.slice(0, 12).map((f) => (
+                              {friends
+                                .filter((f) => f.id !== GOLDIE_FRIEND_ID)
+                                .slice(0, 12)
+                                .map((f) => (
                                 <button
                                   key={f.id}
                                   type="button"
@@ -964,7 +1111,11 @@ export function QuestBoard({
                                       .finally(() => setInviteFriendsOpen(false))
                                       .catch((e) => {
                                         console.error(e);
-                                        showToast("error", "invite failed");
+                                        const msg =
+                                          e instanceof Error && e.message.trim()
+                                            ? e.message
+                                            : "invite failed";
+                                        showToast("error", msg);
                                       });
                                   }}
                                 >

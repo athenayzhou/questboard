@@ -20,11 +20,11 @@ const payloadSchema = z.object({
 
 type RecipientRow = {
   tester_id: string;
-  player_code: string;
+  user_code: string;
 };
 
 type SenderRow = {
-  player_code: string;
+  user_code: string;
   display_name: string | null;
 };
 
@@ -71,9 +71,9 @@ export async function POST(req: Request) {
     const result = await withTransaction(async (tx) => {
       const recipientRes = await tx<RecipientRow>(
         `
-        select id as tester_id, player_code
+        select id as tester_id, user_code
         from testers
-        where player_code = $1
+        where user_code = $1
         limit 1
         `,
         [toUserCode],
@@ -86,17 +86,17 @@ export async function POST(req: Request) {
       const senderRes = await tx<SenderRow>(
         `
         select
-          t.player_code,
+          t.user_code,
           ps.data->'profile'->>'name' as display_name
         from testers t
-        left join player_states ps on ps.tester_id = t.id
+        left join user_states ps on ps.user_id = t.id
         where t.id = $1
         limit 1
         `,
         [auth.testerId],
       );
       const sender = senderRes.rows[0];
-      const senderCode = sender?.player_code ?? null;
+      const senderCode = sender?.user_code ?? null;
       const senderName = sender?.display_name?.trim() || null;
       const duplicateWindowStart = Date.now() - 10 * 60 * 1000;
 

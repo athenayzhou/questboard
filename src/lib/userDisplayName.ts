@@ -6,8 +6,8 @@ export async function getDisplayNameForTester(
   const res = await query<{ name: string | null }>(
     `
     select data->'profile'->>'name' as name
-    from player_states
-    where tester_id = $1
+    from user_states
+    where user_id = $1
     limit 1
     `,
     [testerId],

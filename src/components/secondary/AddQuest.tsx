@@ -255,11 +255,6 @@ export function AddQuestOverlay() {
                 </select>
               </div>
             </div>
-
-            <p className="quest-edit-hint">
-              coins and XP rewards are calculated automatically from difficulty and
-              duration (gems are only used for seasonal system quests).
-            </p>
           </section>
 
           <section className="quest-edit-section" aria-labelledby="addq-schedule">

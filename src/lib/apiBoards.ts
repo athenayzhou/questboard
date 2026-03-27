@@ -203,10 +203,10 @@ export async function reorderSharedPins(
 
 export async function fetchBoardActivity(
   boardId: string,
-  params?: { beforeId?: number | null; limit?: number },
+  params: { beforeId?: number | null; limit?: number } = {},
 ): Promise<{ events: BoardActivityEvent[]; nextBeforeId: number | null }> {
-  const beforeId = params?.beforeId ?? null;
-  const limit = params?.limit ?? 30;
+  const beforeId = params.beforeId ?? null;
+  const limit = params.limit ?? 30;
   const search = new URLSearchParams();
   search.set("limit", String(limit));
   if (beforeId !== null) search.set("beforeId", String(beforeId));

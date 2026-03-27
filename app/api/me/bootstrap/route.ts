@@ -3,6 +3,7 @@ import { query } from "@/lib/db";
 import { hashSessionToken } from "@/lib/betaAuth";
 import { assignUserCodeIfMissing } from "@/lib/userCode";
 import { DEFAULT_DISPLAY_NAME_PLACEHOLDER } from "@/lib/defaultUserData";
+import { ensureFriendEdgesSchema } from "@/lib/friendsDb";
 
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME ?? "qb_session";
 
@@ -88,7 +89,7 @@ export async function GET(req: Request) {
 
     const [playerRows, questRows, skillRows, eventRows, extensionRows] =
       await Promise.all([
-        safeSelectData(`select data from player_states where tester_id = $1`, [
+        safeSelectData(`select data from user_states where user_id = $1`, [
           session.tester_id,
         ]),
         safeSelectData(`select data from quests where tester_id = $1`, [
@@ -119,6 +120,42 @@ export async function GET(req: Request) {
       (extensionRows[0] as Record<string, unknown> | undefined) ?? {};
     
     const userCode = await assignUserCodeIfMissing(session.tester_id);
+
+    try {
+      await ensureFriendEdgesSchema(query);
+    } catch (e) {
+      console.error("ensureFriendEdgesSchema failed:", e);
+    }
+
+    let friendsNetwork: { id: string; name: string }[] = [];
+    try {
+      const frRes = await query<{ id: string; name: string }>(
+        `
+        select
+          t.user_code as id,
+          coalesce(nullif(trim(ps.data->'profile'->>'name'), ''), t.user_code) as name
+        from friend_edges fe
+        join testers t on t.id = (
+          case when fe.tester_low = $1::uuid then fe.tester_high else fe.tester_low end
+        )
+        left join user_states ps on ps.user_id = t.id
+        where fe.tester_low = $1::uuid or fe.tester_high = $1::uuid
+        `,
+        [session.tester_id],
+      );
+      friendsNetwork = frRes.rows;
+    } catch (e) {
+      if (
+        e &&
+        typeof e === "object" &&
+        "code" in e &&
+        (e as { code?: string }).code === "42P01"
+      ) {
+        friendsNetwork = [];
+      } else {
+        console.error("friend_edges list failed:", e);
+      }
+    }
 
     const boards = await safeSelectData(
       `
@@ -153,6 +190,7 @@ export async function GET(req: Request) {
         clientGame,
         userCode,
         boards,
+        friendsNetwork,
       },
     });
   } catch (error) {

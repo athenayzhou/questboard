@@ -8,6 +8,9 @@ import {
 } from "@/lib/sessionRecovery";
 import { isPersonalQuest } from "@/lib/boardScope";
 
+/** Parallel callers (e.g. bootstrap + quest overlay) share one GET /api/me/quests. */
+let personalQuestsInflight: Promise<Quest[]> | null = null;
+
 let suppressQuestSync = false;
 let timer: ReturnType<typeof setTimeout> | null = null;
 const DELAY_MS = 800;
@@ -35,6 +38,27 @@ export async function saveQuestsToServer(quests: unknown[]) {
     const t = await res.text().catch(() => "");
     throw new Error(`save quests failed: ${res.status} ${t}`);
   }
+}
+
+export async function fetchPersonalQuestsFromServer(): Promise<Quest[]> {
+  if (!personalQuestsInflight) {
+    personalQuestsInflight = (async () => {
+      const res = await fetch("/api/me/quests", { credentials: "include" });
+      await throwIfUnauthorized(res);
+      if (!res.ok) {
+        const t = await res.text().catch(() => "");
+        throw new Error(`fetch quests failed: ${res.status} ${t}`);
+      }
+      const json = (await res.json().catch(() => null)) as {
+        quests?: unknown;
+      } | null;
+      const list = json?.quests;
+      return Array.isArray(list) ? (list as Quest[]) : [];
+    })().finally(() => {
+      personalQuestsInflight = null;
+    });
+  }
+  return personalQuestsInflight;
 }
 
 export async function sendQuestToFriend(args: {

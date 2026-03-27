@@ -102,7 +102,7 @@ export async function POST(req: Request) {
 
       // Display name snapshot for this membership.
       const nameRes = await tx<{ data: unknown }>(
-        `select data from player_states where tester_id = $1 limit 1`,
+        `select data from user_states where user_id = $1 limit 1`,
         [auth.testerId],
       );
       const raw = nameRes.rows?.[0]?.data;

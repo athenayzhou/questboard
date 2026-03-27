@@ -36,9 +36,14 @@ export function FilterQuest() {
         ? quests.filter(
             (q) => q.boardId === activeBoardId && q.status === boardTab,
           )
-        : quests.filter(
-            (q) => !q.boardId && q.status === questTopTab,
-          );
+        : quests.filter((q) => {
+            if (q.boardId) return false;
+            if (q.collabQuest && q.collabInvitePending) {
+              return questTopTab === "available" && q.status === "available";
+            }
+            if (q.collabQuest) return q.status === questTopTab;
+            return q.status === questTopTab;
+          });
     const set = new Set<string>();
     for (const q of byTab) {
       for (const cat of q.category ?? []) {

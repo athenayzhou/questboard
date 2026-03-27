@@ -125,6 +125,17 @@ export function IconGripVertical({ size = 18, className, ...rest }: IconProps) {
   );
 }
 
+/** Vertical ellipsis — friend card overflow menu, etc. */
+export function IconDotsVertical({ size = 18, className, ...rest }: IconProps) {
+  return (
+    <svg {...base(size)} className={className} aria-hidden {...rest}>
+      <circle cx="12" cy="5" r="1.25" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.25" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="19" r="1.25" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function IconExternalLink({ size = 18, className, ...rest }: IconProps) {
   return (
     <svg {...base(size)} className={className} aria-hidden {...rest}>

@@ -1,17 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useOverlay } from "../../store/overlay";
 import { useFriendsStore } from "../../store/friends";
 import { showToast } from "../../utils/toast";
 import { normalizeUserCodeInput } from "../../utils/format/code";
 import { fetchFriendSummaries } from "@/lib/apiFriendsSummary";
+import {
+  addFriendOnServer,
+  fetchFriendsFromServer,
+  removeFriendOnServer,
+} from "@/lib/apiFriends";
+import { flushExtensionSyncNow } from "@/lib/apiExtension";
+import { mergeFriendLists } from "@/lib/mergeFriendLists";
+import { ensureGoldieFriend } from "@/lib/ensureGoldieFriend";
 import type { FriendActivity, FriendSummary } from "@/types/friend";
 import {
   getSystemFriendUiDetail,
   GOLDIE_FRIEND_ID,
 } from "@/data/systemFriends";
-import { IconUserPlus, IconX } from "../ui/icons";
+import { DEFAULT_CHARACTER_IMAGE } from "@/lib/defaultUserData";
+import { IconDotsVertical, IconUserPlus, IconX } from "../ui/icons";
 import { UserNamePlate } from "../NamePlate";
 
 type LookupOk = {
@@ -33,24 +42,32 @@ function timeAgo(ts: number) {
 function FriendActivityBlock({
   items,
   ariaLabel,
+  emptyHint,
 }: {
   items: FriendActivity[];
   ariaLabel: string;
+  emptyHint?: string;
 }) {
-  if (items.length === 0) return null;
+  if (items.length === 0 && !emptyHint) return null;
   return (
     <div className="friend-activity-wrap">
       <div className="friend-activity__cap">recent skill activity</div>
-      <ul className="friend-activity" aria-label={ariaLabel}>
-        {items.slice(0, 3).map((a) => (
-          <li key={a.id} className="friend-activity__row">
-            <span className="friend-activity__label">{a.name ?? "skill"}</span>
-            <span className="friend-activity__meta">
-              +{a.amount} · {timeAgo(a.timestamp)}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {items.length === 0 ? (
+        emptyHint ? (
+          <p className="friend-activity__empty">{emptyHint}</p>
+        ) : null
+      ) : (
+        <ul className="friend-activity" aria-label={ariaLabel}>
+          {items.slice(0, 3).map((a) => (
+            <li key={a.id} className="friend-activity__row">
+              <span className="friend-activity__label">{a.name ?? "skill"}</span>
+              <span className="friend-activity__meta">
+                +{a.amount} · {timeAgo(a.timestamp)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -60,6 +77,7 @@ export function FriendsList() {
   const activeOverlay = useOverlay((s) => s.activeOverlay);
   const friends = useFriendsStore((s) => s.friends);
   const addFriend = useFriendsStore((s) => s.addFriend);
+  const removeFriend = useFriendsStore((s) => s.removeFriend);
 
   const [showAdd, setShowAdd] = useState(false);
   const [codeInput, setCodeInput] = useState("");
@@ -67,8 +85,47 @@ export function FriendsList() {
   const [preview, setPreview] = useState<LookupOk | null>(null);
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [summaries, setSummaries] = useState<Record<string, FriendSummary>>({});
+  const [friendMenuOpenId, setFriendMenuOpenId] = useState<string | null>(null);
+  const friendMenuWrapRef = useRef<HTMLDivElement | null>(null);
 
   const builtinUiTick = Date.now();
+
+  useEffect(() => {
+    if (friendMenuOpenId === null) return;
+    function onDocMouseDown(e: MouseEvent) {
+      const t = e.target as Node;
+      if (friendMenuWrapRef.current?.contains(t)) return;
+      setFriendMenuOpenId(null);
+    }
+    function onEsc(e: KeyboardEvent) {
+      if (e.key === "Escape") setFriendMenuOpenId(null);
+    }
+    document.addEventListener("mousedown", onDocMouseDown);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onDocMouseDown);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [friendMenuOpenId]);
+
+  useEffect(() => {
+    if (activeOverlay !== "friends") return;
+    let cancelled = false;
+    void fetchFriendsFromServer()
+      .then((server) => {
+        if (cancelled) return;
+        const merged = mergeFriendLists(
+          server,
+          useFriendsStore.getState().friends,
+        );
+        useFriendsStore.getState().hydrate(merged);
+        ensureGoldieFriend();
+      })
+      .catch((e) => console.error("fetch friends failed", e));
+    return () => {
+      cancelled = true;
+    };
+  }, [activeOverlay]);
 
   useEffect(() => {
     if (activeOverlay !== "friends" || friends.length === 0) {
@@ -156,6 +213,7 @@ export function FriendsList() {
       name: preview.displayName,
       status: "offline",
     });
+    void flushExtensionSyncNow().catch(() => {});
     showToast("success", "friend added");
     closeModal();
   }
@@ -281,11 +339,53 @@ export function FriendsList() {
               ? builtinUi.activity
               : summary?.recentActivity?.slice(0, 3) ?? [];
 
-          const portraitUrl = builtinUi?.portraitUrl;
+          const portraitUrl =
+            friend.id === GOLDIE_FRIEND_ID
+              ? builtinUi?.portraitUrl
+              : summary?.characterImageUrl?.trim() || DEFAULT_CHARACTER_IMAGE;
 
           return (
             <div key={friend.id} className="friend-card">
               <div className="friend-card__ribbon" aria-hidden />
+              {friend.id !== GOLDIE_FRIEND_ID ? (
+                <div
+                  className="friend-card__menu-wrap"
+                  ref={
+                    friend.id === friendMenuOpenId ? friendMenuWrapRef : undefined
+                  }
+                >
+                  <button
+                    type="button"
+                    className="friend-card__menu-trigger"
+                    aria-haspopup="menu"
+                    aria-expanded={friendMenuOpenId === friend.id}
+                    aria-label={`Actions for ${displayName}`}
+                    title="Friend actions"
+                    onClick={() =>
+                      setFriendMenuOpenId((id) =>
+                        id === friend.id ? null : friend.id,
+                      )
+                    }
+                  >
+                    <IconDotsVertical size={16} />
+                  </button>
+                  {friendMenuOpenId === friend.id ? (
+                    <div className="friend-card__menu" role="menu">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="friend-card__menu-item"
+                        onClick={() => {
+                          setFriendMenuOpenId(null);
+                          void removeFriend(friend.id);
+                        }}
+                      >
+                        remove friend
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
               {portraitUrl ? (
                 <div className="friend-card__portrait-wrap">
                   {/* eslint-disable-next-line @next/next/no-img-element -- friend portrait from static URL */}
@@ -309,29 +409,23 @@ export function FriendsList() {
                 </div>
               </div>
 
-              {platePlacements.length > 0 ? (
-                <div className="friend-info friend-info--nameplate">
-                  <UserNamePlate
-                    userName={displayName}
-                    placements={platePlacements}
-                    interactive={false}
-                    className="friend-nameplate"
-                  />
-                  <div className="friend-id-sub">{friend.id}</div>
-                </div>
-              ) : (
-                <div className="friend-info friend-info--text">
-                  <div className="friend-name">{displayName}</div>
-                  <div className="friend-id-sub">{friend.id}</div>
-                </div>
-              )}
-
-              {activityItems.length > 0 ? (
-                <FriendActivityBlock
-                  items={activityItems}
-                  ariaLabel={`Recent skill activity: ${displayName}`}
+              <div className="friend-info friend-info--nameplate">
+                <UserNamePlate
+                  userName={displayName}
+                  placements={platePlacements}
+                  interactive={false}
+                  className="friend-nameplate"
                 />
-              ) : null}
+                <div className="friend-id-sub">{friend.id}</div>
+              </div>
+
+              <FriendActivityBlock
+                items={activityItems}
+                ariaLabel={`Recent skill activity: ${displayName}`}
+                emptyHint={
+                  friend.id === GOLDIE_FRIEND_ID ? undefined : "no skills yet"
+                }
+              />
             </div>
           );
         })}

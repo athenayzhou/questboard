@@ -1,7 +1,11 @@
 import type { Quest } from "@/types/quest";
 
 export function isPersonalQuest(q: Quest): boolean {
-  return q.boardId == null || q.boardId === "";
+  return (q.boardId == null || q.boardId === "") && !q.collabQuest;
+}
+
+export function isQuestCollab(q: Quest): boolean {
+  return q.collabQuest === true;
 }
 
 export function isSharedQuest(q: Quest): boolean {

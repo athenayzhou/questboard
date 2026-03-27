@@ -29,7 +29,7 @@ export async function POST(
       }
 
       const psRes = await tx<{ data: unknown }>(
-        `select data from player_states where tester_id = $1::uuid limit 1`,
+        `select data from user_states where user_id = $1::uuid limit 1`,
         [auth.testerId],
       );
       const raw = psRes.rows?.[0]?.data;

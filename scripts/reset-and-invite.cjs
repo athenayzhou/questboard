@@ -72,7 +72,7 @@ async function main() {
     await client.query("delete from xp_events");
     await client.query("delete from skills");
     await client.query("delete from quests");
-    await client.query("delete from player_states");
+    await client.query("delete from user_states");
     await client.query("delete from tester_sessions");
     await client.query("delete from beta_invites");
     await client.query("delete from testers");

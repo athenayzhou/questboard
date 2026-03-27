@@ -101,5 +101,11 @@ export async function ensureSharedBoardsSchema(txQuery: TransactionQuery) {
     create index if not exists shared_board_invites_board_id_idx
     on shared_board_invites (board_id);
   `);
+
+  // Required for INSERT ... ON CONFLICT (board_id, invitee_tester_id); older DBs may lack this.
+  await txQuery(`
+    create unique index if not exists shared_board_invites_board_invitee_uniq
+    on shared_board_invites (board_id, invitee_tester_id);
+  `);
 }
 
