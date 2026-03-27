@@ -1,11 +1,17 @@
 import { Pool } from "pg";
 import type { QueryResult, QueryResultRow } from "pg";
 
+const ca = process.env.DO_DB_CA_PEM?.trim();
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  }
+  ssl: ca
+    ? {
+        ca,
+        rejectUnauthorized: true,
+      }
+    : {
+        rejectUnauthorized: true,
+      },
 });
 
 export async function query<T extends QueryResultRow = QueryResultRow>(
