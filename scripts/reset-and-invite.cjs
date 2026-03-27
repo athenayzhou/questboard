@@ -1,7 +1,6 @@
 /**
- * Wipes tester data + all beta_invites, then adds two invites:
- *   QUESTBOARD-BETA-000
- *   QUESTBOARD-BETA-001
+ * Wipes tester data + all beta_invites, then adds ten invites:
+ *   QUESTBOARD-BETA-000 .. QUESTBOARD-BETA-009
  *
  * Needs DATABASE_URL + INVITE_HMAC_SECRET (same as the running app).
  * Loads .env.local if present.
@@ -40,7 +39,9 @@ function hashInviteKey(secret, inviteKey) {
   return crypto.createHmac("sha256", secret).update(inviteKey).digest("hex");
 }
 
-const CODES = ["QUESTBOARD-BETA-000", "QUESTBOARD-BETA-001"];
+const CODES = Array.from({ length: 10 }, (_, i) =>
+  `QUESTBOARD-BETA-${String(i).padStart(3, "0")}`,
+);
 
 async function main() {
   loadEnvLocal();
