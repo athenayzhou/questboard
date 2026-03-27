@@ -6,9 +6,39 @@ const ca = caRaw.includes("\\n") ? caRaw.replace(/\\n/g, "\n") : caRaw;
 const hasValidCaPem =
   ca.includes("-----BEGIN CERTIFICATE-----") &&
   ca.includes("-----END CERTIFICATE-----");
+const rawDatabaseUrl = process.env.DATABASE_URL ?? "";
+
+function stripSslQueryParams(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const sslKeys = [
+      "ssl",
+      "sslmode",
+      "sslrootcert",
+      "sslcert",
+      "sslkey",
+      "sslpassword",
+      "sslcrl",
+      "ssl_min_protocol_version",
+      "ssl_max_protocol_version",
+      "sslnegotiation",
+      "channel_binding",
+      "gssencmode",
+      "usetlibpqcompat",
+      "uselibpqcompat",
+    ];
+    for (const key of sslKeys) parsed.searchParams.delete(key);
+    return parsed.toString();
+  } catch {
+    // If DATABASE_URL is malformed, keep original and let pg throw normally.
+    return url;
+  }
+}
+
+const connectionString = stripSslQueryParams(rawDatabaseUrl);
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
   ssl: hasValidCaPem
     ? {
         ca,
@@ -22,7 +52,7 @@ const pool = new Pool({
 console.info(
   `[db] SSL mode: ${hasValidCaPem ? "strict-ca" : "tls-no-verify"} (DO_DB_CA_PEM ${
     caRaw ? "present" : "absent"
-  })`,
+  }, ssl params in URL stripped)`,
 );
 
 export async function query<T extends QueryResultRow = QueryResultRow>(
