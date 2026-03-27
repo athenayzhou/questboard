@@ -1,7 +1,8 @@
 import { Pool } from "pg";
 import type { QueryResult, QueryResultRow } from "pg";
 
-const ca = process.env.DO_DB_CA_PEM?.trim();
+const caRaw = process.env.DO_DB_CA_PEM ?? "";
+const ca = caRaw.includes("\\n") ? caRaw.replace(/\\n/g, "\n") : caRaw;
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: ca
