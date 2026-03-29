@@ -1495,8 +1495,8 @@
 .quest-edit-intro {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  margin-bottom: var(--space-xs);
+  gap: 8px;
+  /* margin-bottom: var(--space-xs); */
 }
 
 .quest-edit-intro .form-group {
@@ -1893,7 +1893,7 @@
 }
 
 .modal.quest-create .quest-edit-form {
-  gap: 4px;
+  gap: 10px;
 }
 
 .modal.quest-create .quest-edit-intro .form-group {

@@ -238,7 +238,7 @@ export function IconShoppingBag({ size = 18, className, ...rest }: IconProps) {
 export function IconCalendar({ size = 18, className, ...rest }: IconProps) {
   return (
     <svg {...base(size)} className={className} aria-hidden {...rest}>
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <rect x="1" y="1" width="22" height="22" rx="2" ry="2" />
       <path d="M16 2v4M8 2v4M3 10h18" />
     </svg>
   );

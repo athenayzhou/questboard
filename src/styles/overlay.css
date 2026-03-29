@@ -186,7 +186,6 @@
 .quest-create select {
   width: 100%;
   padding: 10px 12px;
-  margin: 6px 0 14px 0;
   border: 2px solid var(--path);
   border-radius: 10px;
   background: var(--sand-sun);
@@ -277,7 +276,7 @@
 
 .quest-create button[type="button"]:not(.close):not(.primary),
 .quest-create > button:not(:first-of-type):not(.close) {
-  padding: 10px 18px;
+  padding: 8px 10px;
   border-radius: 10px;
   border: 2px solid var(--path);
   background: var(--path-light);
