@@ -5,6 +5,7 @@ import { getSkillCooccurence } from "../../utils/skill/analysis/cooccurence";
 import { useStreakStore } from "../../store/streak";
 import { IconX, IconPencil } from "../ui/icons";
 import { formatDateUsSlash } from "../../utils/format/date";
+import { xpEventActivityLabel } from "../../utils/xpEventLabel";
 
 type Props = {
   skill: SkillLedgerEntry;
@@ -31,10 +32,14 @@ export function SkillDetail({
   const streakDays = useStreakStore((s) => s.currentDays);
   const streakLastDate = useStreakStore((s) => s.lastCompletion);
 
-  const xpEvents = useMemo(
-    () => events.filter((e) => e.skillId === skillId),
-    [events, skillId]
-  );
+  const xpEvents = useMemo(() => {
+    const fs = skill.firstSeenAt ?? 0;
+    return events.filter((e) => {
+      if (e.skillId !== skillId) return false;
+      if (fs > 0 && e.timestamp < fs) return false;
+      return true;
+    });
+  }, [events, skillId, skill.firstSeenAt]);
 
   const sortedActivity = useMemo(
     () => [...xpEvents].sort((a, b) => b.timestamp - a.timestamp),
@@ -104,9 +109,7 @@ export function SkillDetail({
                   {formatDateUsSlash(e.timestamp)}
                 </span>
                 <span className="activity-source">{e.source}</span>
-                <span className="activity-name">
-                  {e.name || e.sourceId || "—"}
-                </span>
+                <span className="activity-name">{xpEventActivityLabel(e)}</span>
                 <span
                   className={
                     e.amount < 0 ? "activity-amount is-negative" : "activity-amount"

@@ -3,6 +3,7 @@ import { requireTesterId } from "@/lib/session";
 import { errorJson, parseJsonBody } from "@/lib/apiResponses";
 import { withTransaction } from "@/lib/db";
 import { ensureSharedBoardsSchema, emitBoardEvent } from "@/lib/sharedBoardsDb";
+import { normalizeSharedBoardQuestRowData } from "@/lib/sharedBoardQuestData";
 import { assignUserCodeIfMissing } from "@/lib/userCode";
 import { z } from "zod";
 
@@ -84,7 +85,10 @@ export async function PATCH(
         questTitle: updatedTitle,
       });
 
-      return NextResponse.json({ ok: true, quest: updated });
+      return NextResponse.json({
+        ok: true,
+        quest: normalizeSharedBoardQuestRowData(updated),
+      });
     });
   } catch (e) {
     console.error("PATCH /api/boards/:boardId/quests/:questId failed:", e);

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { TutorialSubquest } from "./tutorialTypes";
 import { TUTORIAL_QUEST_TEMPLATES } from "./tutorialTemplates";
+// import { ensureTutorialSkill } from "./tutorialSkill";
 
 function flatSubquests(): TutorialSubquest[] {
   return TUTORIAL_QUEST_TEMPLATES.flatMap((t) => t.subquests);
@@ -87,6 +88,7 @@ export const useTutorialStore = create<TutorialState>()(
       startTutorial: () => {
         const flat = flatSubquests();
         if (flat.length === 0) return;
+        // ensureTutorialSkill();
         set({
           isActive: true,
           completed: false,
@@ -102,6 +104,9 @@ export const useTutorialStore = create<TutorialState>()(
           tutorialSkillNamingSkillId: null,
         });
         localStorage.setItem("tutorial-completed", "true");
+        void import("@/store/quest").then(({ useQuestStore }) => {
+          useQuestStore.getState().removeInProgressTutorialQuests();
+        });
       },
       markSubquestComplete: (subquestId: string) => {
         const state = get();

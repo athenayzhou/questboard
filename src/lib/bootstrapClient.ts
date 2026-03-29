@@ -23,6 +23,9 @@ import { useBoardStore } from "@/store/board";
 import { useFriendsStore } from "@/store/friends";
 import type { Friend, FriendStatus } from "@/types/friend";
 import { mergeFriendLists } from "@/lib/mergeFriendLists";
+import { useBoardLayoutStore } from "@/store/boardLayout";
+import type { BoardLayoutMap } from "@/types/boardLayout";
+import { setBoardLayoutSyncSuppressed } from "@/lib/boardLayoutSync";
 
 export type BootstrapStatus =
   | "idle"
@@ -47,6 +50,7 @@ type BootstrapData = {
   userCode?: unknown;
   boards?: unknown;
   friendsNetwork?: unknown;
+  boardLayouts?: unknown;
 };
 
 type BootstrapOkResponse = {
@@ -96,6 +100,30 @@ function normalizeFriendsNetwork(raw: unknown): Friend[] {
   return out;
 }
 
+function normalizeBoardLayouts(raw: unknown): Record<string, BoardLayoutMap> {
+  if (!raw || typeof raw !== "object") return {};
+  const out: Record<string, BoardLayoutMap> = {};
+  for (const [surfaceKey, map] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof surfaceKey !== "string" || !surfaceKey.startsWith("qb.boardLayout.v1:")) {
+      continue;
+    }
+    if (!map || typeof map !== "object") continue;
+    const layout: BoardLayoutMap = {};
+    for (const [questId, entry] of Object.entries(map as Record<string, unknown>)) {
+      if (!entry || typeof entry !== "object") continue;
+      const o = entry as Record<string, unknown>;
+      if (typeof o.x !== "number" || typeof o.y !== "number") continue;
+      layout[questId] = {
+        x: o.x,
+        y: o.y,
+        zIndex: typeof o.zIndex === "number" ? o.zIndex : 1,
+      };
+    }
+    out[surfaceKey] = layout;
+  }
+  return out;
+}
+
 function applyBootstrapData(data: BootstrapData) {
   const quests = normalizeQuests(data.quests);
   const user = normalizeUser(data.user);
@@ -108,6 +136,7 @@ function applyBootstrapData(data: BootstrapData) {
   setSkillSyncSuppressed(true);
   setXPEventSyncSuppressed(true);
   setExtensionSyncSuppressed(true);
+  setBoardLayoutSyncSuppressed(true);
   try {
     useQuestStore.getState().setQuest(quests);
     useUserStore.getState().setUser(user);
@@ -141,8 +170,18 @@ function applyBootstrapData(data: BootstrapData) {
       }))
       .filter((b) => b.id.length > 0);
 
-    if (normalizedBoards.length > 0) {
-      useBoardStore.getState().setBoards(normalizedBoards);
+    useBoardStore.getState().setBoards(normalizedBoards);
+
+    const boardLayouts = normalizeBoardLayouts(data.boardLayouts);
+    if (Object.keys(boardLayouts).length > 0) {
+      useBoardLayoutStore.getState().hydrateLayouts(boardLayouts);
+      for (const [k, v] of Object.entries(boardLayouts)) {
+        try {
+          localStorage.setItem(k, JSON.stringify(v));
+        } catch {
+          // ignore
+        }
+      }
     }
 
     void fetchQuestCollabState()
@@ -158,6 +197,7 @@ function applyBootstrapData(data: BootstrapData) {
     setSkillSyncSuppressed(false);
     setXPEventSyncSuppressed(false);
     setExtensionSyncSuppressed(false);
+    setBoardLayoutSyncSuppressed(false);
   }
 }
 

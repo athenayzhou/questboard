@@ -358,6 +358,8 @@
   width: 16px;
   height: 16px;
   margin: 0;
+  accent-color: var(--grass-dark);
+  color-scheme: light;
 }
 
 .ledger-list {

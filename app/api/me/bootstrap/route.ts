@@ -4,6 +4,7 @@ import { hashSessionToken } from "@/lib/betaAuth";
 import { assignUserCodeIfMissing } from "@/lib/userCode";
 import { DEFAULT_DISPLAY_NAME_PLACEHOLDER } from "@/lib/defaultUserData";
 import { ensureFriendEdgesSchema } from "@/lib/friendsDb";
+import { ensureBoardLayoutSchema } from "@/lib/boardLayoutDb";
 
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME ?? "qb_session";
 
@@ -127,6 +128,22 @@ export async function GET(req: Request) {
       console.error("ensureFriendEdgesSchema failed:", e);
     }
 
+    let boardLayouts: Record<string, unknown> = {};
+    try {
+      await ensureBoardLayoutSchema(query);
+      const layoutRes = await query<{ surface_key: string; layout: unknown }>(
+        `select surface_key, layout from quest_board_layouts where tester_id = $1`,
+        [session.tester_id],
+      );
+      for (const row of layoutRes.rows) {
+        if (typeof row.surface_key === "string") {
+          boardLayouts[row.surface_key] = row.layout ?? {};
+        }
+      }
+    } catch (e) {
+      console.error("board layouts bootstrap failed:", e);
+    }
+
     let friendsNetwork: { id: string; name: string }[] = [];
     try {
       const frRes = await query<{ id: string; name: string }>(
@@ -191,6 +208,7 @@ export async function GET(req: Request) {
         userCode,
         boards,
         friendsNetwork,
+        boardLayouts,
       },
     });
   } catch (error) {

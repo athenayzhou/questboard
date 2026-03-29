@@ -67,7 +67,7 @@
   --panel: var(--bg-panel);
   --panel-header: var(--bg-panel-header);
   --text-warm-dark: var(--text-path);
-  --text-warm-medium: #6b5a42;
+  --text-warm-medium: #3a3124;
   --text-warm-light: #8a7355;
   --shadow-warm: var(--shadow-path);
   --shadow-golden: var(--shadow-sun);
@@ -156,6 +156,12 @@ select:focus-visible {
 
 button:focus:not(:focus-visible) {
   outline: none;
+}
+
+/* Native checkboxes: consistent accent + light color scheme so unchecked boxes are not solid black in some OS / browser themes */
+input[type="checkbox"] {
+  accent-color: var(--grass-dark);
+  color-scheme: light;
 }
 
 @media (prefers-reduced-motion: reduce) {

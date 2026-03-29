@@ -6,7 +6,7 @@ import { LoadingButton } from "../ui/LoadingButton";
 import { useValidation } from "../../hooks/useValidation";
 import { VALIDATION_RULES } from "../../utils/constants";
 import type { Quest } from "../../types/quest";
-import { IconPlus } from "../ui/icons";
+import { IconPlus, IconCalendar } from "../ui/icons";
 import { tryCompleteTutorialSpotlight } from "@/onboarding/tutorialProgress";
 import { useTutorialStore } from "@/onboarding/tutorialStore";
 import { createBoardQuest } from "@/lib/apiBoards";
@@ -140,6 +140,7 @@ export function AddQuestOverlay() {
         <h2>new quest</h2>
         <form
           data-spotlight="addq-form"
+          autoComplete="off"
           onSubmit={(e) => {
             e.preventDefault();
             void handleCreate();
@@ -151,11 +152,13 @@ export function AddQuestOverlay() {
               <label htmlFor="addq-title">title</label>
               <input
                 id="addq-title"
+                name="qb-new-quest-title"
                 type="text"
                 placeholder="title"
                 value={title}
                 onChange={(e) => handleTitleChange(e.target.value)}
                 className={errors.title ? "error" : ""}
+                autoComplete="off"
               />
               {errors.title && (
                 <div className="error-message">{errors.title}</div>
@@ -166,11 +169,13 @@ export function AddQuestOverlay() {
               <label htmlFor="addq-desc">description</label>
               <textarea
                 id="addq-desc"
+                name="qb-new-quest-description"
                 placeholder="optional details…"
                 value={description}
                 onChange={(e) => handleDescriptionChange(e.target.value)}
                 className={errors.description ? "error" : ""}
                 rows={4}
+                autoComplete="off"
               />
               {errors.description && (
                 <div className="error-message">{errors.description}</div>
@@ -184,9 +189,11 @@ export function AddQuestOverlay() {
               <div className="category-input">
                 <input
                   type="text"
+                  name="qb-new-quest-category"
                   placeholder="type a tag, press enter or add"
                   value={currentCategory}
                   onChange={(e) => setCurrentCategory(e.target.value)}
+                  autoComplete="off"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
@@ -323,12 +330,29 @@ export function AddQuestOverlay() {
               </div>
               <div className="form-group">
                 <label htmlFor="addq-deadline">deadline</label>
-                <input
-                  id="addq-deadline"
-                  type="date"
-                  value={deadline ?? ""}
-                  onChange={(e) => setDeadline(e.target.value)}
-                />
+                <div className="deadline-input-row deadline-input-row--inline">
+                  <input
+                    id="addq-deadline"
+                    type="date"
+                    value={deadline ?? ""}
+                    onChange={(e) => setDeadline(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="deadline-today-icon-btn"
+                    onClick={() => {
+                      const d = new Date();
+                      const y = d.getFullYear();
+                      const m = String(d.getMonth() + 1).padStart(2, "0");
+                      const day = String(d.getDate()).padStart(2, "0");
+                      setDeadline(`${y}-${m}-${day}`);
+                    }}
+                    aria-label="Set deadline to today"
+                    title="Today"
+                  >
+                    <IconCalendar size={16} />
+                  </button>
+                </div>
               </div>
             </div>
           </section>
@@ -339,10 +363,12 @@ export function AddQuestOverlay() {
               <div className="subquest-input">
                 <input
                   id="addq-subquest-input"
+                  name="qb-new-quest-subquest"
                   type="text"
                   placeholder="add a subquest, press enter"
                   value={currentSubquest}
                   onChange={(e) => setCurrentSubquest(e.target.value)}
+                  autoComplete="off"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
@@ -376,21 +402,16 @@ export function AddQuestOverlay() {
               {subquests.length > 0 && (
                 <div className="subquest-list" role="list">
                   {subquests.map((sq) => (
-                    <div key={sq.id} className="subquest-row" role="listitem">
-                      <input
-                        type="checkbox"
-                        checked={sq.completed}
-                        onChange={(e) =>
-                          setSubquests((prev) =>
-                            prev.map((p) =>
-                              p.id === sq.id ? { ...p, completed: e.target.checked } : p
-                            )
-                          )
-                        }
-                      />
+                    <div
+                      key={sq.id}
+                      className="subquest-row subquest-row--title-only"
+                      role="listitem"
+                    >
                       <input
                         className="subquest-title"
                         type="text"
+                        name={`qb-subquest-title-${sq.id}`}
+                        autoComplete="off"
                         value={sq.title}
                         onChange={(e) =>
                           setSubquests((prev) =>
@@ -426,7 +447,7 @@ export function AddQuestOverlay() {
                 type="submit"
                 loading={isCreating}
                 disabled={hasErrors || !title.trim()}
-                className="quest-edit-save"
+                className="quest-edit-save quest-edit-save--compact"
                 data-spotlight="addq-submit"
               >
                 create quest

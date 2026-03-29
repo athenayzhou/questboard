@@ -7,6 +7,7 @@ import { useQuestStore } from "../../store/quest";
 import { useUserStore } from "../../store/user";
 import { useSkillStore } from "../../store/skill";
 import { useXPEventStore } from "../../store/xpEvent";
+import { useBoardLayoutStore } from "../../store/boardLayout";
 
 describe("fetchBootstrapOnce", () => {
   const originalFetch = globalThis.fetch;
@@ -16,6 +17,7 @@ describe("fetchBootstrapOnce", () => {
     useQuestStore.setState({ quests: [] });
     useSkillStore.setState({ skills: {} });
     useXPEventStore.setState({ events: [] });
+    useBoardLayoutStore.getState().reset();
     globalThis.fetch = vi.fn() as typeof fetch;
   });
 

@@ -67,9 +67,12 @@ export type SkillLedgerEntry = {
   id: string;
   skillId: string | null;
   name: string;
+  /** XP used for level bar (events at/after firstSeenAt when firstSeenAt > 0). */
   xp: number;
   level: number;
   lastSeenAt: number;
+  /** Events before this timestamp are hidden in activity (skill did not exist yet). */
+  firstSeenAt: number;
   isDormant: boolean;
 }
 

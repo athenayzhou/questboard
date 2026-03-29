@@ -115,7 +115,7 @@ export function TutorialSpotlight({ activeSpotlight }: TutorialSpotlightProps) {
   if (!mounted || typeof document === "undefined") return null;
 
   const ringIgnoresViewport =
-    activeSpotlight === "active-strip" || activeSpotlight === "active-handle";
+    activeSpotlight === "pinned-strip" || activeSpotlight === "pinned-handle";
 
   const showRing =
     Boolean(activeSpotlight) &&

@@ -67,6 +67,7 @@
   width: 18px;
   height: 18px;
   accent-color: var(--grass-dark);
+  color-scheme: light;
 }
 
 .settings-reset-btn {

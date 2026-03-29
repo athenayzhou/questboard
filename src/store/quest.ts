@@ -24,6 +24,7 @@ import {
 
 import { isTutorial } from "@/onboarding/tutorialTypes";
 import { applyTutorialRewards } from "@/onboarding/tutorialRewards";
+import { awardTutorialQuestSkillXP } from "@/onboarding/tutorialSkill";
 import { useTutorialStore } from "@/onboarding/tutorialStore";
 import { dedupeQuestsById } from "@/lib/questDedupe";
 
@@ -33,6 +34,7 @@ import {
   acceptSharedQuest,
   completeSharedQuest,
   failSharedQuest,
+  patchBoardQuest,
   pinSharedQuest,
   reorderSharedPins,
 } from "@/lib/apiBoards";
@@ -81,6 +83,8 @@ type QuestState = {
   getAccepted: () => Quest[];
   getPinned: () => Quest[];
   getQuestById: (id: string) => Quest | undefined;
+
+  removeInProgressTutorialQuests: () => void;
 }
 
 function isOnUserStrip(q: Quest, me: string | null): boolean {
@@ -115,6 +119,21 @@ export const useQuestStore = create<QuestState>((set, get) => ({
   setOperationLoading: (operation, loading) => set((state) => ({
     operationLoading: { ...state.operationLoading, [operation]: loading }
   })),
+
+  removeInProgressTutorialQuests: () => {
+    set((state) => {
+      const next = state.quests.filter(
+        (q) =>
+          !(
+            isTutorial(q) &&
+            (q.status === "available" || q.status === "accepted")
+          ),
+      );
+      if (next.length === state.quests.length) return state;
+      scheduleQuestSync();
+      return { quests: next };
+    });
+  },
 
   setQuest: (questsOrFn) => {
     set((state) => {
@@ -333,6 +352,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         try {
           grantQuestRewards(quest);
           applyTutorialRewards(quest);
+          // awardTutorialQuestSkillXP(quest);
         } catch (error) {
           showToast("error", "failed to complete quest");
           devError("quest", "tutorial rewards failed", error);
@@ -465,6 +485,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       if (originalQuest.isSystemGenerated) return null;
       if (originalQuest.boardId) return null;
       if (originalQuest.collabQuest) return null;
+      if (originalQuest.sentByUserId) return null;
 
       const duplicatedQuest: Quest = withComputedReward({
         ...originalQuest,
@@ -479,6 +500,11 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         generationCriteria: undefined,
         expiresAt: undefined,
         expiresAfterDays: undefined,
+        sentByUserId: undefined,
+        sentByName: undefined,
+        sentNote: undefined,
+        sentAt: undefined,
+        sourceQuestId: undefined,
       });
 
       set(state => {
@@ -637,10 +663,36 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       return;
     }
 
+    if (quest.boardId) {
+      if (quest.status !== "accepted") return;
+      const me = useIdentityStore.getState().userCode;
+      if (quest.acceptedByUserId && quest.acceptedByUserId !== me) return;
+      const sub = quest.subquests.find((s) => s.id === subquestId);
+      if (!sub) return;
+      const nextCompleted = !sub.completed;
+      const updatedSubquests = quest.subquests.map((s) =>
+        s.id === subquestId ? { ...s, completed: nextCompleted } : s,
+      );
+      get().setOperationLoading(`sub-${questId}-${subquestId}`, true);
+      patchBoardQuest(quest.boardId, quest.id, { subquests: updatedSubquests })
+        .then((updated) => {
+          set((s) => ({
+            quests: replaceQuestById(s.quests, updated),
+          }));
+        })
+        .catch((e) => {
+          console.error(e);
+          showToast("error", "failed to update subquest");
+        })
+        .finally(() =>
+          get().setOperationLoading(`sub-${questId}-${subquestId}`, false),
+        );
+      return;
+    }
+
     set((state) => {
       const q = state.quests.find((qq) => qq.id === questId);
       const me = useIdentityStore.getState().userCode;
-      if (q?.boardId) return state;
       if (q?.acceptedByUserId && q.acceptedByUserId !== me) return state;
       if (!q || !q.subquests) return state;
       const updatedSubquests = q.subquests.map((sub) =>

@@ -179,7 +179,10 @@ export function LogCard({
                   <span className="detail-value">{rewardSummary}</span>
                 </div>
               )}
-              {!active.isSystemGenerated && !active.boardId && (
+              {!active.isSystemGenerated &&
+                !active.boardId &&
+                !active.collabQuest &&
+                !active.sentByUserId && (
                 <button type="button" onClick={handleAddAsNewQuest}>
                   add as new quest
                 </button>

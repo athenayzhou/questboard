@@ -1,6 +1,7 @@
 import type { Quest } from "@/types/quest";
 import { isPersonalQuest } from "@/lib/boardScope";
 import { dedupeQuestsById } from "@/lib/questDedupe";
+import { coerceQuestCategoryAndSubquests } from "@/lib/coerceQuestFromServer";
 import { throwIfUnauthorized, isSessionExpiredError } from "./sessionRecovery";
 
 export type PendingQuestInvite = {
@@ -22,6 +23,19 @@ let questCollabStateInflight: Promise<{
 /** Clears coalescing so the next fetch sees latest server state (mutations, SSE). */
 export function invalidateQuestCollabStateInflight() {
   questCollabStateInflight = null;
+}
+
+const collabInviteAcceptedToastEventIds = new Set<number>();
+
+/** Dedupes toast spam from SSE replay/reconnect (event ids are unique). */
+export function tryConsumeCollabInviteAcceptedToastEvent(eventId: number): boolean {
+  if (collabInviteAcceptedToastEventIds.has(eventId)) return false;
+  collabInviteAcceptedToastEventIds.add(eventId);
+  while (collabInviteAcceptedToastEventIds.size > 500) {
+    const first = collabInviteAcceptedToastEventIds.values().next().value;
+    collabInviteAcceptedToastEventIds.delete(first as number);
+  }
+  return true;
 }
 
 async function postAction<T = unknown>(url: string, body?: unknown) {
@@ -63,7 +77,8 @@ export async function inviteQuestCollaborator(args: {
   if (!json?.quest || typeof json.inviteId !== "string") {
     throw new Error("invalid_response");
   }
-  return { inviteId: json.inviteId, quest: { ...json.quest, myState: "active" } };
+  const quest = coerceQuestCategoryAndSubquests(json.quest as Quest);
+  return { inviteId: json.inviteId, quest: { ...quest, myState: "active" } };
 }
 
 async function loadQuestCollabState(): Promise<{
@@ -84,9 +99,10 @@ async function loadQuestCollabState(): Promise<{
       const invites = Array.isArray(json?.invites)
         ? (json!.invites as PendingQuestInvite[])
         : [];
-      const collabs = Array.isArray(json?.quests)
+      const collabsRaw = Array.isArray(json?.quests)
         ? (json!.quests as Quest[])
         : [];
+      const collabs = collabsRaw.map((q) => coerceQuestCategoryAndSubquests(q));
       return { invites, collabs };
     })().finally(() => {
       questCollabStateInflight = null;
@@ -111,7 +127,9 @@ export async function fetchQuestCollabs(): Promise<Quest[]> {
 export function shellQuestFromPendingInvite(inv: PendingQuestInvite): Quest {
   const raw = inv.quest_data;
   if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-    const base = raw as Partial<Quest> & Record<string, unknown>;
+    const base = coerceQuestCategoryAndSubquests(
+      raw as Partial<Quest> & Record<string, unknown>,
+    ) as Partial<Quest> & Record<string, unknown>;
     const title =
       (typeof base.title === "string" && base.title.trim()
         ? base.title
@@ -218,6 +236,23 @@ export async function completeQuestForAll(questId: string): Promise<{ quest?: Qu
 
 export async function giveUpQuest(questId: string) {
   return postAction(`/api/me/quests/${encodeURIComponent(questId)}/collab/give-up`);
+}
+
+export async function fetchQuestCollabEventCursor(questId: string): Promise<number> {
+  const res = await fetch(
+    `/api/me/quests/${encodeURIComponent(questId)}/collab/events/cursor`,
+    { credentials: "include" },
+  );
+  await throwIfUnauthorized(res);
+  const json = (await res.json().catch(() => null)) as { cursor?: unknown } | null;
+  if (!res.ok || !json || typeof json !== "object") return 0;
+  const c = json.cursor;
+  if (typeof c === "number" && Number.isFinite(c)) return c;
+  if (typeof c === "string") {
+    const n = parseInt(c, 10);
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
 }
 
 export function subscribeQuestCollabEvents(args: {

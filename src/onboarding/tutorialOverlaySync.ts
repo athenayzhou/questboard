@@ -18,7 +18,7 @@ export function overlayForSpotlight(
   if (spot === "close-shop") return "shop";
   if (spot === "inventory") return "profile";
   if (spot.startsWith("shop-")) return "shop";
-  if (spot.startsWith("active-")) return null;
+  if (spot.startsWith("pinned-")) return null;
   return null;
 }
 

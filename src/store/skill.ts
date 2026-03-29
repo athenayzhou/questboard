@@ -68,7 +68,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
       amount,
       source: "quest",
       sourceId: questId ?? "unidentified",
-      name: skill.name,
+      name: questTitle?.trim() || undefined,
       questTitle: questTitle?.trim() || undefined,
     });
      devLog(

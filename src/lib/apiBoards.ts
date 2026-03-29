@@ -1,5 +1,6 @@
 import type { Quest } from "@/types/quest";
 import type { SharedBoard } from "@/types/board";
+import { coerceQuestCategoryAndSubquests } from "@/lib/coerceQuestFromServer";
 import {
   isSessionExpiredError,
   throwIfUnauthorized,
@@ -29,6 +30,32 @@ export async function fetchBoards(): Promise<SharedBoard[]> {
   return Array.isArray(boards) ? (boards as SharedBoard[]) : [];
 }
 
+/** Merges refetched board rows with prior store copies so partial JSON never drops tags/subquests. */
+export function mergeBoardQuestFetchWithPrev(
+  prev: Quest[],
+  boardId: string,
+  serverQs: Quest[],
+): Quest[] {
+  const keep = prev.filter((q) => !q.boardId);
+  const prevBoard = new Map(
+    prev.filter((q) => q.boardId === boardId).map((q) => [q.id, q]),
+  );
+  const merged = serverQs.map((sq) => {
+    const old = prevBoard.get(sq.id);
+    if (!old) return coerceQuestCategoryAndSubquests(sq);
+    const next = {
+      ...old,
+      ...sq,
+      category:
+        sq.category && sq.category.length > 0 ? sq.category : old.category,
+      subquests:
+        sq.subquests && sq.subquests.length > 0 ? sq.subquests : old.subquests,
+    } as Quest;
+    return coerceQuestCategoryAndSubquests(next);
+  });
+  return [...keep, ...merged];
+}
+
 export async function fetchBoardQuests(boardId: string): Promise<Quest[]> {
   const res = await fetch(`/api/boards/${boardId}/quests`, {
     credentials: "include",
@@ -38,7 +65,34 @@ export async function fetchBoardQuests(boardId: string): Promise<Quest[]> {
   const json = (await res.json().catch(() => null)) as unknown;
   if (!json || typeof json !== "object") return [];
   const quests = (json as { quests?: unknown }).quests;
-  return Array.isArray(quests) ? (quests as Quest[]) : [];
+  if (!Array.isArray(quests)) return [];
+  return (quests as Quest[]).map((q) => coerceQuestCategoryAndSubquests(q));
+}
+
+export async function patchBoardQuest(
+  boardId: string,
+  questId: string,
+  updates: Partial<Quest>,
+): Promise<Quest> {
+  const res = await fetch(`/api/boards/${boardId}/quests/${questId}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updates),
+  });
+  await throwIfUnauthorized(res);
+  const json = (await res.json().catch(() => null)) as unknown;
+  if (!res.ok) {
+    const err =
+      json && typeof json === "object" && "error" in json
+        ? String((json as { error?: unknown }).error ?? "")
+        : "";
+    throw new Error(err || `patch quest failed: ${res.status}`);
+  }
+  if (!json || typeof json !== "object") throw new Error("invalid_response");
+  const quest = (json as { quest?: Quest }).quest;
+  if (!quest) throw new Error("invalid_response");
+  return coerceQuestCategoryAndSubquests(quest as Quest);
 }
 
 export async function fetchBoardMembers(boardId: string): Promise<BoardMember[]> {
@@ -134,7 +188,9 @@ export async function createBoardQuest(
     throw new Error(err || `create quest failed: ${res.status}`);
   }
   if (!json || typeof json !== "object") throw new Error("invalid_response");
-  return (json as { quest?: Quest }).quest as Quest;
+  const q = (json as { quest?: Quest }).quest;
+  if (!q) throw new Error("invalid_response");
+  return coerceQuestCategoryAndSubquests(q as Quest);
 }
 
 
@@ -168,9 +224,16 @@ async function postAction(
   }
   if (!json || typeof json !== "object") return {};
   const obj = json as { quest?: unknown; quests?: unknown };
+  const questRaw = obj.quest;
+  const questsRaw = obj.quests;
   return {
-    quest: obj.quest as Quest | undefined,
-    quests: obj.quests as Quest[] | undefined,
+    quest:
+      questRaw && typeof questRaw === "object"
+        ? coerceQuestCategoryAndSubquests(questRaw as Quest)
+        : undefined,
+    quests: Array.isArray(questsRaw)
+      ? (questsRaw as Quest[]).map((q) => coerceQuestCategoryAndSubquests(q))
+      : undefined,
   };
 }
 

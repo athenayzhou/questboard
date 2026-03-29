@@ -15,7 +15,7 @@ import { tryCompleteTutorialSpotlight } from "@/onboarding/tutorialProgress";
 import { isPersonalQuest, userHasPin } from "@/lib/boardScope";
 import { useIdentityStore } from "@/store/identity";
 
-export function ActiveQuest() {
+export function SidePanel() {
   const activeOverlay = useOverlay(s => s.activeOverlay);
   const openQuest = useOverlay(s=> s.openQuest);
   const setOverlay = useOverlay((s) => s.openOverlay);
@@ -28,12 +28,6 @@ export function ActiveQuest() {
   const toggleSubquest = useQuestStore((s) => s.toggleSubquest);
 
   const quests = useQuestStore(s => s.quests);
-  // const active = useMemo(
-  //   () => quests.filter(q => q.status === "accepted" && q.pinned)
-  //     .sort((a,b) => (a.order ?? 0) - (b.order ?? 0)),
-  //   [quests]
-  // );
-
   const [collapsed, setCollapsed] = useState(true);
   const [expandedQuestId, setExpandedQuestId] = useState<string | null>(null);
   const [draggedQuestId, setDraggedQuestId] = useState<string | null>(null);
@@ -41,7 +35,7 @@ export function ActiveQuest() {
   const isDraggingRef = useRef(false);
 
   const userCode = useIdentityStore((s) => s.userCode);
-  const active = useMemo(() => {
+  const pinned = useMemo(() => {
     return quests
       .filter((q) => {
         if(q.status !== "accepted") return false;
@@ -114,28 +108,28 @@ export function ActiveQuest() {
 
   return (
     <div
-      className={`active-quest-panel ${collapsed ? "collapsed" : ""}`}
-      data-spotlight="active-strip"
+      className={`pinned-quest-panel ${collapsed ? "collapsed" : ""}`}
+      data-spotlight="pinned-strip"
     >
       <button
         type="button"
-        className="active-quest-handle"
-        data-spotlight="active-handle"
+        className="pinned-quest-handle"
+        data-spotlight="pinned-handle"
         onClick={() => setCollapsed((v) => !v)}
-        aria-label={collapsed ? "Expand active quests" : "Collapse active quests"}
+        aria-label={collapsed ? "Expand pinned quests" : "Collapse pinned quests"}
       >
         {collapsed ? <IconChevronRight size={20} /> : <IconChevronLeft size={20} />}
       </button>
 
-      <div className="active-quest">
-        <h4 className="active-quest-title">active quests</h4>
-        {active.length === 0 ? (
+      <div className="pinned-quest">
+        <h4 className="pinned-quest-title">pinned quests</h4>
+        {pinned.length === 0 ? (
           <div className = "no-pinned-quests">
             <small>pin accepted quest pages to see them here</small>
           </div>
         ) : (
-          <div className="active-quest-list">
-            {active.map((q, index)=> {
+          <div className="pinned-quest-list">
+            {pinned.map((q, index)=> {
             const progress = questProgress(q);
             const isPinned = isPersonalQuest(q)
               ? q.pinned
@@ -149,7 +143,7 @@ export function ActiveQuest() {
             return (
               <div
                 key={q.id}
-                className={`active-quest-item ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''}`}
+                className={`pinned-quest-item ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''}`}
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDrop={(e) => handleDrop(e, index)}
                 onDragEnd={handleDragEnd}
@@ -159,7 +153,14 @@ export function ActiveQuest() {
                 }}
               >
                 <div className="quest-header">
-                  <span className="title">{q.title}</span>
+                  <span
+                    className={`title ${isExpanded ? "is-expanded" : "is-collapsed"}`}
+                  >
+                    {q.title}
+                  </span>
+                  {q.subquests && q.subquests.length > 0 && (
+                    <span className="subquests">{q.subquests.length} subquests</span>
+                  )}
                   <div
                     className="drag-handle"
                     onMouseDown={(e) => e.stopPropagation()}
@@ -192,13 +193,13 @@ export function ActiveQuest() {
                   <button
                     type="button"
                     className="complete-btn"
-                    data-spotlight="active-complete"
+                    data-spotlight="pinned-complete"
                     title="Complete"
                     aria-label="Complete quest"
                     onClick={(e) => {
                       e.stopPropagation();
                       if(!canAct) return;
-                      tryCompleteTutorialSpotlight("active-complete");
+                      tryCompleteTutorialSpotlight("pinned-complete");
                       completeQuest(q.id);
                     }}
                   >
@@ -225,34 +226,7 @@ export function ActiveQuest() {
                 )}
 
                 {isExpanded && (
-                  <div className="active-quest-expanded">
-                    {q.description && (
-                      <div className="quest-description">
-                        <p>{q.description}</p>
-                      </div> 
-                    )}
-                    {q.category && q.category.length > 0 && (
-                      <div className="quest-categories">
-                        {q.category.map(cat => (
-                          <span key={cat} className="category-tag">{cat}</span>
-                        ))}
-                      </div>
-                    )}
-                  <div className="quest-details">
-                    {q.duration && (
-                      <div className="detail-row">
-                        <span className={`value duration-${q.duration}`}>{q.duration}</span>
-                      </div>
-                    )}
-                    {q.deadline && (
-                      <div className="detail-row">
-                        <span className="label">deadline:</span>
-                        <span className="value">
-                          {formatDeadlineMDY(q.deadline)}
-                        </span>
-                      </div>
-                    )}
-                    </div>
+                  <div className="pinned-quest-expanded">
                     {q.subquests && q.subquests.length > 0 && (
                       <div className="quest-subtasks">
                         <h5>subquests:</h5>

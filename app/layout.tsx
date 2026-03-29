@@ -6,7 +6,7 @@ import '../src/styles/base.css';
 import '../src/styles/labels.css';
 import '../src/styles/figure.css';
 import '../src/styles/overlay.css';
-import '../src/styles/overlay/active-quest.css';
+import '../src/styles/overlay/side-panel.css';
 import '../src/styles/overlay/friend-list.css';
 import '../src/styles/overlay/profile.css';
 import '../src/styles/overlay/skill-ledger.css';

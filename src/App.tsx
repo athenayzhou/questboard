@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { OrbitToggle } from "./components/ui/OrbitToggle";
 import { useOverlay } from "./store/overlay";
 import { Canvas } from "@react-three/fiber";
-import { ActiveQuest } from "./components/secondary/ActiveQuests";
+import { SidePanel } from "./components/secondary/SidePanel";
 
 import { useShopStore } from "./store/shop";
 import { DEFAULT_SHOP_ITEMS } from "./data/systemItems";
@@ -39,6 +39,7 @@ import { useEffectiveTutorialSpotlight } from "./onboarding/useEffectiveTutorial
 import { shouldBlockTutorialPointerEvent } from "./onboarding/tutorialSequence";
 import type { SpotlightTarget } from "./onboarding/tutorialTypes";
 import { useQuestStore } from "./store/quest";
+import { useInboundQuestToasts } from "./hooks/useInboundQuestToasts";
 import { isUnsetDisplayName } from "./lib/defaultUserData";
 function BootstrapLoadingShell() {
   return (
@@ -115,6 +116,7 @@ function QuestboardMain({ bootstrapReady }: { bootstrapReady: boolean }) {
   const effectiveSpotlight = useEffectiveTutorialSpotlight();
 
   useTutorialQuestBootstrap({ bootstrapReady });
+  useInboundQuestToasts(bootstrapReady);
 
   useEffect(() => {
     function tryStartTutorial() {
@@ -244,7 +246,9 @@ function QuestboardMain({ bootstrapReady }: { bootstrapReady: boolean }) {
               type="button"
               className="tutorial-spotlight-skip"
               aria-label="Skip tutorial"
-              onClick={() => useTutorialStore.getState().skipTutorial()}
+              onClick={() => {
+                useTutorialStore.getState().skipTutorial();
+              }}
             >
               skip tutorial
             </button>
@@ -252,7 +256,7 @@ function QuestboardMain({ bootstrapReady }: { bootstrapReady: boolean }) {
           <OrbitToggle enabled={orbitUser} toggle={() => setOrbitUser((v) => !v)} />
         </div>
         <div id="html-layer" />
-        <ActiveQuest />
+        <SidePanel />
         <SkillActivityLog />
         <OverlayManager />
         <div id="windows" />

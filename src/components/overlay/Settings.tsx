@@ -13,6 +13,14 @@ import { signOutFromApp } from "../../lib/sessionRecovery";
 import { resetDataOnServer } from "../../lib/apiReset";
 import { APP, CANDIDATE } from "../../utils/constants";
 import { useIdentityStore } from "../../store/identity";
+import { fetchBoards } from "@/lib/apiBoards";
+import { useBoardStore } from "@/store/board";
+import {
+  fetchQuestCollabState,
+  invalidateQuestCollabStateInflight,
+  mergeQuestStateFromServer,
+} from "@/lib/apiQuestCollab";
+import { fetchPersonalQuestsFromServer } from "@/lib/apiQuests";
 import { IconX, IconCloudUpload, IconLogOut, IconTrash2, IconMessage } from "../ui/icons";
 import { autoNameSkill, generateSkillNames } from "../../utils/skill/generation/name";
 import { Guide } from "../secondary/Guide";
@@ -72,14 +80,29 @@ export function Settings() {
       await resetDataOnServer();
     } catch (e) {
       console.error(e);
-      showToast("error", "failed to clear server friendships; try again");
+      showToast("error", "failed to reset server data; try again");
       return;
     }
 
-    clearLocalState({ closeOverlays: true });
+    invalidateQuestCollabStateInflight();
+    clearLocalState({ closeOverlays: true, resetIdentity: false });
     scheduleSkillSync();
     setShowResetConfirm(false);
     closeOverlay();
+
+    try {
+      const [personal, boards, { invites, collabs }] = await Promise.all([
+        fetchPersonalQuestsFromServer(),
+        fetchBoards(),
+        fetchQuestCollabState(),
+      ]);
+      useBoardStore.getState().setBoards(boards);
+      useQuestStore.getState().setQuest(() =>
+        mergeQuestStateFromServer([], personal, invites, collabs),
+      );
+    } catch (e) {
+      console.error("refresh after reset failed", e);
+    }
 
     const ok = await flushAllServerSyncs({ suppressSuccessToast: true });
     if (ok) {

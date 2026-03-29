@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useQuestStore } from "@/store/quest";
+import { useTutorialStore } from "@/onboarding/tutorialStore";
 import { TUTORIAL_QUEST_TEMPLATES } from "./tutorialTemplates";
 import {
   buildTutorialQuest,
@@ -22,6 +23,7 @@ export function useTutorialQuestBootstrap(options: Options) {
 
   useEffect(() => {
     if (!bootstrapReady) return;
+    if (useTutorialStore.getState().completed) return;
     setQuest((prev) => {
       const completedTutorial = (templateId: string) =>
         prev.some(

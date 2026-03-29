@@ -37,12 +37,14 @@ import {
 import {
   acceptQuestInvite,
   declineQuestInvite,
+  fetchQuestCollabEventCursor,
   fetchQuestCollabState,
   fetchQuestCollabs,
   invalidateQuestCollabStateInflight,
   inviteQuestCollaborator,
   mergeQuestStateFromServer,
   subscribeQuestCollabEvents,
+  tryConsumeCollabInviteAcceptedToastEvent,
 } from "@/lib/apiQuestCollab";
 import { dedupeQuestsById } from "@/lib/questDedupe";
 import { showToast } from "@/utils/toast";
@@ -60,7 +62,7 @@ type QuestPageProps = {
 };
 
 export function QuestPage({ 
-  quest,
+  quest: questProp,
   x,
   y,
   z,
@@ -68,6 +70,9 @@ export function QuestPage({
   onFocus,
   onMove,
 } : QuestPageProps) {
+  const questId = questProp.id;
+  const quest =
+    useQuestStore((s) => s.quests.find((q) => q.id === questId)) ?? questProp;
   const { confirm } = useConfirm();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -159,37 +164,58 @@ export function QuestPage({
 
   useEffect(() => {
     if (!quest.collabQuest) return;
-    const close = subscribeQuestCollabEvents({
-      questId: quest.id,
-      cursor: 0,
-      onEvent: (ev) => {
-        if (ev.type === "collab_invite_accepted") {
-          const accepter = ev.payload.accepterUserCode;
-          const name = String(ev.payload.accepterDisplayName ?? "").trim();
-          if (
-            typeof accepter === "string" &&
-            typeof userCode === "string" &&
-            accepter !== userCode &&
-            name
-          ) {
-            showToast("success", `${name} accepted collab quest`);
+    const alive = { current: true };
+    let close: (() => void) | null = null;
+
+    void (async () => {
+      let cursor = 0;
+      try {
+        cursor = await fetchQuestCollabEventCursor(quest.id);
+      } catch (e) {
+        console.error("collab event cursor fetch failed", e);
+      }
+      if (!alive.current) return;
+      close = subscribeQuestCollabEvents({
+        questId: quest.id,
+        cursor,
+        onEvent: (ev) => {
+          if (ev.type === "collab_invite_accepted") {
+            const accepter = ev.payload.accepterUserCode;
+            const name = String(ev.payload.accepterDisplayName ?? "").trim();
+            if (
+              tryConsumeCollabInviteAcceptedToastEvent(ev.id) &&
+              typeof accepter === "string" &&
+              typeof userCode === "string" &&
+              accepter !== userCode &&
+              name
+            ) {
+              showToast("success", `${name} accepted collab quest`);
+            }
           }
-        }
-        invalidateQuestCollabStateInflight();
-        void fetchQuestCollabs()
-          .then((list) => {
-            const u = list.find((x) => x.id === quest.id);
-            if (!u) return;
-            setQuestMerge((prev) =>
-              prev.some((p) => p.id === quest.id)
-                ? prev.map((p) => (p.id === quest.id ? u : p))
-                : dedupeQuestsById([...prev, u]),
-            );
-          })
-          .catch((e) => console.error(e));
-      },
-    });
-    return close;
+          invalidateQuestCollabStateInflight();
+          void fetchQuestCollabs()
+            .then((list) => {
+              const u = list.find((x) => x.id === quest.id);
+              if (!u) return;
+              setQuestMerge((prev) =>
+                prev.some((p) => p.id === quest.id)
+                  ? prev.map((p) => (p.id === quest.id ? u : p))
+                  : dedupeQuestsById([...prev, u]),
+              );
+            })
+            .catch((e) => console.error(e));
+        },
+      });
+      if (!alive.current) {
+        close();
+        close = null;
+      }
+    })();
+
+    return () => {
+      alive.current = false;
+      close?.();
+    };
   }, [quest.id, quest.collabQuest, setQuestMerge, userCode]);
 
   useEffect(() => {
@@ -611,7 +637,10 @@ export function QuestPage({
           <h3 className="quest-page-block-title">subquests</h3>
           <ul>
             {quest.subquests.map((action) => (
-              <li key={action.id}>
+              <li
+                key={action.id}
+                className={action.completed ? "completed" : undefined}
+              >
                 <input
                   type="checkbox"
                   checked={action.completed}

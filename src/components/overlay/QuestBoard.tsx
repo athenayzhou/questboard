@@ -23,6 +23,7 @@ import { useBoardStore } from "@/store/board";
 import {
   createBoard,
   fetchBoardQuests,
+  mergeBoardQuestFetchWithPrev,
   fetchBoardActivity,
   fetchBoards,
   fetchBoardMembers,
@@ -39,14 +40,22 @@ import { useFriendsStore } from "@/store/friends";
 import { showToast } from "@/utils/toast";
 import { PromptDialog } from "@/components/ui/PromptDialog";
 import {
+  fetchQuestCollabEventCursor,
   fetchQuestCollabState,
   invalidateQuestCollabStateInflight,
   mergeCollabQuestSlices,
   mergeQuestStateFromServer,
   subscribeQuestCollabEvents,
+  tryConsumeCollabInviteAcceptedToastEvent,
 } from "@/lib/apiQuestCollab";
 import { fetchPersonalQuestsFromServer } from "@/lib/apiQuests";
 import { GOLDIE_FRIEND_ID } from "@/data/systemFriends";
+import {
+  boardLayoutStorageKey,
+  loadBoardLayout,
+  questStateToLayoutMap,
+  saveBoardLayout,
+} from "@/lib/boardLayoutStorage";
 
 type QuestBoardProps = {
   quests: Quest[];
@@ -234,6 +243,9 @@ export function QuestBoard({
     const ids = allIds.filter((id) => !openQuestPageIdSet.has(id));
     if (ids.length === 0) return;
 
+    const alive = { current: true };
+    const closeFns: Array<() => void> = [];
+
     const scheduleCollabRefresh = () => {
       if (collabSseRefreshTimerRef.current) {
         clearTimeout(collabSseRefreshTimerRef.current);
@@ -254,12 +266,18 @@ export function QuestBoard({
       }, 550);
     };
 
-    const closeFns: Array<() => void> = [];
-    for (const qid of ids) {
-      closeFns.push(
-        subscribeQuestCollabEvents({
+    void (async () => {
+      for (const qid of ids) {
+        let cursor = 0;
+        try {
+          cursor = await fetchQuestCollabEventCursor(qid);
+        } catch (e) {
+          console.error("collab event cursor fetch failed", e);
+        }
+        if (!alive.current) return;
+        const close = subscribeQuestCollabEvents({
           questId: qid,
-          cursor: 0,
+          cursor,
           onEvent: (ev) => {
             if (ev.type === "collab_invite_accepted") {
               const questIdPayload = ev.payload.questId;
@@ -269,6 +287,7 @@ export function QuestBoard({
                 typeof questIdPayload === "string" &&
                 openQuestPageIdSet.has(questIdPayload);
               if (
+                tryConsumeCollabInviteAcceptedToastEvent(ev.id) &&
                 !pageOpenForQuest &&
                 typeof accepter === "string" &&
                 typeof userCode === "string" &&
@@ -280,10 +299,17 @@ export function QuestBoard({
             }
             scheduleCollabRefresh();
           },
-        }),
-      );
-    }
+        });
+        if (!alive.current) {
+          close();
+          return;
+        }
+        closeFns.push(close);
+      }
+    })();
+
     return () => {
+      alive.current = false;
       if (collabSseRefreshTimerRef.current) {
         clearTimeout(collabSseRefreshTimerRef.current);
         collabSseRefreshTimerRef.current = null;
@@ -346,10 +372,9 @@ export function QuestBoard({
       if(cancelled) return;
       try {
         const qs = await fetchBoardQuests(activeBoardId);
-        useQuestStore.getState().setQuest((prev) => {
-          const keep = prev.filter((q) => !q.boardId);
-          return [...keep, ...qs];
-        });
+        useQuestStore.getState().setQuest((prev) =>
+          mergeBoardQuestFetchWithPrev(prev, activeBoardId, qs),
+        );
       } catch (e) {
         console.error(e);
       }
@@ -508,8 +533,12 @@ export function QuestBoard({
     startLeft: number;
     startTop: number;
     moved: boolean;
+    lastX?: number;
+    lastY?: number;
   } | null>(null);
   const didDragRef = useRef<string | null>(null);
+  /** Skip layout reconcile from server/filter updates while dragging so we don't snap back. */
+  const boardDragActiveRef = useRef(false);
 
   const tabbed = useMemo(() => {
     if (questTopTab === "collab") {
@@ -561,6 +590,16 @@ export function QuestBoard({
     });
   }, [tabbed, questSearch, questFilters]);
 
+  const layoutStorageKey = useMemo(
+    () =>
+      boardLayoutStorageKey({
+        questTopTab,
+        activeBoardId,
+        boardTab: tab,
+      }),
+    [questTopTab, activeBoardId, tab],
+  );
+
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [questState, setQuestsState] = useState(
     () =>
@@ -571,15 +610,32 @@ export function QuestBoard({
         zIndex: 1,
       }))
   );
+  const questStateRef = useRef(questState);
+  questStateRef.current = questState;
 
   useEffect(() => {
+    if (boardDragActiveRef.current) return;
+
+    const saved = loadBoardLayout(layoutStorageKey);
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setQuestsState(prev => {
-      const byId = new Map(prev.map(q => [q.id, q]));
+    setQuestsState((prev) => {
+      const byId = new Map(prev.map((q) => [q.id, q]));
       const safeX = (v: number) => Math.max(0, Math.min(v, UI.SPAWN_X_MAX));
-      const safeY = (v: number) => Math.max(UI.SPAWN_Y_MIN, Math.min(v, UI.SPAWN_Y_MAX));
-      return filtered.map(q => {
+      const safeY = (v: number) =>
+        Math.max(UI.SPAWN_Y_MIN, Math.min(v, UI.SPAWN_Y_MAX));
+      return filtered.map((q) => {
         const existing = byId.get(q.id);
+        const persisted = saved[q.id];
+        // Prefer localStorage over in-memory state so remount/reopen restores saved layout
+        // (otherwise initial random positions always win).
+        if (persisted) {
+          return {
+            ...q,
+            x: safeX(persisted.x),
+            y: safeY(persisted.y),
+            zIndex: persisted.zIndex ?? 1,
+          };
+        }
         if (existing) {
           return {
             ...q,
@@ -591,12 +647,14 @@ export function QuestBoard({
         return {
           ...q,
           x: Math.random() * UI.SPAWN_X_MAX,
-          y: UI.SPAWN_Y_MIN + Math.random() * (UI.SPAWN_Y_MAX - UI.SPAWN_Y_MIN),
+          y:
+            UI.SPAWN_Y_MIN +
+            Math.random() * (UI.SPAWN_Y_MAX - UI.SPAWN_Y_MIN),
           zIndex: 1,
         };
       });
     });
-  }, [filtered]);
+  }, [filtered, layoutStorageKey]);
 
   const handleAcceptInvite = async(inviteId: string) => {
     try{
@@ -706,11 +764,13 @@ export function QuestBoard({
   }
 
   const bringToFront = (id: string) => {
-    setQuestsState(prev => {
-      const maxZ = Math.max(...prev.map(q => q.zIndex || 1));
-      return prev.map(q =>
-        q.id === id ? { ...q, zIndex: maxZ + 1 } : q
+    setQuestsState((prev) => {
+      const maxZ = Math.max(...prev.map((q) => q.zIndex || 1));
+      const next = prev.map((q) =>
+        q.id === id ? { ...q, zIndex: maxZ + 1 } : q,
       );
+      saveBoardLayout(layoutStorageKey, questStateToLayoutMap(next));
+      return next;
     });
   };
 
@@ -738,6 +798,7 @@ export function QuestBoard({
     const dy = e.clientY - d.startY;
     if (!d.moved && (Math.abs(dx) > UI.DRAG_THRESHOLD_PX || Math.abs(dy) > UI.DRAG_THRESHOLD_PX)) {
       d.moved = true;
+      boardDragActiveRef.current = true;
       setDraggingId(d.id);
     }
     const rect = board.getBoundingClientRect();
@@ -754,17 +815,31 @@ export function QuestBoard({
       percentX = Math.max(0, Math.min(percentX, 100));
       percentY = Math.max(0, Math.min(percentY, 100));
     }
-    setQuestsState(prev =>
-      prev.map(q =>
-        q.id === d.id ? { ...q, x: percentX, y: percentY } : q
-      )
+    setQuestsState((prev) =>
+      prev.map((q) =>
+        q.id === d.id ? { ...q, x: percentX, y: percentY } : q,
+      ),
     );
+    if (dragRef.current && dragRef.current.id === d.id) {
+      dragRef.current.lastX = percentX;
+      dragRef.current.lastY = percentY;
+    }
   }
 
   function handleCardMouseUp() {
-    if (dragRef.current?.moved) {
-      didDragRef.current = dragRef.current.id;
+    const d = dragRef.current;
+    const moved = d?.moved;
+    if (moved && d) {
+      didDragRef.current = d.id;
+      const next = questStateRef.current.map((q) =>
+        q.id === d.id
+          ? { ...q, x: d.lastX ?? q.x, y: d.lastY ?? q.y }
+          : q,
+      );
+      saveBoardLayout(layoutStorageKey, questStateToLayoutMap(next));
+      setQuestsState(next);
     }
+    boardDragActiveRef.current = false;
     setDraggingId(null);
     window.removeEventListener("mousemove", handleCardMouseMove);
     window.removeEventListener("mouseup", handleCardMouseUp);

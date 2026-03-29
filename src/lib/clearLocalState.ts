@@ -12,17 +12,23 @@ import { useFriendsStore } from "@/store/friends";
 import { useStreakStore } from "@/store/streak";
 import { hydrateLearnedVerbsFromExtension } from "@/utils/format/text";
 import { useIdentityStore } from "@/store/identity";
+import { useBoardStore } from "@/store/board";
 import { useTutorialStore } from "@/onboarding/tutorialStore";
+import { useBoardLayoutStore } from "@/store/boardLayout";
+import { clearBoardLayoutLocalStorageKeys } from "@/lib/boardLayoutStorage";
 
 
 export function clearLocalState(options?: {
   clearStorageKeys?: boolean;
   closeOverlays?: boolean;
   quietWrites?: boolean;
+  /** When false, keeps userCode (e.g. in-app data reset while session stays valid). */
+  resetIdentity?: boolean;
 }) {
   const clearStorage = options?.clearStorageKeys ?? true;
   const closeOverlays = options?.closeOverlays ?? true;
   const quiet = options?.quietWrites ?? false;
+  const resetIdentity = options?.resetIdentity ?? true;
 
   const defaultUser = createDefaultUserData();
 
@@ -57,7 +63,14 @@ export function clearLocalState(options?: {
   useStreakStore.setState({ currentDays: 0, lastCompletion: "" });
   hydrateLearnedVerbsFromExtension([]);
 
-  useIdentityStore.getState().reset();
+  if (resetIdentity) {
+    useIdentityStore.getState().reset();
+  }
+
+  useBoardLayoutStore.getState().reset();
+  clearBoardLayoutLocalStorageKeys();
+
+  useBoardStore.getState().setBoards([]);
 
   candidateStore.clear();
   clusterStore.clear();

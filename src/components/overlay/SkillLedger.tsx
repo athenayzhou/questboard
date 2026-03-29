@@ -9,12 +9,23 @@ import { useSkillStore } from "../../store/skill";
 import { useNameStore } from "../../store/name";
 import { DECAY, MS } from "../../utils/constants";
 import { NameSkill } from "../secondary/NameSkill";
-import type { Mastery, Skill } from "../../types/skills";
+import type { Mastery, Skill, XPEvent } from "../../types/skills";
 import type { PendingSkill } from "../../store/name";
 import { useMasteryStore } from "../../store/mastery";
 import { IconPencil, IconX } from "../ui/icons";
 import { formatDateUsSlash } from "../../utils/format/date";
 import { xpEventActivityLabel } from "../../utils/xpEventLabel";
+
+function barXpFromEvents(skill: Skill, events: XPEvent[]): number {
+  const firstSeenAt = skill.firstSeenAt ?? 0;
+  if (firstSeenAt <= 0) return skill.xp;
+  return Math.max(
+    0,
+    events
+      .filter((e) => e.skillId === skill.id && e.timestamp >= firstSeenAt)
+      .reduce((s, e) => s + e.amount, 0),
+  );
+}
 
 type SortKey = "name" | "level" | "lastSeen";
 type LedgerTab = "skills" | "pending";
@@ -46,16 +57,21 @@ export function SkillLedger() {
     const now = nowMs;
     const DORMANT_AFTER = DECAY.DORMANT_THRESHOLD_DAYS * MS.DAY;
     const skills = Object.values(skillsRecord);
-    return skills.map((skill) => ({
-      id: skill.id,
-      skillId: skill.id,
-      name: skill.name,
-      xp: skill.xp,
-      level: levelToProgress(skill.xp).level,
-      lastSeenAt: skill.lastSeenAt ?? 0,
-      isDormant: skill.lastSeenAt ? now - skill.lastSeenAt > DORMANT_AFTER : true,
-    }));
-  }, [skillsRecord, nowMs]);
+    return skills.map((skill) => {
+      const firstSeenAt = skill.firstSeenAt ?? 0;
+      const barXp = barXpFromEvents(skill, xpEvents);
+      return {
+        id: skill.id,
+        skillId: skill.id,
+        name: skill.name,
+        xp: barXp,
+        level: levelToProgress(barXp).level,
+        lastSeenAt: skill.lastSeenAt ?? 0,
+        firstSeenAt,
+        isDormant: skill.lastSeenAt ? now - skill.lastSeenAt > DORMANT_AFTER : true,
+      };
+    });
+  }, [skillsRecord, xpEvents, nowMs]);
 
   const selectedSkill = useMemo(
     () => ledgerEntries.find((s) => s.id === selectedSkillId) ?? null,
@@ -101,9 +117,15 @@ export function SkillLedger() {
     if (!mastery) return [];
     const idSet = new Set(mastery.skillIds ?? []);
     return [...xpEvents]
-      .filter((e) => e.skillId && idSet.has(e.skillId))
+      .filter((e) => {
+        if (!e.skillId || !idSet.has(e.skillId)) return false;
+        const sk = skillsRecord[e.skillId];
+        const fs = sk?.firstSeenAt ?? 0;
+        if (fs > 0 && e.timestamp < fs) return false;
+        return true;
+      })
       .sort((a, b) => b.timestamp - a.timestamp);
-  }, [selectedMasteryId, masteries, xpEvents]);
+  }, [selectedMasteryId, masteries, xpEvents, skillsRecord]);
 
   function selectSkill(id: string) {
     setRenamingMastery(null);
@@ -313,7 +335,9 @@ export function SkillLedger() {
                 <h3 className="mastery-section-heading">skills in this path</h3>
                 <ul className="mastery-contributing-list">
                   {contributingSkills.map((skill) => {
-                    const { level } = levelToProgress(skill.xp);
+                    const { level } = levelToProgress(
+                      barXpFromEvents(skill, xpEvents),
+                    );
                     return (
                       <li key={skill.id}>
                         <button

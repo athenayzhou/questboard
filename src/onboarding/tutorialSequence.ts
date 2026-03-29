@@ -13,7 +13,7 @@ export function allowedPointerSpotlightIds(
 ): ReadonlySet<string> {
   if (!step) return new Set();
   const ids = new Set<string>([step]);
-  if (step === "active-strip") ids.add("active-handle");
+  if (step === "pinned-strip") ids.add("pinned-handle");
   if (step === "qp-accept") ids.add("board-tutorial-card-available");
   if (step === "board-tutorial-card-available") ids.add("qp-accept");
   if (step === "qp-pin") ids.add("board-tutorial-card-accepted");
@@ -31,7 +31,7 @@ export function shouldBlockTutorialPointerEvent(target: EventTarget | null): boo
   if (!(target instanceof Element)) return false;
 
   if (target.closest(".tutorial-spotlight-skip")) return false;
-  if (target.closest(".active-quest-handle")) return false;
+  if (target.closest(".pinned-quest-handle")) return false;
   if (
     target.closest(
       '[data-spotlight="board-tab-available"], [data-spotlight="board-tab-accepted"]',
@@ -50,7 +50,7 @@ export function shouldBlockTutorialPointerEvent(target: EventTarget | null): boo
     if (ds) {
       if (step.startsWith("entry-") && ds === "qp-accept") return false;
       if (allowed.has(ds)) return false;
-      if (ds === "active-strip" && !allowed.has("active-strip")) {
+      if (ds === "pinned-strip" && !allowed.has("pinned-strip")) {
         el = el.parentElement;
         continue;
       }

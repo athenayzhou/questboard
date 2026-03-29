@@ -6,6 +6,6 @@ export function spotlightIdCompletesStepOnClick(
 ): boolean {
   if (!step) return false;
   if (step === clickedId) return true;
-  if (step === "active-strip" && clickedId === "active-handle") return true;
+  if (step === "pinned-strip" && clickedId === "pinned-handle") return true;
   return false;
 }

@@ -5,6 +5,7 @@ import { withTransaction } from "@/lib/db";
 import { ensureSharedBoardsSchema } from "@/lib/sharedBoardsDb";
 import { assignUserCodeIfMissing } from "@/lib/userCode";
 import { emitBoardEvent } from "@/lib/sharedBoardsDb";
+import { normalizeSharedBoardQuestRowData } from "@/lib/sharedBoardQuestData";
 import { z } from "zod";
 
 type JsonRow = { data: unknown };
@@ -43,7 +44,10 @@ export async function GET(req: Request, ctx: { params: Promise<{ boardId: string
         `select data from shared_board_quests where board_id = $1::uuid order by created_at desc`,
         [boardId],
       );
-      return NextResponse.json({ ok: true, quests: res.rows.map((r) => r.data) });
+      return NextResponse.json({
+        ok: true,
+        quests: res.rows.map((r) => normalizeSharedBoardQuestRowData(r.data)),
+      });
     });
     return quests;
   } catch (e) {
