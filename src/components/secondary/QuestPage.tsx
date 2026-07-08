@@ -442,7 +442,8 @@ export function QuestPage({
             {!isShared &&
               !isCollabQuest &&
               !isSystemGeneratedQuest(quest) &&
-              friends.some((f) => f.id !== GOLDIE_FRIEND_ID) && (
+              friends.some((f) => f.id !== GOLDIE_FRIEND_ID &&
+              quest.status !== "accepted") && (
               <div className="quest-board-invite-wrap" ref={sendMenuRef}>
                 <button
                   type="button"
@@ -483,7 +484,8 @@ export function QuestPage({
             {!isShared &&
               !isCollabQuest &&
               !isSystemGeneratedQuest(quest) &&
-              friends.some((f) => f.id !== GOLDIE_FRIEND_ID) && (
+              friends.some((f) => f.id !== GOLDIE_FRIEND_ID &&
+              quest.status !== "accepted") && (
               <div className="quest-board-invite-wrap" ref={inviteCollabRef}>
                 <button
                   type="button"

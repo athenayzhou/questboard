@@ -252,7 +252,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       scheduleQuestSync();
       return { quests: next };
     });
-    showToast("success", "quest deleted");
+    // showToast("success", "quest deleted");
   },
 
   acceptQuest: (id) => {
